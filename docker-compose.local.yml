@@ -1,0 +1,40 @@
+
+
+version: "3.5"
+
+services:
+  # The Django Web App
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.local
+    image: &app app
+    environment:
+      - PYTHONUNBUFFERED=1
+    restart: always
+    command: bash -c "python manage.py runserver 0.0.0.0:8000"
+    user: ${CURRENT_UID}
+    env_file: &envfile
+      - .env
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./:/home/app
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    depends_on:
+      - db
+
+  db:
+    image: "postgres:15-alpine"
+    env_file: *envfile
+    environment:
+      POSTGRES_PASSWORD: sreejesh
+    ports:
+      - "5431:5432"
+    volumes:
+      - /home/hp/ms_one_postgres:/var/lib/postgresql/data
+      - ./initdb:/docker-entrypoint-initdb.d
