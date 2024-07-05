@@ -2,32 +2,30 @@ from dj_rest_auth.serializers import LoginSerializer
 from allauth.account import app_settings as allauth_settings
 from rest_framework import serializers
 from .models import *
-
-
-
+from django.contrib.auth import authenticate
 
 
 class CustomLoginSerializer(LoginSerializer):
-    username = None  # Remove the default username field
+    username = None  
+    email = serializers.EmailField(required=True, allow_blank=False)
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields[allauth_settings.USER_MODEL_USERNAME_FIELD] = serializers.CharField(
-            required=False
-        )
+    def validate(self, attrs):
+        email = attrs.get('email')
+        password = attrs.get('password')
 
-    def _validate_email(self, email, password):
-        # Validate the email and password
-        user = self.authenticate(email=email, password=password)
-        if user:
-            if not user.is_active:
-                raise serializers.ValidationError("User account is disabled.")
-            return user
+        if email and password:
+            user = authenticate(request=self.context.get('request'), username=email, password=password)  # Pass email as username
+            if user:
+                if not user.is_active:
+                    raise serializers.ValidationError("User account is disabled.")
+            else:
+                raise serializers.ValidationError("Unable to log in with provided credentials.")
         else:
-            raise serializers.ValidationError(
-                "Unable to log in with provided credentials."
-            )
-        
+            raise serializers.ValidationError('Must include "email" and "password".')
+
+        attrs['user'] = user
+        return attrs
+ 
 class AddEmployeeSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -64,3 +62,7 @@ class JobcardSerializer(serializers.ModelSerializer):
         fields ='__all__'
 
 
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ["user_img","role","branch","passport_nmbr","visa_type","visa_expiry","address","country","state","phone_personal"]

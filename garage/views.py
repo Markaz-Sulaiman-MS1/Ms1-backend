@@ -14,12 +14,25 @@ from rest_framework.views import APIView
 
 class CustomLoginView(LoginView):
     serializer_class = CustomLoginSerializer
-
+    def get_response(self):
+        response = super().get_response()
+        
+        if response.status_code == status.HTTP_200_OK:
+            user_data = UserSerializer(self.user).data
+            response.data["user"] = user_data
+        return response 
+    
+class RetrieveUser(generics.RetrieveAPIView):
+    # permission_classes = [IsAuthenticated]
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    lookup_field = "id"
+    
 class AddEmplpyee(generics.CreateAPIView):
     # permission_classes = [IsAuthenticated]
     queryset = Employee.objects.all()
     serializer_class = AddEmployeeSerializer
-
+    
 class UpdatePayment(generics.UpdateAPIView):
     # permission_classes = [IsAuthenticated]
     queryset = Employee.objects.all()
@@ -77,7 +90,6 @@ class ListJobcards(generics.ListAPIView):
 
     def get_queryset(self):
         job_type = self.kwargs.get('job_type')
-
         return JobCard.objects.filter(status = job_type) 
 
     
