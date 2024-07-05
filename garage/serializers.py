@@ -65,4 +65,4 @@ class JobcardSerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ["user_img","role","branch","passport_nmbr","visa_type","visa_expiry","address","country","state","phone_personal"]
+        exclude = ['password']
