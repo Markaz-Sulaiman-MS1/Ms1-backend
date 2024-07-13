@@ -8,6 +8,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.http import FileResponse, HttpResponse,JsonResponse
 from rest_framework.views import APIView
+from rest_framework_simplejwt.tokens import RefreshToken
 
 
 
@@ -20,6 +21,10 @@ class CustomLoginView(LoginView):
         if response.status_code == status.HTTP_200_OK:
             user_data = UserSerializer(self.user).data
             response.data["user"] = user_data
+
+            refresh = RefreshToken.for_user(self.user)
+            response.data['refresh'] = str(refresh)
+            response.data['access'] = str(refresh.access_token)
         return response 
     
 class RetrieveUser(generics.RetrieveAPIView):
@@ -89,12 +94,16 @@ class ListJobcards(generics.ListAPIView):
     serializer_class = JobcardSerializer
 
     def get_queryset(self):
-        job_type = self.kwargs.get('job_type')
+        job_type = self.request.query_params.get('status')
         return JobCard.objects.filter(status = job_type) 
 
     
 
-
+class RetrieveJobs(generics.RetrieveAPIView):
+    # permission_classes = [IsAuthenticated]
+    queryset = JobCard.objects.all()
+    serializer_class = JobcardSerializer
+    lookup_field = "id"
 
 
 

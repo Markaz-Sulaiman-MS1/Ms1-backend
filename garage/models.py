@@ -19,9 +19,13 @@ class User (AbstractUser,TimestampedUUIDModel):
     country = models.CharField(max_length=100,null=True,blank=True)
     state = models.CharField(max_length=100,null=True,blank=True)
     phone_personal = models.CharField(max_length=100,null=True,blank=True)
+    email = models.EmailField(unique=True) 
     
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username']
+
+    class Meta:
+        unique_together = ('email', 'username')
 
 
 class Employee (TimestampedUUIDModel):

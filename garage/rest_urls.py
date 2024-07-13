@@ -14,6 +14,8 @@ urlpatterns = [
     path("add_jobcard/", AddJobcard.as_view(), name="add-jobcard"),#to add the jobcard
     path("list_jobcard/", ListJobcards.as_view(), name="list-jobcard"),#to list the jobcard
     path("retrieve_user/<uuid:id>/", RetrieveUser.as_view(), name="retrieve_user"),#to get the details of a user
+    path("retrieve_jobs/<uuid:id>/", RetrieveJobs.as_view(), name="retrieve_jobs"),#to get the details of a job
+
     
     
 
