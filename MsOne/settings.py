@@ -30,7 +30,7 @@ SECRET_KEY = "django-insecure-_t45^bwtm$@(7hf3=nvqd7r4#x$18-8uwx_v6$bw(@7jfut3rk
 DEBUG = True
 
 
-ALLOWED_HOSTS = ["https://api.ms1admin.live"]
+ALLOWED_HOSTS = ["api.ms1admin.live"]
 
 
 # Application definition
