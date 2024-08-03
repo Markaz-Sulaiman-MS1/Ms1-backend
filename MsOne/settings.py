@@ -150,6 +150,10 @@ USE_TZ = True
 STATIC_URL = "static/"
 STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 
+AWS_S3_FILE_OVERWRITE = False
+DEFAULT_FILE_STORAGE = "common.media_storage.MediaStorage"
+S3_BUCKET_NAME = os.environ.get("S3_BUCKET_NAME", "assets.ms1admin.live")
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
@@ -157,11 +161,10 @@ STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 
-AWS_STORAGE_BUCKET_NAME = os.getenv("AWS_STORAGE_BUCKET_NAME")
-AWS_S3_REGION_NAME = os.getenv("AWS_S3_REGION_NAME")
-
 CSRF_TRUSTED_ORIGINS = [
-    "https://api.ms1admin.live",
+    # "https://api.ms1admin.live",
+    "https://www.ms1admin.live",
+    "https://ms1admin.live",
 ]
 
 CORS_ALLOWED_ORIGINS = [
