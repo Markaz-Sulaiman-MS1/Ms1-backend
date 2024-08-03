@@ -30,7 +30,7 @@ SECRET_KEY = "django-insecure-_t45^bwtm$@(7hf3=nvqd7r4#x$18-8uwx_v6$bw(@7jfut3rk
 DEBUG = True
 
 
-ALLOWED_HOSTS = ["api.ms1admin.live"]
+ALLOWED_HOSTS = ["api.ms1admin.live", "ms1admin.live", "www.ms1admin.live"]
 
 
 # Application definition
@@ -165,9 +165,8 @@ CSRF_TRUSTED_ORIGINS = [
 ]
 
 CORS_ALLOWED_ORIGINS = [
-    # "http://localhost:5173",
-    # "http://127.0.0.1:5173",
-    "https://api.ms1admin.live",
+    "https://www.ms1admin.live",
+    "https://ms1admin.live",
 ]
 
 
