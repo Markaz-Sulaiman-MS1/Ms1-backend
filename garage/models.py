@@ -27,13 +27,19 @@ class User(AbstractUser, TimestampedUUIDModel):
 
 
 class Employee(TimestampedUUIDModel):
-
+    RIYADH = 'Riyadh'
+    JEDDAH = 'Jeddah'
+    branch_choices = ((RIYADH,RIYADH),(JEDDAH,JEDDAH))
+    PROFESSIONALVISA = 'Professional_visa'
+    DRIVER_VISA = 'Driver_visa'
+    NOTSPONSOREDVISA = 'Not_sponsored_visa'
+    visa_choices = ((PROFESSIONALVISA,PROFESSIONALVISA),(DRIVER_VISA,DRIVER_VISA),(NOTSPONSOREDVISA,NOTSPONSOREDVISA))
     emp_name = models.CharField(max_length=100, null=True, blank=True)
     emp_img = models.ImageField(upload_to="employees", null=True, blank=True)
     role = models.CharField(max_length=100, null=True, blank=True)
-    branch = models.CharField(max_length=100, null=True, blank=True)
+    branch = models.CharField(max_length=100,choices=branch_choices, null=True, blank=True)
     passport_nmbr = models.CharField(max_length=100, null=True, blank=True)
-    visa_type = models.CharField(max_length=100, null=True, blank=True)
+    visa_type = models.CharField(max_length=100, null=True,choices=visa_choices, blank=True)
     visa_expiry = models.DateField(null=True, blank=True)
     address = models.TextField(null=True, blank=True)
     country = models.CharField(max_length=100, null=True, blank=True)

@@ -66,3 +66,20 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         exclude = ['password']
+
+
+class TechnicianSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Technician
+        fields ='__all__'
+
+
+class SparePartsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SpareParts
+        fields ='__all__'
+
+class IssuesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Issues
+        fields ='__all__'
