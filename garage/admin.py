@@ -68,11 +68,22 @@ class JobcardAdmin(admin.ModelAdmin):
          'email',
 
      )
+class TechnicianAdmin(admin.ModelAdmin):
+     list_display = (
+         'id',
+         'employee',
+         'labour_charge',
+         'job_card',
+
+     )
+
 
 admin.site.register(User, MyUserAdmin)
 admin.site.register(Employee, EmployeeAdmin)
 admin.site.register(Remarks, RemarksAdmin)
 admin.site.register(JobCard, JobcardAdmin)
+admin.site.register(Technician, TechnicianAdmin)
+
 
 
 
