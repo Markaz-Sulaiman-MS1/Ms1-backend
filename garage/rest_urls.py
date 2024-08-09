@@ -18,6 +18,23 @@ urlpatterns = [
     path("update_jobs/<uuid:id>/", UpdateJobs.as_view(), name="update_jobs"),
     path("add_technicians/", AddTechnician.as_view(), name="add_technicians"),
     path("update_technician/<uuid:id>/", UpdateTechnician.as_view(), name="update_technician"),
+    path("delete_technician/<uuid:id>/", DeleteTechniciane.as_view(), name="delete_technician"),
+    path("add_spareparts/", AddSpareparts.as_view(), name="add_spareparts"),
+    path("update_spareparts/<uuid:id>/", UpdateSpareparts.as_view(), name="update_spareparts"),
+    path("delete_spareparts/<uuid:id>/", DeleteSpareparts.as_view(), name="delete_spareparts"),
+    path("add_issues/", AddIssues.as_view(), name="add_issues"),
+    path("update_issues/<uuid:id>/", UpdateIssues.as_view(), name="update_issues"),
+    path("delete_issues/<uuid:id>/", DeleteIssues.as_view(), name="delete_issues"),
+
+
+
+
+
+
+
+
+
+
 
     
 
