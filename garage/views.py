@@ -130,6 +130,13 @@ class DeleteTechniciane(generics.DestroyAPIView):
     serializer_class = TechnicianSerializer
     lookup_field = "id"
 
+class ListTechnician(generics.ListAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = TechnicianSerializer
+    def get_queryset(self):
+        job = self.request.query_params.get('job')
+        job_card = JobCard.objects.get(id=job)
+        return Technician.objects.filter(job_card = job_card) 
 
 class AddSpareparts(generics.CreateAPIView):
     permission_classes = [IsAuthenticated]
@@ -148,6 +155,14 @@ class DeleteSpareparts(generics.DestroyAPIView):
     queryset = SpareParts.objects.all()
     serializer_class = SparePartsSerializer
     lookup_field = "id"
+
+class ListSpareparts(generics.ListAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = SparePartsSerializer
+    def get_queryset(self):
+        job = self.request.query_params.get('job')
+        job_card = JobCard.objects.get(id=job)
+        return SpareParts.objects.filter(job_card = job_card) 
 
 
 class AddIssues(generics.CreateAPIView):
@@ -168,3 +183,11 @@ class DeleteIssues(generics.DestroyAPIView):
     serializer_class = IssuesSerializer
     lookup_field = "id"
 
+class ListIssues(generics.ListAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = IssuesSerializer
+    def get_queryset(self):
+        job = self.request.query_params.get('job')
+        job_card = JobCard.objects.get(id=job)
+        return Issues.objects.filter(job_card = job_card) 
+    
