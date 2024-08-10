@@ -69,17 +69,21 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class TechnicianSerializer(serializers.ModelSerializer):
+    employee = AddEmployeeSerializer()
+    job_card = JobcardSerializer()
     class Meta:
         model = Technician
-        fields ='__all__'
+        fields = ["employee","labour_charge","job_card"]
 
 
 class SparePartsSerializer(serializers.ModelSerializer):
+    job_card = JobcardSerializer()
     class Meta:
         model = SpareParts
-        fields ='__all__'
+        fields =["name","category","cost","quantity","job_card"]
 
 class IssuesSerializer(serializers.ModelSerializer):
+    job_card = JobcardSerializer()
     class Meta:
         model = Issues
-        fields ='__all__'
+        fields =["heading","description","job_card","completed"]
