@@ -67,6 +67,10 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         exclude = ['password']
 
+class TechnicianAddSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Technician
+        fields = '__all__'
 
 class TechnicianSerializer(serializers.ModelSerializer):
     employee = AddEmployeeSerializer()
@@ -75,12 +79,22 @@ class TechnicianSerializer(serializers.ModelSerializer):
         model = Technician
         fields = ["employee","labour_charge","job_card"]
 
+class SparePartsAddSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SpareParts
+        fields ='__all__'
 
 class SparePartsSerializer(serializers.ModelSerializer):
     job_card = JobcardSerializer()
     class Meta:
         model = SpareParts
         fields =["name","category","cost","quantity","job_card"]
+
+
+class IssuesAddSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Issues
+        fields ='__all__'
 
 class IssuesSerializer(serializers.ModelSerializer):
     job_card = JobcardSerializer()

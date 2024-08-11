@@ -115,19 +115,18 @@ class UpdateJobs(generics.UpdateAPIView):
 class AddTechnician(generics.CreateAPIView):
     permission_classes = [IsAuthenticated]
     queryset = Technician.objects.all()
-    serializer_class = TechnicianSerializer
-
+    serializer_class = TechnicianAddSerializer
 
 class UpdateTechnician(generics.UpdateAPIView):
     permission_classes = [IsAuthenticated]
     queryset = Technician.objects.all()
-    serializer_class = TechnicianSerializer
+    serializer_class = TechnicianAddSerializer
     lookup_field = "id"
 
 class DeleteTechniciane(generics.DestroyAPIView):
     permission_classes = [IsAuthenticated]
     queryset = Technician.objects.all()
-    serializer_class = TechnicianSerializer
+    serializer_class = TechnicianAddSerializer
     lookup_field = "id"
 
 class ListTechnician(generics.ListAPIView):
@@ -141,19 +140,18 @@ class ListTechnician(generics.ListAPIView):
 class AddSpareparts(generics.CreateAPIView):
     permission_classes = [IsAuthenticated]
     queryset = SpareParts.objects.all()
-    serializer_class = SparePartsSerializer
-
+    serializer_class = SparePartsAddSerializer
 
 class UpdateSpareparts(generics.UpdateAPIView):
     permission_classes = [IsAuthenticated]
     queryset = SpareParts.objects.all()
-    serializer_class = SparePartsSerializer
+    serializer_class = SparePartsAddSerializer
     lookup_field = "id"
 
 class DeleteSpareparts(generics.DestroyAPIView):
     permission_classes = [IsAuthenticated]
     queryset = SpareParts.objects.all()
-    serializer_class = SparePartsSerializer
+    serializer_class = SparePartsAddSerializer
     lookup_field = "id"
 
 class ListSpareparts(generics.ListAPIView):
@@ -168,19 +166,19 @@ class ListSpareparts(generics.ListAPIView):
 class AddIssues(generics.CreateAPIView):
     permission_classes = [IsAuthenticated]
     queryset = Issues.objects.all()
-    serializer_class = IssuesSerializer
+    serializer_class = IssuesAddSerializer
 
 
 class UpdateIssues(generics.UpdateAPIView):
     permission_classes = [IsAuthenticated]
     queryset = Issues.objects.all()
-    serializer_class = IssuesSerializer
+    serializer_class = IssuesAddSerializer
     lookup_field = "id"
 
 class DeleteIssues(generics.DestroyAPIView):
     permission_classes = [IsAuthenticated]
     queryset = Issues.objects.all()
-    serializer_class = IssuesSerializer
+    serializer_class = IssuesAddSerializer
     lookup_field = "id"
 
 class ListIssues(generics.ListAPIView):
