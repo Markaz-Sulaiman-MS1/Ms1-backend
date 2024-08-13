@@ -77,7 +77,7 @@ class TechnicianSerializer(serializers.ModelSerializer):
     job_card = JobcardSerializer()
     class Meta:
         model = Technician
-        fields = ["employee","labour_charge","job_card"]
+        fields = ["employee","labour_charge","job_card","id"]
 
 class SparePartsAddSerializer(serializers.ModelSerializer):
     class Meta:
@@ -88,7 +88,7 @@ class SparePartsSerializer(serializers.ModelSerializer):
     job_card = JobcardSerializer()
     class Meta:
         model = SpareParts
-        fields =["name","category","cost","quantity","job_card"]
+        fields =["name","category","cost","quantity","job_card","id"]
 
 
 class IssuesAddSerializer(serializers.ModelSerializer):
@@ -100,4 +100,4 @@ class IssuesSerializer(serializers.ModelSerializer):
     job_card = JobcardSerializer()
     class Meta:
         model = Issues
-        fields =["heading","description","job_card","completed"]
+        fields =["heading","description","job_card","completed","id"]
