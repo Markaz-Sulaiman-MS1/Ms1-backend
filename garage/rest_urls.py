@@ -28,6 +28,20 @@ urlpatterns = [
     path("add_issues/", AddIssues.as_view(), name="add_issues"),
     path("update_issues/<uuid:id>/", UpdateIssues.as_view(), name="update_issues"),
     path("delete_issues/<uuid:id>/", DeleteIssues.as_view(), name="delete_issues"),
+    path("list-branch/", ListBranch.as_view(), name="list-branch"),
+    path("list-job-types/", ListJobType.as_view(), name="list-job-types"),
+    path("spare-amount/", SpareAmount.as_view(), name="spare-amount"),
+    path("list-other-expense/", ListOtherExpense.as_view(), name="list-other-expense"),
+    path("total-expense/", TotalExpense.as_view(), name="total-expense"),
+    path("add-other-expense/", AddOtherExpense.as_view(), name="add-other-expense"),
+    path("list-customers/", ListCustomers.as_view(), name="list-customers"),
+
+
+
+
+
+
+
 
 
 

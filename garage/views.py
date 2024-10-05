@@ -9,6 +9,7 @@ from rest_framework import status
 from django.http import FileResponse, HttpResponse,JsonResponse
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
+from django.db.models import Sum
 
 
 
@@ -67,7 +68,7 @@ class AddRemark(generics.CreateAPIView):
     permission_classes = [IsAuthenticated]
     queryset = Remarks.objects.all()
     serializer_class = AddRemarkSerializer
-
+          
 class ListRemark(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = ListRemarkSerializer
@@ -89,16 +90,15 @@ class AddJobcard(generics.CreateAPIView):
     serializer_class = JobcardSerializer
 
 
-
 class ListJobcards(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = JobcardSerializer
 
     def get_queryset(self):
         job_type = self.request.query_params.get('status')
-        return JobCard.objects.filter(status = job_type) 
+        
+        return JobCard.objects.filter(status = job_type)
 
-    
 
 class RetrieveJobs(generics.RetrieveAPIView):
     permission_classes = [IsAuthenticated]
@@ -107,7 +107,7 @@ class RetrieveJobs(generics.RetrieveAPIView):
     lookup_field = "id"
 
 class UpdateJobs(generics.UpdateAPIView):
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
     queryset = JobCard.objects.all()
     serializer_class = JobcardSerializer
     lookup_field = "id"
@@ -188,4 +188,79 @@ class ListIssues(generics.ListAPIView):
         job = self.request.query_params.get('job')
         job_card = JobCard.objects.get(id=job)
         return Issues.objects.filter(job_card = job_card) 
+    
+
+class ListBranch(generics.ListAPIView):
+    permission_classes = [IsAuthenticated]
+    queryset = Branch.objects.all()
+    serializer_class = BranchSerializer
+
+class ListJobType(generics.ListAPIView):
+    permission_classes = [IsAuthenticated]
+    queryset = JobType.objects.all()
+    serializer_class = JobTypeSerializer
+
+class SpareAmount(generics.ListAPIView):
+    permission_classes = [IsAuthenticated]
+    def get(self, request):
+        job_card =  self.request.query_params.get("job_card")
+        job_card_obj = JobCard.objects.get(id=job_card)
+        cabin_ac = JobType.objects.get(name = "Cabin Ac")
+        reefer_unit = JobType.objects.get(name = "Reefer Unit")
+        ref_body_work = JobType.objects.get(name = "Ref Body Work")
+        chiller_unit = JobType.objects.get(name = "Chiller Unit")
+
+        spare_cabin_ac = SpareParts.objects.filter(job_card=job_card_obj, job_type=cabin_ac).aggregate(spare_cabin_ac=Sum('cost'))['spare_cabin_ac']
+        spare_reefer_unit = SpareParts.objects.filter(job_card=job_card_obj,job_type=reefer_unit).aggregate(spare_reefer_unit=Sum('cost'))['spare_reefer_unit']
+        spare_ref_body_work = SpareParts.objects.filter(job_card=job_card_obj,job_type=ref_body_work).aggregate(spare_ref_body_work=Sum('cost'))['spare_ref_body_work']
+        spare_chiller_unit = SpareParts.objects.filter(job_card=job_card_obj,job_type=chiller_unit).aggregate(spare_chiller_unit=Sum('cost'))['spare_chiller_unit']
+        total = spare_cabin_ac + spare_reefer_unit + spare_ref_body_work + spare_chiller_unit
+        spare_cost = {
+            "spare_cabin_ac":spare_cabin_ac,
+            "spare_reefer_unit":spare_reefer_unit,
+            "spare_ref_body_work":spare_ref_body_work,
+            "spare_chiller_unit":spare_chiller_unit,
+            "total_amount":total,
+        }
+        return Response(spare_cost)
+    
+class ListOtherExpense(generics.ListAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = OtherExpenseSerializer
+    def get_queryset(self):
+        job_card =  self.request.query_params.get("job_card")
+        return OtherExpense.objects.filter(job_card=job_card)
+
+class AddOtherExpense(generics.CreateAPIView):
+    permission_classes = [IsAuthenticated]
+    queryset=OtherExpense.objects.all()
+    serializer_class = OtherExpenseSerializer
+
+
+class TotalExpense(generics.ListAPIView):
+    permission_classes = [IsAuthenticated]
+    def get(self, request):
+      job_card =  self.request.query_params.get("job_card")
+      job_card_obj = JobCard.objects.get(id=job_card)
+      total_spare_cost = SpareParts.objects.filter(job_card=job_card_obj).aggregate(total_spare_cost=Sum('cost'))['total_spare_cost']
+      total_other_expense_cost = OtherExpense.objects.filter(job_card=job_card_obj).aggregate(total_other_expense_cost=Sum('amount'))['total_other_expense_cost']
+      total = {
+          "total_amount":total_spare_cost + total_other_expense_cost,
+      }
+      return Response(total)
+    
+class ListCustomers(generics.ListAPIView):
+    permission_classes = [IsAuthenticated]
+    queryset = Customer.objects.all()
+    serializer_class = CustomerSerializer
+
+
+class AddCustomers(generics.CreateAPIView):
+    permission_classes = [IsAuthenticated]
+    queryset = Customer.objects.all()
+    serializer_class = CustomerSerializer
+
+
+
+
     

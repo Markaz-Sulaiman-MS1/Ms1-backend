@@ -63,8 +63,6 @@ class RemarksAdmin(admin.ModelAdmin):
 class JobcardAdmin(admin.ModelAdmin):
      list_display = (
          'id',
-         'customer_name',
-         'customer_type',
          'email',
 
      )
@@ -76,13 +74,46 @@ class TechnicianAdmin(admin.ModelAdmin):
          'job_card',
 
      )
+class BranchAdmin(admin.ModelAdmin):
+     list_display = (
+         'id',
+         'name',
 
+     )
+
+class CustomerAdmin(admin.ModelAdmin):
+     list_display = (
+         'id',
+         'name',
+         'customer_type',
+
+     )
+
+class JobTypeAdmin(admin.ModelAdmin):
+     list_display = (
+         'id',
+         'name',
+     )
+
+class BillAmountAdmin(admin.ModelAdmin):
+     list_display = (
+         'id',
+         'amount',
+     )
 
 admin.site.register(User, MyUserAdmin)
 admin.site.register(Employee, EmployeeAdmin)
 admin.site.register(Remarks, RemarksAdmin)
 admin.site.register(JobCard, JobcardAdmin)
 admin.site.register(Technician, TechnicianAdmin)
+admin.site.register(Branch, BranchAdmin)
+admin.site.register(Customer, CustomerAdmin)
+admin.site.register(JobType, JobTypeAdmin)
+admin.site.register(BillAmount, BillAmountAdmin)
+
+
+
+
 
 
 

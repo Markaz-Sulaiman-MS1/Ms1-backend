@@ -57,10 +57,64 @@ class ListRemarkSerializer(serializers.ModelSerializer):
         fields = ["remarks","employee","created_at","updated_at"]
 
 class JobcardSerializer(serializers.ModelSerializer):
+    
+    cabin_ac = serializers.CharField(write_only=True, required=False)
+    reefer_unit = serializers.CharField(write_only=True, required=False)
+    chiller_unit = serializers.CharField(write_only=True, required=False)
+    ref_body = serializers.CharField(write_only=True, required=False)
     class Meta:
         model = JobCard
         fields ='__all__'
 
+    def update(self, instance, validated_data):
+    # Pop fields that are not part of the JobCard model but are needed for BillAmount
+        cabin_ac = validated_data.pop('cabin_ac', None)
+        reefer_unit = validated_data.pop('reefer_unit', None)
+        chiller_unit = validated_data.pop('chiller_unit', None)
+        ref_body = validated_data.pop('ref_body', None) 
+        print("cabin_ac",cabin_ac)
+
+        # Pop job_type separately as it's a ManyToMany field
+        job_type_data = validated_data.pop('job_type', None)
+        print("job_type_data",job_type_data)
+
+        # Update JobCard instance (except for the ManyToManyField)
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+
+        # Update the ManyToManyField using the set() method
+        if job_type_data:
+            instance.job_type.set(job_type_data)
+
+        # Handle the BillAmount updates
+        cabic_ac_job_type = JobType.objects.get(name='cabin ac')
+        reefer_unit_job_type = JobType.objects.get(name='reefer unit')
+        chiller_unit_job_type = JobType.objects.get(name='chiller unit')
+        ref_body_job_type = JobType.objects.get(name='ref body')
+
+        if cabin_ac:
+            BillAmount.objects.create(
+                job_card=instance,
+                job_type= cabic_ac_job_type, amount= cabin_ac
+            )
+        if reefer_unit:
+            BillAmount.objects.create(
+                job_card=instance,
+                job_type= reefer_unit_job_type,amount=reefer_unit
+            )
+        if chiller_unit:
+            BillAmount.objects.create(
+                job_card=instance,
+                job_type= chiller_unit_job_type, amount= chiller_unit
+            )
+        if ref_body:
+            BillAmount.objects.create(
+                job_card=instance,
+                job_type= ref_body_job_type, amount= ref_body
+            )
+
+        return instance
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -101,3 +155,25 @@ class IssuesSerializer(serializers.ModelSerializer):
     class Meta:
         model = Issues
         fields =["heading","description","job_card","completed","id"]
+
+class BranchSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Branch
+        fields ='__all__'
+
+
+class JobTypeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = JobType
+        fields ='__all__'
+
+
+class OtherExpenseSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OtherExpense
+        fields ='__all__'
+
+class CustomerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Customer
+        fields ='__all__'
