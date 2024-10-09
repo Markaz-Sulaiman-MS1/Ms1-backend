@@ -16,6 +16,7 @@ urlpatterns = [
     path("retrieve_user/<uuid:id>/", RetrieveUser.as_view(), name="retrieve_user"),#to get the details of a user
     path("retrieve_jobs/<uuid:id>/", RetrieveJobs.as_view(), name="retrieve_jobs"),#to get the details of a job
     path("update_jobs/<uuid:id>/", UpdateJobs.as_view(), name="update_jobs"),
+    
     path("add_technicians/", AddTechnician.as_view(), name="add_technicians"),
     path("list_technicians/", ListTechnician.as_view(), name="list_technicians"),
     path("list_spareparts/", ListSpareparts.as_view(), name="list_spareparts"),
@@ -28,6 +29,20 @@ urlpatterns = [
     path("add_issues/", AddIssues.as_view(), name="add_issues"),
     path("update_issues/<uuid:id>/", UpdateIssues.as_view(), name="update_issues"),
     path("delete_issues/<uuid:id>/", DeleteIssues.as_view(), name="delete_issues"),
+    path("list-branch/", ListBranch.as_view(), name="list-branch"),
+    path("list-job-types/", ListJobType.as_view(), name="list-job-types"),
+    path("spare-amount/", SpareAmount.as_view(), name="spare-amount"),
+    path("list-other-expense/", ListOtherExpense.as_view(), name="list-other-expense"),
+    path("total-expense/", TotalExpense.as_view(), name="total-expense"),
+    path("add-other-expense/", AddOtherExpense.as_view(), name="add-other-expense"),
+    path("list-customers/", ListCustomers.as_view(), name="list-customers"),
+
+
+
+
+
+
+
 
 
 

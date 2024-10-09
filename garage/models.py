@@ -58,31 +58,56 @@ class Remarks(TimestampedUUIDModel):
     remarks = models.TextField(null=True, blank=True)
     employee = models.ForeignKey(Employee, on_delete=models.CASCADE)
 
+class Branch(TimestampedUUIDModel):
+    name = models.CharField(max_length=200,null=True,blank=True)
 
-class JobCard(TimestampedUUIDModel):
+class Customer(TimestampedUUIDModel):
     INDIVIDUAL = "Individual"
     COMPANY = "Company"
-    company_type_choices = ((INDIVIDUAL, INDIVIDUAL), (COMPANY, COMPANY))
+    customer_type_choices = ((INDIVIDUAL, INDIVIDUAL), (COMPANY, COMPANY))
+    name = models.CharField(max_length=200,null=True,blank=True)
+    customer_type = models.CharField(
+        max_length=100, choices=customer_type_choices, null=True, blank=True
+    )
+    prefered_currency = models.CharField(max_length=100, null=True, blank=True)
+    permanent_address = models.TextField(max_length=100, null=True, blank=True)
+    country = models.CharField(max_length=100, null=True, blank=True)
+    state = models.CharField(max_length=100, null=True, blank=True)
+    town = models.CharField(max_length=100, null=True, blank=True)
+
+class JobType(TimestampedUUIDModel):
+    name = models.CharField(max_length=200,null=True,blank=False)
+
+class JobCard(TimestampedUUIDModel):
     IN_PROGRESS = "In progress"
     CLOSED = "Closed"
     ON_HOLD = "On Hold"
     status_choices = ((CLOSED, CLOSED), (ON_HOLD, ON_HOLD), (IN_PROGRESS, IN_PROGRESS))
+    CASH = "Cash"
+    CREDIT = "Credit"
+    bill_choice = ((CASH,CASH),(CREDIT,CREDIT))
     vehicle_nmbr = models.CharField(max_length=100, null=True, blank=True)
-    customer_type = models.CharField(
-        max_length=100, choices=company_type_choices, null=True, blank=True
-    )
-    customer_name = models.CharField(max_length=100, null=True, blank=True)
     phn_nmbr = models.CharField(max_length=100, null=True, blank=True)
     email = models.EmailField(null=True, blank=True)
     address = models.TextField(null=True, blank=True)
     vehicle_type = models.CharField(max_length=100, null=True, blank=True)
     model = models.CharField(max_length=100, null=True, blank=True)
     fuel_type = models.CharField(max_length=100, null=True, blank=True)
-    odometer_reading = models.IntegerField(null=True, blank=True)
+    engine_hour_info = models.IntegerField(null=True, blank=True)
     status = models.CharField(
         max_length=100, choices=status_choices, null=True, blank=True
     )
     remarks = models.CharField(max_length=200, null=True, blank=True)
+    branch = models.ForeignKey(Branch,on_delete=models.SET_NULL,null=True)
+    customer = models.ForeignKey(Customer,on_delete=models.SET_NULL,null=True)
+    make_and_model = models.CharField(max_length=200,null=True,blank=True)
+    job_type = models.ManyToManyField(JobType)
+    bill_type = models.CharField(max_length=200,choices=bill_choice,null=True)
+
+class BillAmount(TimestampedUUIDModel):
+    job_type = models.ForeignKey(JobType,on_delete=models.SET_NULL,null=True)
+    amount = models.FloatField(null=True,blank=True)
+    job_card = models.ForeignKey(JobCard, on_delete=models.CASCADE)
 
 
 class Technician(TimestampedUUIDModel):
@@ -101,8 +126,18 @@ class Issues(TimestampedUUIDModel):
 
 
 class SpareParts(TimestampedUUIDModel):
+    NEW = "New"
+    USED = "Used"
+    category_choices = ((NEW,NEW),(USED,USED))
     name = models.CharField(max_length=200, null=True, blank=True)
-    category = models.CharField(max_length=200, null=True, blank=True)
+    category = models.CharField(max_length=200,choices=category_choices,null=True, blank=True)
     cost = models.FloatField(null=True, blank=True)
     quantity = models.IntegerField(null=True, blank=True)
+    job_type = models.ForeignKey(JobType,on_delete=models.SET_NULL,null=True)
     job_card = models.ForeignKey(JobCard, on_delete=models.CASCADE)
+
+class OtherExpense(TimestampedUUIDModel):
+    name = models.CharField(max_length=200, null=True, blank=True)
+    job_type = models.ForeignKey(JobType,on_delete=models.SET_NULL,null=True)
+    job_card = models.ForeignKey(JobCard, on_delete=models.CASCADE)
+    amount = models.FloatField(null=True,blank=True)
