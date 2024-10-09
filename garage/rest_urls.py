@@ -16,6 +16,7 @@ urlpatterns = [
     path("retrieve_user/<uuid:id>/", RetrieveUser.as_view(), name="retrieve_user"),#to get the details of a user
     path("retrieve_jobs/<uuid:id>/", RetrieveJobs.as_view(), name="retrieve_jobs"),#to get the details of a job
     path("update_jobs/<uuid:id>/", UpdateJobs.as_view(), name="update_jobs"),
+    
     path("add_technicians/", AddTechnician.as_view(), name="add_technicians"),
     path("list_technicians/", ListTechnician.as_view(), name="list_technicians"),
     path("list_spareparts/", ListSpareparts.as_view(), name="list_spareparts"),
