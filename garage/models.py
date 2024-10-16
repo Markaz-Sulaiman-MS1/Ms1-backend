@@ -81,8 +81,8 @@ class JobType(TimestampedUUIDModel):
 class JobCard(TimestampedUUIDModel):
     IN_PROGRESS = "In progress"
     CLOSED = "Closed"
-    ON_HOLD = "On Hold"
-    status_choices = ((CLOSED, CLOSED), (ON_HOLD, ON_HOLD), (IN_PROGRESS, IN_PROGRESS))
+    CREDIT = "Credit"
+    status_choices = ((CLOSED, CLOSED), (CREDIT, CREDIT), (IN_PROGRESS, IN_PROGRESS))
     CASH = "Cash"
     CREDIT = "Credit"
     bill_choice = ((CASH,CASH),(CREDIT,CREDIT))
@@ -103,6 +103,7 @@ class JobCard(TimestampedUUIDModel):
     make_and_model = models.CharField(max_length=200,null=True,blank=True)
     job_type = models.ManyToManyField(JobType)
     bill_type = models.CharField(max_length=200,choices=bill_choice,null=True)
+    advance_payment = models.FloatField(null=True,blank=True)
 
 class BillAmount(TimestampedUUIDModel):
     job_type = models.ForeignKey(JobType,on_delete=models.SET_NULL,null=True)

@@ -87,7 +87,7 @@ class ListRemark(generics.ListAPIView):
 class AddJobcard(generics.CreateAPIView):
     permission_classes = [IsAuthenticated]
     queryset = JobCard.objects.all()
-    serializer_class = JobcardSerializer
+    serializer_class = AddJobCardSerializer
 
 
 class ListJobcards(generics.ListAPIView):
@@ -103,11 +103,11 @@ class ListJobcards(generics.ListAPIView):
 class RetrieveJobs(generics.RetrieveAPIView):
     permission_classes = [IsAuthenticated]
     queryset = JobCard.objects.all()
-    serializer_class = JobcardSerializer
+    serializer_class = RetrieveJobSerializer
     lookup_field = "id"
 
 class UpdateJobs(generics.UpdateAPIView):
-    # permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]
     queryset = JobCard.objects.all()
     serializer_class = JobcardSerializer
     lookup_field = "id"
@@ -251,14 +251,28 @@ class TotalExpense(generics.ListAPIView):
     
 class ListCustomers(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
-    queryset = Customer.objects.all()
     serializer_class = CustomerSerializer
-
+    def get_queryset(self):
+        customer_type = self.request.query_params.get('customer_type')
+        
+        return JobCard.objects.filter(customer_type = customer_type)
 
 class AddCustomers(generics.CreateAPIView):
     permission_classes = [IsAuthenticated]
     queryset = Customer.objects.all()
     serializer_class = CustomerSerializer
+
+class UpdateCustomer(generics.UpdateAPIView):
+    permission_classes = [IsAuthenticated]
+    queryset = Customer.objects.all()
+    serializer_class = CustomerSerializer
+    lookup_field = "id"
+
+class DeleteCustomer(generics.DestroyAPIView):
+    permission_classes = [IsAuthenticated]
+    queryset = Customer.objects.all()
+    serializer_class = CustomerSerializer
+    lookup_field = "id"
 
 
 
