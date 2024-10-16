@@ -36,6 +36,12 @@ urlpatterns = [
     path("total-expense/", TotalExpense.as_view(), name="total-expense"),
     path("add-other-expense/", AddOtherExpense.as_view(), name="add-other-expense"),
     path("list-customers/", ListCustomers.as_view(), name="list-customers"),
+    path("add-customers/", AddCustomers.as_view(), name="add-customers"),
+    path("edit-customers/", UpdateCustomer.as_view(), name="add-customers"),
+    path("delete-customers/", DeleteCustomer.as_view(), name="add-customers"),
+
+
+
 
 
 

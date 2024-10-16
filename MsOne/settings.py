@@ -30,7 +30,7 @@ SECRET_KEY = "django-insecure-_t45^bwtm$@(7hf3=nvqd7r4#x$18-8uwx_v6$bw(@7jfut3rk
 DEBUG = True
 
 
-ALLOWED_HOSTS = ["api.ms1admin.live", "ms1admin.live", "www.ms1admin.live"]
+ALLOWED_HOSTS = ["api.ms1admin.live", "ms1admin.live", "www.ms1admin.live","127.0.0.1"]
 
 
 # Application definition
@@ -89,16 +89,23 @@ WSGI_APPLICATION = "MsOne.wsgi.application"
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
 
+# DATABASES = {
+#     "default": {
+#         "ENGINE": "django.db.backends.postgresql",
+#         "NAME": os.environ.get("DATABASE_NAME"),
+#         "USER": os.environ.get("DATABASE_USER"),
+#         "PASSWORD": os.environ.get("DATABASE_PASSWORD"),
+#         "HOST": os.environ.get("DATABASE_HOST"),
+#         "PORT": os.environ.get("DATABASE_PORT"),
+#     }
+# }
 DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": os.environ.get("DATABASE_NAME"),
-        "USER": os.environ.get("DATABASE_USER"),
-        "PASSWORD": os.environ.get("DATABASE_PASSWORD"),
-        "HOST": os.environ.get("DATABASE_HOST"),
-        "PORT": os.environ.get("DATABASE_PORT"),
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
+
 
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
