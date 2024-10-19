@@ -254,8 +254,9 @@ class ListCustomers(generics.ListAPIView):
     serializer_class = CustomerSerializer
     def get_queryset(self):
         customer_type = self.request.query_params.get('customer_type')
-        
-        return JobCard.objects.filter(customer_type = customer_type)
+        if customer_type:  
+            return Customer.objects.filter(customer_type = customer_type)
+        return Customer.objects.all()
 
 class AddCustomers(generics.CreateAPIView):
     permission_classes = [IsAuthenticated]
