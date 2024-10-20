@@ -182,6 +182,37 @@ class CustomerSerializer(serializers.ModelSerializer):
         model = Customer
         fields ='__all__'
 
+
+class ContactPersonSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ContactPerson
+        fields = ['name', 'designation', 'email', 'phone_nmbr','customer'] 
+
+class AddCustomerSerializer(serializers.ModelSerializer):
+    contact_persons = ContactPersonSerializer(many=True)  
+
+    class Meta:
+        model = Customer
+        fields = ['name','customer_type','prefered_currency','permanent_address','country',
+                  'state','town','contact_persons']
+
+    def create(self, validated_data):
+      
+        contact_persons_data = validated_data.pop('contact_persons', [])
+        customer = Customer.objects.create(**validated_data)
+        for contact_person_data in contact_persons_data:
+            ContactPerson.objects.create(customer=customer, **contact_person_data)
+        return customer
+    
+class ListCustomerSerializer(serializers.ModelSerializer):
+    contact_persons = ContactPersonSerializer(many=True) 
+    class Meta:
+        model = Customer
+        fields = ['name','customer_type','prefered_currency','permanent_address','country',
+                  'state','town','contact_persons'] 
+
+
+
 class RetrieveJobSerializer(serializers.ModelSerializer):
     branch = BranchSerializer()
     customer = CustomerSerializer()

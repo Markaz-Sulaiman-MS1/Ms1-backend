@@ -142,3 +142,10 @@ class OtherExpense(TimestampedUUIDModel):
     job_type = models.ForeignKey(JobType,on_delete=models.SET_NULL,null=True)
     job_card = models.ForeignKey(JobCard, on_delete=models.CASCADE)
     amount = models.FloatField(null=True,blank=True)
+
+class ContactPerson(TimestampedUUIDModel):
+    name = models.CharField(max_length=200, null=True, blank=True)
+    designation = models.CharField(max_length=200, null=True, blank=True)
+    email = models.EmailField(null=True,blank=True)
+    phone_nmbr = models.CharField(max_length=100, null=True, blank=True)
+    customer = models.ForeignKey(Customer,on_delete=models.CASCADE)

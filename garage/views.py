@@ -92,7 +92,7 @@ class AddJobcard(generics.CreateAPIView):
 
 class ListJobcards(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
-    serializer_class = JobcardSerializer
+    serializer_class = RetrieveJobSerializer
 
     def get_queryset(self):
         job_type = self.request.query_params.get('status')
@@ -236,7 +236,6 @@ class AddOtherExpense(generics.CreateAPIView):
     queryset=OtherExpense.objects.all()
     serializer_class = OtherExpenseSerializer
 
-
 class TotalExpense(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
     def get(self, request):
@@ -251,7 +250,7 @@ class TotalExpense(generics.ListAPIView):
     
 class ListCustomers(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
-    serializer_class = CustomerSerializer
+    serializer_class = ListCustomerSerializer
     def get_queryset(self):
         customer_type = self.request.query_params.get('customer_type')
         if customer_type:  
@@ -261,7 +260,7 @@ class ListCustomers(generics.ListAPIView):
 class AddCustomers(generics.CreateAPIView):
     permission_classes = [IsAuthenticated]
     queryset = Customer.objects.all()
-    serializer_class = CustomerSerializer
+    serializer_class = AddCustomerSerializer
 
 class UpdateCustomer(generics.UpdateAPIView):
     permission_classes = [IsAuthenticated]
