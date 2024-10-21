@@ -186,7 +186,7 @@ class CustomerSerializer(serializers.ModelSerializer):
 class ContactPersonSerializer(serializers.ModelSerializer):
     class Meta:
         model = ContactPerson
-        fields = ['name', 'designation', 'email', 'phone_nmbr','customer'] 
+        fields = ['name', 'designation', 'email', 'phone_nmbr'] 
 
 class AddCustomerSerializer(serializers.ModelSerializer):
     contact_persons = ContactPersonSerializer(many=True)  
@@ -217,10 +217,14 @@ class RetrieveJobSerializer(serializers.ModelSerializer):
     branch = BranchSerializer()
     customer = CustomerSerializer()
     job_type = JobTypeSerializer(many=True)
+    technician = serializers.SerializerMethodField() 
 
     class Meta:
         model = JobCard
         fields = ["vehicle_nmbr","phn_nmbr","email","address","vehicle_type","model","fuel_type",
                   "engine_hour_info","status","remarks","branch","customer","make_and_model",
-                  "job_type","bill_type"]
+                  "job_type","bill_type","technician"]
     
+    def get_technician(self, obj):
+        technician = Technician.objects.filter(job_card=obj)
+        return TechnicianAddSerializer(technician,  many=True).data
