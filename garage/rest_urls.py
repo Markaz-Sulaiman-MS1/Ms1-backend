@@ -38,7 +38,7 @@ urlpatterns = [
     path("list-customers/", ListCustomers.as_view(), name="list-customers"),
     path("add-customers/", AddCustomers.as_view(), name="add-customers"),
     path("edit-customers/", UpdateCustomer.as_view(), name="add-customers"),
-    path("delete-customers/", DeleteCustomer.as_view(), name="add-customers"),
+    path("delete-customers/<uuid:id>/", DeleteCustomer.as_view(), name="add-customers"),
 
 
 

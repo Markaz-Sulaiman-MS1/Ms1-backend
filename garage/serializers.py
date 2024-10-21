@@ -209,7 +209,7 @@ class ListCustomerSerializer(serializers.ModelSerializer):
     contact_persons = ContactPersonSerializer(many=True) 
     class Meta:
         model = Customer
-        fields = ['name','customer_type','prefered_currency','permanent_address','country',
+        fields = ['id','name','customer_type','prefered_currency','permanent_address','country',
                   'state','town','contact_persons','phn_nmbr','whatsapp','landmark','zip_code',
                   'email'] 
 
