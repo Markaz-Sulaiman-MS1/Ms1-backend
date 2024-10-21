@@ -148,4 +148,4 @@ class ContactPerson(TimestampedUUIDModel):
     designation = models.CharField(max_length=200, null=True, blank=True)
     email = models.EmailField(null=True,blank=True)
     phone_nmbr = models.CharField(max_length=100, null=True, blank=True)
-    customer = models.ForeignKey(Customer,on_delete=models.CASCADE)
+    customer = models.ForeignKey(Customer,on_delete=models.CASCADE,related_name='contact_persons')
