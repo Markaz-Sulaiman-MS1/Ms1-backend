@@ -74,7 +74,11 @@ class Customer(TimestampedUUIDModel):
     country = models.CharField(max_length=100, null=True, blank=True)
     state = models.CharField(max_length=100, null=True, blank=True)
     town = models.CharField(max_length=100, null=True, blank=True)
-
+    phn_nmbr = models.CharField(max_length=100, null=True, blank=True)
+    whatsapp = models.CharField(max_length=100, null=True, blank=True)
+    landmark = models.CharField(max_length=100, null=True, blank=True)
+    zip_code = models.CharField(max_length=100, null=True, blank=True)
+    email = models.EmailField(null=True, blank=True)
 class JobType(TimestampedUUIDModel):
     name = models.CharField(max_length=200,null=True,blank=False)
 

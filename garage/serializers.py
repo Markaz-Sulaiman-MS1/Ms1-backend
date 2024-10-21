@@ -194,7 +194,8 @@ class AddCustomerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Customer
         fields = ['name','customer_type','prefered_currency','permanent_address','country',
-                  'state','town','contact_persons']
+                  'state','town','contact_persons','phn_nmbr','whatsapp','landmark','zip_code',
+                  'email']
 
     def create(self, validated_data):
       
@@ -209,7 +210,8 @@ class ListCustomerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Customer
         fields = ['name','customer_type','prefered_currency','permanent_address','country',
-                  'state','town','contact_persons'] 
+                  'state','town','contact_persons','phn_nmbr','whatsapp','landmark','zip_code',
+                  'email'] 
 
 
 
