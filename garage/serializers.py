@@ -221,7 +221,7 @@ class RetrieveJobSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = JobCard
-        fields = ["vehicle_nmbr","phn_nmbr","email","address","vehicle_type","model","fuel_type",
+        fields = ["id","vehicle_nmbr","phn_nmbr","email","address","vehicle_type","model","fuel_type",
                   "engine_hour_info","status","remarks","branch","customer","make_and_model",
                   "job_type","bill_type","technician"]
     
