@@ -274,7 +274,30 @@ class DeleteCustomer(generics.DestroyAPIView):
     serializer_class = CustomerSerializer
     lookup_field = "id"
 
+class AddExpense(generics.CreateAPIView):
+    permission_classes = [IsAuthenticated]
+    queryset = Expense.objects.all()
+    serializer_class = AddExpenseSerializer
 
 
+class ListExpense(generics.ListAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = AddExpenseSerializer
+    def get_queryset(self):
+        type = self.request.query_params.get('type')
+        if type:  
+            return Expense.objects.filter(type = type)
+        return Customer.objects.all()
 
-    
+class UpdateExpense(generics.UpdateAPIView):
+    permission_classes = [IsAuthenticated]
+    queryset = Expense.objects.all()
+    serializer_class = AddExpenseSerializer
+    lookup_field = "id"
+
+class DeleteExpense(generics.DestroyAPIView):
+    permission_classes = [IsAuthenticated]
+    queryset = Expense.objects.all()
+    serializer_class = AddExpenseSerializer
+    lookup_field = "id"
+

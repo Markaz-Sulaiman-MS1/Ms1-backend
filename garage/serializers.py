@@ -67,31 +67,35 @@ class JobcardSerializer(serializers.ModelSerializer):
         fields ='__all__'
 
     def update(self, instance, validated_data):
-    # Pop fields that are not part of the JobCard model but are needed for BillAmount
+
         cabin_ac = validated_data.pop('cabin_ac', None)
         reefer_unit = validated_data.pop('reefer_unit', None)
         chiller_unit = validated_data.pop('chiller_unit', None)
-        ref_body = validated_data.pop('ref_body', None) 
-        print("cabin_ac",cabin_ac)
+        ref_body = validated_data.pop('ref_body', None)
 
-        # Pop job_type separately as it's a ManyToMany field
+        bill_type = validated_data.pop('bill_type', None)
+        if bill_type and bill_type == 'Cash':
+            Income.objects.create(
+                
+            )
+
+
         job_type_data = validated_data.pop('job_type', None)
-        print("job_type_data",job_type_data)
 
-        # Update JobCard instance (except for the ManyToManyField)
+
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
         instance.save()
 
-        # Update the ManyToManyField using the set() method
         if job_type_data:
             instance.job_type.set(job_type_data)
 
-        # Handle the BillAmount updates
         cabic_ac_job_type = JobType.objects.get(name='cabin ac')
         reefer_unit_job_type = JobType.objects.get(name='reefer unit')
         chiller_unit_job_type = JobType.objects.get(name='chiller unit')
         ref_body_job_type = JobType.objects.get(name='ref body')
+
+
 
         if cabin_ac:
             BillAmount.objects.create(
@@ -230,3 +234,9 @@ class RetrieveJobSerializer(serializers.ModelSerializer):
     def get_technician(self, obj):
         technician = Technician.objects.filter(job_card=obj)
         return TechnicianAddSerializer(technician,  many=True).data
+    
+class AddExpenseSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Expense
+        fields = '__all__' 
+

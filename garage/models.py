@@ -153,3 +153,28 @@ class ContactPerson(TimestampedUUIDModel):
     email = models.EmailField(null=True,blank=True)
     phone_nmbr = models.CharField(max_length=100, null=True, blank=True)
     customer = models.ForeignKey(Customer,on_delete=models.CASCADE,related_name='contact_persons')
+
+
+class Expense(TimestampedUUIDModel):
+    JOB = "Job"
+    SALARY = "Salary"
+    OTHER = "Other"
+    type_choices = ((JOB,JOB),(SALARY,SALARY),(OTHER,OTHER))
+    name = models.CharField(max_length=200, null=True, blank=True)
+    description = models.TextField(null=True, blank=True)
+    total_cost = models.FloatField(null=True,blank=True)
+    date = models.DateField(null=True, blank=True)
+    type = models.CharField(max_length=200,choices=type_choices,null=True, blank=True)
+    salary = models.FloatField(null=True,blank=True)
+    other_expense = models.FloatField(null=True,blank=True)
+
+class Income(TimestampedUUIDModel):
+    JOB = "Job"
+    OTHER = "Other"
+    type_choices = ((JOB,JOB),(OTHER,OTHER))
+    name = models.CharField(max_length=200, null=True, blank=True)
+    description = models.TextField(null=True, blank=True)
+    total_income = models.FloatField(null=True,blank=True)
+    date = models.DateField(null=True, blank=True)
+    job_card = models.OneToOneField(JobCard, on_delete=models.CASCADE,null=True,blank=True)
+    type = models.CharField(max_length=200,choices=type_choices,null=True, blank=True)

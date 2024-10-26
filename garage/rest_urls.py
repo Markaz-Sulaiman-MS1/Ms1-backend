@@ -37,8 +37,16 @@ urlpatterns = [
     path("add-other-expense/", AddOtherExpense.as_view(), name="add-other-expense"),
     path("list-customers/", ListCustomers.as_view(), name="list-customers"),
     path("add-customers/", AddCustomers.as_view(), name="add-customers"),
-    path("edit-customers/", UpdateCustomer.as_view(), name="add-customers"),
+    path("edit-customers/<uuid:id>/", UpdateCustomer.as_view(), name="add-customers"),
     path("delete-customers/<uuid:id>/", DeleteCustomer.as_view(), name="add-customers"),
+    path("add-expense/", AddExpense.as_view(), name="add-expense"),
+    path("edit-expense/<uuid:id>/", UpdateExpense.as_view(), name="update-expense"),
+    path("list-expense/", ListExpense.as_view(), name="list-expense"),
+    path("delete-expense/<uuid:id>/", DeleteExpense.as_view(), name="delete-expense"),
+
+
+
+
 
 
 
