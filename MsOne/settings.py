@@ -177,6 +177,8 @@ CSRF_TRUSTED_ORIGINS = [
 CORS_ALLOWED_ORIGINS = [
     "https://www.ms1admin.live",
     "https://ms1admin.live",
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
 ]
 
 
