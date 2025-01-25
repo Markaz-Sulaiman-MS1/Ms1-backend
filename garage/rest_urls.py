@@ -15,7 +15,8 @@ urlpatterns = [
     path("list_jobcard/", ListJobcards.as_view(), name="list-jobcard"),#to list the jobcard
     path("retrieve_user/<uuid:id>/", RetrieveUser.as_view(), name="retrieve_user"),#to get the details of a user
     path("retrieve_jobs/<uuid:id>/", RetrieveJobs.as_view(), name="retrieve_jobs"),#to get the details of a job
-    path("update_jobs/<uuid:id>/", UpdateJobs.as_view(), name="update_jobs"),
+    path("update_jobs/<uuid:id>/", UpdateJobsClose.as_view(), name="update_jobs"),
+    path("update_normal_jobs/<uuid:id>/", UpdateJobs.as_view(), name="update_normal_jobs"),
     
     path("add_technicians/", AddTechnician.as_view(), name="add_technicians"),
     path("list_technicians/", ListTechnician.as_view(), name="list_technicians"),
@@ -43,6 +44,10 @@ urlpatterns = [
     path("edit-expense/<uuid:id>/", UpdateExpense.as_view(), name="update-expense"),
     path("list-expense/", ListExpense.as_view(), name="list-expense"),
     path("delete-expense/<uuid:id>/", DeleteExpense.as_view(), name="delete-expense"),
+    path("add-income/", AddIncome.as_view(), name="add-income"),
+    path("list-income/", ListIncome.as_view(), name="list-income"),
+
+
 
 
 
