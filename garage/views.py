@@ -393,6 +393,6 @@ class UpdateIncome(generics.UpdateAPIView):
 
 class DeleteIncome(generics.DestroyAPIView):
     permission_classes = [IsAuthenticated]
-    queryset = Expense.objects.all()
+    queryset = Income.objects.all()
     serializer_class = AddIncomeSerializer
     lookup_field = "id"
