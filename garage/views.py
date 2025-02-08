@@ -375,8 +375,13 @@ class AddIncome(generics.CreateAPIView):
 
 class ListIncome(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
-    queryset = Income.objects.all()
     serializer_class = AddIncomeSerializer
+
+    def get_queryset(self):
+        type = self.request.query_params.get("type")
+        if type:
+            return Income.objects.filter(type=type)
+        return Income.objects.all()
 
 
 class UpdateIncome(generics.UpdateAPIView):

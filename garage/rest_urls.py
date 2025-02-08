@@ -46,6 +46,10 @@ urlpatterns = [
     path("delete-expense/<uuid:id>/", DeleteExpense.as_view(), name="delete-expense"),
     path("add-income/", AddIncome.as_view(), name="add-income"),
     path("list-income/", ListIncome.as_view(), name="list-income"),
+    path("update-income/<uuid:id>/", UpdateIncome.as_view(), name="update-income"),
+    path("delete-income/<uuid:id>/", DeleteIncome.as_view(), name="delete-income"),
+
+
 
 
 
