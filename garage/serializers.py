@@ -89,8 +89,8 @@ class JobcardSerializer(serializers.ModelSerializer):
         ref_body = validated_data.pop("ref_body", None)
 
         bill_type = validated_data.pop("bill_type", None)
-        customer = validated_data.pop("customer", None)
-        customer_data = Customer.objects.get(id=customer)
+        # customer = validated_data.pop("customer", None)
+        # customer_data = Customer.objects.get(id=customer)
 
         job_type_data = validated_data.pop("job_type", None)
 
@@ -101,14 +101,14 @@ class JobcardSerializer(serializers.ModelSerializer):
         if job_type_data:
             instance.job_type.set(job_type_data)
     
-        if customer_data:
-            instance.customer.set(customer_data)
+        # if customer_data:
+        #     instance.customer.set(customer_data)
         if bill_type == "Cash":
             cabic_ac_job_type = JobType.objects.get(name="Cabin Ac")
             reefer_unit_job_type = JobType.objects.get(name="Reefer Unit")
-            chiller_unit_job_type = JobType.objects.get(name="Ref Body")
-            ref_body_job_type = JobType.objects.get(name="Chiller Unit")
-
+            chiller_unit_job_type = JobType.objects.get(name="Chiller Unit")
+            ref_body_job_type = JobType.objects.get(name="Ref Body")
+             
             if cabin_ac:
                 BillAmount.objects.create(
                     job_card=instance, job_type=cabic_ac_job_type, amount=cabin_ac
