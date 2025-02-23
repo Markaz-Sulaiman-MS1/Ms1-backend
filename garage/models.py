@@ -108,6 +108,10 @@ class JobCard(TimestampedUUIDModel):
     job_type = models.ManyToManyField(JobType)
     bill_type = models.CharField(max_length=200,choices=bill_choice,null=True)
     advance_payment = models.FloatField(null=True,blank=True)
+    average_daily_usage = models.IntegerField(null=True, blank=True)
+    next_service_hour = models.IntegerField(null=True, blank=True)
+    next_service_date = models.DateField(null=True, blank=True)
+
 
 class BillAmount(TimestampedUUIDModel):
     job_type = models.ForeignKey(JobType,on_delete=models.SET_NULL,null=True)
