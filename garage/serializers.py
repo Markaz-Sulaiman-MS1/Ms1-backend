@@ -69,8 +69,19 @@ class ListRemarkSerializer(serializers.ModelSerializer):
         model = Remarks
         fields = ["remarks", "employee", "created_at", "updated_at"]
 
+class BranchSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Branch
+        fields = "__all__"  
 
+class CustomerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Customer
+        fields = "__all__" 
 class JobcardSerializer(serializers.ModelSerializer):
+
+    branch = BranchSerializer(read_only=True)  
+    customer = CustomerSerializer(read_only=True)
 
     cabin_ac = serializers.CharField(write_only=True, required=False)
     reefer_unit = serializers.CharField(write_only=True, required=False)
@@ -79,7 +90,10 @@ class JobcardSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = JobCard
-        fields = "__all__"
+        fields = ["vehicle_nmbr","phn_nmbr","email","address","vehicle_type","model",
+                  "fuel_type","engine_hour_info","status","remarks","branch","customer"
+                  ,"make_and_model","job_type","bill_type","advance_payment",
+                  "average_daily_usage","next_service_hour","next_service_date"]
 
     def update(self, instance, validated_data):
 
