@@ -93,7 +93,7 @@ class JobcardSerializer(serializers.ModelSerializer):
         fields = ["vehicle_nmbr","phn_nmbr","email","address","vehicle_type","model",
                   "fuel_type","engine_hour_info","status","remarks","branch","customer"
                   ,"make_and_model","job_type","bill_type","advance_payment",
-                  "average_daily_usage","next_service_hour","next_service_date"]
+                  "average_daily_usage","next_service_hour","next_service_date","cabin_ac","reefer_unit","chiller_unit","ref_body"]
 
     def update(self, instance, validated_data):
 
