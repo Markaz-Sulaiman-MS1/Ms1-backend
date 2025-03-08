@@ -114,6 +114,9 @@ class JobcardSerializer(serializers.ModelSerializer):
 
         job_type_data = validated_data.pop("job_type", None)
 
+        if bill_type:
+            instance.bill_type = bill_type
+
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
         instance.save()
