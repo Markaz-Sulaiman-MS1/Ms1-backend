@@ -69,6 +69,11 @@ class ListRemarkSerializer(serializers.ModelSerializer):
         model = Remarks
         fields = ["remarks", "employee", "created_at", "updated_at"]
 
+class JobTypeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = JobType
+        fields = "__all__"
+
 class BranchSerializer(serializers.ModelSerializer):
     class Meta:
         model = Branch
@@ -82,6 +87,7 @@ class JobcardSerializer(serializers.ModelSerializer):
 
     branch = BranchSerializer(read_only=True)  
     customer = CustomerSerializer(read_only=True)
+    job_type = JobTypeSerializer(many=True)
 
     cabin_ac = serializers.CharField(write_only=True, required=False)
     reefer_unit = serializers.CharField(write_only=True, required=False)
@@ -215,10 +221,7 @@ class BranchSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-class JobTypeSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = JobType
-        fields = "__all__"
+
 
 
 class OtherExpenseSerializer(serializers.ModelSerializer):
@@ -318,6 +321,7 @@ class RetrieveJobSerializer(serializers.ModelSerializer):
             "job_type",
             "bill_type",
             "technician",
+            "advance_payment",
         ]
 
     def get_technician(self, obj):
