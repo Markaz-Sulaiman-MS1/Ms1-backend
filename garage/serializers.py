@@ -159,6 +159,7 @@ class JobcardSerializer(serializers.ModelSerializer):
             total_income=total_amount,
             job_card_id=instance.id,
             date=instance.created_at,
+            name = instance.customer.name
         )
         return instance
 
