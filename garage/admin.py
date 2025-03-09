@@ -113,6 +113,11 @@ class ExpenseAdmin(admin.ModelAdmin):
          'created_at',
      )
 
+class Advance_amountAdmin(admin.ModelAdmin):
+     list_display = (
+         'id',
+         'created_at',
+     )
 
 
 admin.site.register(User, MyUserAdmin)
@@ -126,6 +131,8 @@ admin.site.register(JobType, JobTypeAdmin)
 admin.site.register(BillAmount, BillAmountAdmin)
 admin.site.register(ContactPerson, ContactPersonAdmin)
 admin.site.register(Expense, ExpenseAdmin)
+admin.site.register(Advance_amount, Advance_amountAdmin)
+
 
 
 
