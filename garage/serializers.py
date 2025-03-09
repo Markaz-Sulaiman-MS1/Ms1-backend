@@ -298,6 +298,13 @@ class ListCustomerSerializer(serializers.ModelSerializer):
         ]
 
 
+class BillAmountSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = BillAmount
+        fields = "__all__"
+        
+
 
 class RetrieveJobSerializer(serializers.ModelSerializer):
     branch = BranchSerializer()
@@ -332,14 +339,11 @@ class RetrieveJobSerializer(serializers.ModelSerializer):
 
     def get_technician(self, obj):
         technician = Technician.objects.filter(job_card=obj)
-        return TechnicianAddSerializer(technician, many=True).data
+        return TechnicianAddSerializer(technician, many=True).data 
     
     def get_bill_amount(self, obj):
-
-        total_amount = BillAmount.objects.filter(job_card=obj).aggregate(
-                    Sum("amount")
-                )["amount__sum"]
-        return total_amount
+        bill_amount = BillAmount.objects.filter(job_card=obj)
+        return BillAmountSerializer(bill_amount, many=True).data     
 
 
 
