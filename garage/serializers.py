@@ -108,14 +108,14 @@ class JobcardSerializer(serializers.ModelSerializer):
         chiller_unit = validated_data.pop("chiller_unit", None)
         ref_body = validated_data.pop("ref_body", None)
 
-        bill_type = validated_data.pop("bill_type", None)
+        # bill_type = validated_data.pop("bill_type", None)
         # customer = validated_data.pop("customer", None)
         # customer_data = Customer.objects.get(id=customer)
 
         job_type_data = validated_data.pop("job_type", None)
 
-        if bill_type:
-            instance.bill_type = bill_type
+        # if bill_type:
+        #     instance.bill_type = bill_type
 
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
@@ -126,40 +126,40 @@ class JobcardSerializer(serializers.ModelSerializer):
     
         # if customer_data:
         #     instance.customer.set(customer_data)
-        if bill_type == "Cash":
-            cabic_ac_job_type = JobType.objects.get(name="Cabin Ac")
-            reefer_unit_job_type = JobType.objects.get(name="Reefer Unit")
-            chiller_unit_job_type = JobType.objects.get(name="Chiller Unit")
-            ref_body_job_type = JobType.objects.get(name="Ref Body")
-             
-            if cabin_ac:
-                BillAmount.objects.create(
-                    job_card=instance, job_type=cabic_ac_job_type, amount=cabin_ac
-                )
-            if reefer_unit:
-                BillAmount.objects.create(
-                    job_card=instance, job_type=reefer_unit_job_type, amount=reefer_unit
-                )
-            if chiller_unit:
-                BillAmount.objects.create(
-                    job_card=instance,
-                    job_type=chiller_unit_job_type,
-                    amount=chiller_unit,
-                )
-            if ref_body:
-                BillAmount.objects.create(
-                    job_card=instance, job_type=ref_body_job_type, amount=ref_body
-                )
-            total_amount = BillAmount.objects.filter(job_card_id=instance.id).aggregate(
-                Sum("amount")
-            )["amount__sum"]
-
-            Income.objects.create(
-                type="Job",
-                total_income=total_amount,
-                job_card_id=instance.id,
-                date=instance.created_at,
+        # if bill_type == "Cash":
+        cabic_ac_job_type = JobType.objects.get(name="Cabin Ac")
+        reefer_unit_job_type = JobType.objects.get(name="Reefer Unit")
+        chiller_unit_job_type = JobType.objects.get(name="Chiller Unit")
+        ref_body_job_type = JobType.objects.get(name="Ref Body")
+            
+        if cabin_ac:
+            BillAmount.objects.create(
+                job_card=instance, job_type=cabic_ac_job_type, amount=cabin_ac
             )
+        if reefer_unit:
+            BillAmount.objects.create(
+                job_card=instance, job_type=reefer_unit_job_type, amount=reefer_unit
+            )
+        if chiller_unit:
+            BillAmount.objects.create(
+                job_card=instance,
+                job_type=chiller_unit_job_type,
+                amount=chiller_unit,
+            )
+        if ref_body:
+            BillAmount.objects.create(
+                job_card=instance, job_type=ref_body_job_type, amount=ref_body
+            )
+        total_amount = BillAmount.objects.filter(job_card_id=instance.id).aggregate(
+            Sum("amount")
+        )["amount__sum"]
+
+        Income.objects.create(
+            type="Job",
+            total_income=total_amount,
+            job_card_id=instance.id,
+            date=instance.created_at,
+        )
         return instance
 
 
@@ -298,11 +298,13 @@ class ListCustomerSerializer(serializers.ModelSerializer):
         ]
 
 
+
 class RetrieveJobSerializer(serializers.ModelSerializer):
     branch = BranchSerializer()
     customer = CustomerSerializer()
     job_type = JobTypeSerializer(many=True)
     technician = serializers.SerializerMethodField()
+    bill_amount = serializers.SerializerMethodField()
 
     class Meta:
         model = JobCard
@@ -325,11 +327,20 @@ class RetrieveJobSerializer(serializers.ModelSerializer):
             "bill_type",
             "technician",
             "advance_payment",
+            "bill_amount",
         ]
 
     def get_technician(self, obj):
         technician = Technician.objects.filter(job_card=obj)
         return TechnicianAddSerializer(technician, many=True).data
+    
+    def get_bill_amount(self, obj):
+
+        total_amount = BillAmount.objects.filter(job_card=obj).aggregate(
+                    Sum("amount")
+                )["amount__sum"]
+        return total_amount
+
 
 
 class AddExpenseSerializer(serializers.ModelSerializer):
@@ -341,4 +352,10 @@ class AddExpenseSerializer(serializers.ModelSerializer):
 class AddIncomeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Income
+        fields = "__all__"
+
+
+class AddAdvance_amountSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Advance_amount
         fields = "__all__"

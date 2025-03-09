@@ -48,6 +48,11 @@ urlpatterns = [
     path("list-income/", ListIncome.as_view(), name="list-income"),
     path("update-income/<uuid:id>/", UpdateIncome.as_view(), name="update-income"),
     path("delete-income/<uuid:id>/", DeleteIncome.as_view(), name="delete-income"),
+    path("list-advance-payment/", ListAdvance_amount.as_view(), name="list-advance-payment"),
+    path("add-advance-payment/", AddAdvance_amount.as_view(), name="add-advance-payment"),
+    path("delete-advance-payment/<uuid:id>/", DeleteAdvance_amount.as_view(), name="delete-advance-payment"),
+
+
 
 
 

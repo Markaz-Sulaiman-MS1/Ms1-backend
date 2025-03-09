@@ -182,3 +182,10 @@ class Income(TimestampedUUIDModel):
     date = models.DateField(null=True, blank=True)
     job_card = models.OneToOneField(JobCard, on_delete=models.CASCADE,null=True,blank=True)
     type = models.CharField(max_length=200,choices=type_choices,null=True, blank=True)
+
+
+
+
+class Advance_amount(TimestampedUUIDModel):
+    amount = models.FloatField(null=True,blank=True)                          
+    job_card = models.ForeignKey(JobCard, on_delete=models.CASCADE)                  

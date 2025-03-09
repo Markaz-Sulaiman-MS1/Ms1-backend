@@ -396,3 +396,25 @@ class DeleteIncome(generics.DestroyAPIView):
     queryset = Income.objects.all()
     serializer_class = AddIncomeSerializer
     lookup_field = "id"
+
+
+class AddAdvance_amount(generics.CreateAPIView):
+    permission_classes = [IsAuthenticated]
+    queryset = Advance_amount.objects.all()
+    serializer_class = AddAdvance_amountSerializer
+
+
+class ListAdvance_amount(generics.ListAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = AddAdvance_amountSerializer
+    def get_queryset(self):
+        job_card_id = self.request.query_params.get("job_card_id")
+        if job_card_id:
+            return Advance_amount.objects.filter(job_card_id=job_card_id)
+
+
+class DeleteAdvance_amount(generics.DestroyAPIView):
+    permission_classes = [IsAuthenticated]
+    queryset = Advance_amount.objects.all()
+    serializer_class = AddAdvance_amountSerializer
+    lookup_field = "id"
