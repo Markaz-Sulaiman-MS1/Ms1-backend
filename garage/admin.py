@@ -99,6 +99,7 @@ class BillAmountAdmin(admin.ModelAdmin):
      list_display = (
          'id',
          'amount',
+         'job_card',
      )
 
 class ContactPersonAdmin(admin.ModelAdmin):
