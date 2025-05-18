@@ -83,11 +83,20 @@ class CustomerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Customer
         fields = "__all__" 
+
+class BillAmountSerializer(serializers.ModelSerializer):
+    job_type = JobTypeSerializer(many=True)  # or use JobTypeSerializer if you want full details
+
+    class Meta:
+        model = BillAmount
+        fields = ['job_type', 'amount']
 class JobcardSerializer(serializers.ModelSerializer):
 
     branch = BranchSerializer(read_only=True)  
     customer = CustomerSerializer(read_only=True)
     job_type = JobTypeSerializer(many=True)
+    bill_amounts = serializers.SerializerMethodField()
+
 
     cabin_ac = serializers.CharField(write_only=True, required=False)
     reefer_unit = serializers.CharField(write_only=True, required=False)
@@ -99,7 +108,11 @@ class JobcardSerializer(serializers.ModelSerializer):
         fields = ["vehicle_nmbr","phn_nmbr","email","address","vehicle_type","model",
                   "fuel_type","engine_hour_info","status","remarks","branch","customer"
                   ,"make_and_model","job_type","bill_type","advance_payment",
-                  "average_daily_usage","next_service_hour","next_service_date","cabin_ac","reefer_unit","chiller_unit","ref_body"]
+                  "average_daily_usage","next_service_hour","next_service_date","cabin_ac","reefer_unit","chiller_unit","ref_body","bill_amounts"]
+    
+    def get_bill_amounts(self, obj):
+        bills = BillAmount.objects.filter(job_card=obj)
+        return BillAmountSerializer(bills, many=True).data 
 
     def update(self, instance, validated_data):
 
