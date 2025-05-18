@@ -51,6 +51,8 @@ urlpatterns = [
     path("list-advance-payment/", ListAdvance_amount.as_view(), name="list-advance-payment"),
     path("add-advance-payment/", AddAdvance_amount.as_view(), name="add-advance-payment"),
     path("delete-advance-payment/<uuid:id>/", DeleteAdvance_amount.as_view(), name="delete-advance-payment"),
+    path("dashboard-data/", DashboardDatas.as_view(), name="dashboard-datas"),
+
 
 
 

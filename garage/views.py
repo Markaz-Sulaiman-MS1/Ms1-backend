@@ -10,6 +10,9 @@ from django.http import FileResponse, HttpResponse, JsonResponse
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.db.models import Sum
+from django.utils import timezone
+
+
 
 
 # pylint: disable=E1101,W0702
@@ -418,3 +421,40 @@ class DeleteAdvance_amount(generics.DestroyAPIView):
     queryset = Advance_amount.objects.all()
     serializer_class = AddAdvance_amountSerializer
     lookup_field = "id"
+
+class DashboardDatas(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        filter = self.request.query_params.get("filter")
+        now = timezone.now()
+        if filter == "all":
+            total_jobs = JobCard.objects.all().count()
+            total_purchase = Expense.objects.filter(type=Expense.JOB).aggregate(total=Sum('total_cost'))['total'] or 0
+            total_expense_other =  Expense.objects.filter(type=Expense.OTHER).aggregate(total=Sum('total_cost'))['total'] or 0
+            expense_salary =   Expense.objects.filter(type=Expense.SALARY).aggregate(salary_total=Sum('salary'),other_total=Sum('other_expense'))
+            total_expense_salary = (expense_salary['salary_total'] or 0) + (expense_salary['other_total'] or 0)
+            total_expense = total_purchase + total_expense_other + total_expense_salary 
+            income_job = Income.objects.filter(type=Income.JOB,date__year=now.year,date__month=now.month).aggregate(total=Sum('total_income'))['total'] or 0
+            income_other = Income.objects.filter(type=Income.OTHER,date__year=now.year,date__month=now.month).aggregate(total=Sum('total_income'))['total'] or 0
+            total_income = income_job + income_other
+
+
+            total_purchase_month = Expense.objects.filter(type=Expense.JOB,date__year=now.year,date__month=now.month).aggregate(total=Sum('total_cost'))['total'] or 0
+            total_expense_other_month =  Expense.objects.filter(type=Expense.OTHER,date__year=now.year,date__month=now.month).aggregate(total=Sum('total_cost'))['total'] or 0
+            expense_salary_month =   Expense.objects.filter(type=Expense.SALARY,date__year=now.year,date__month=now.month).aggregate(salary_total=Sum('salary'),other_total=Sum('other_expense'))
+            total_expense_salary_month = (expense_salary_month['salary_total'] or 0) + (expense_salary_month['other_total'] or 0)
+            total_expense_month = total_purchase_month + total_expense_other_month + total_expense_salary_month
+
+            total_balance = total_income - total_expense_month   
+            total_values = {
+            "total_jobs": total_jobs,
+            "total_purchase":total_purchase,
+            "total_expense":total_expense,
+            "total_income":total_income,
+            "total_balance":total_balance
+        }
+        return Response(total_values)
+
+
+
