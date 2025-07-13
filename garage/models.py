@@ -5,6 +5,18 @@ from django.contrib.auth.models import AbstractUser
 from MsOne.models import TimestampedUUIDModel
 
 
+
+class Account(TimestampedUUIDModel):
+    company = models.CharField(max_length=200, null=True, blank=True)
+    address = models.CharField(max_length=500, null=True, blank=True)
+    
+class Branch(TimestampedUUIDModel):
+    name = models.CharField(max_length=200,null=True,blank=True)
+    account = models.ForeignKey(Account,on_delete=models.CASCADE)
+
+class Team(TimestampedUUIDModel):
+    name = models.CharField(max_length=200,null=True,blank=True)
+
 class User(AbstractUser, TimestampedUUIDModel):
 
     user_img = models.ImageField(upload_to="users", null=True, blank=True)
@@ -18,12 +30,18 @@ class User(AbstractUser, TimestampedUUIDModel):
     state = models.CharField(max_length=100, null=True, blank=True)
     phone_personal = models.CharField(max_length=100, null=True, blank=True)
     email = models.EmailField(unique=True)
+    account = models.ForeignKey(Account,on_delete=models.CASCADE,null=True)
+    branch = models.ForeignKey(Branch,on_delete=models.SET_NULL,null=True,blank=True)
+    team = models.ForeignKey(Team,on_delete=models.SET_NULL,null=True,blank=True)
+
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = ["username"]
 
     class Meta:
         unique_together = ("email", "username")
+
+
 
 
 class Employee(TimestampedUUIDModel):
@@ -37,7 +55,6 @@ class Employee(TimestampedUUIDModel):
     emp_name = models.CharField(max_length=100, null=True, blank=True)
     emp_img = models.ImageField(upload_to="employees", null=True, blank=True)
     role = models.CharField(max_length=100, null=True, blank=True)
-    branch = models.CharField(max_length=100,choices=branch_choices, null=True, blank=True)
     passport_nmbr = models.CharField(max_length=100, null=True, blank=True)
     visa_type = models.CharField(max_length=100, null=True,choices=visa_choices, blank=True)
     visa_expiry = models.DateField(null=True, blank=True)
@@ -51,15 +68,14 @@ class Employee(TimestampedUUIDModel):
     zipcode = models.CharField(max_length=100, null=True, blank=True)
     net_payable_salary = models.FloatField(null=True, blank=True)
     other_expense = models.FloatField(null=True, blank=True)
-
+    branch = models.ForeignKey(Branch,on_delete=models.SET_NULL,null=True)
 
 class Remarks(TimestampedUUIDModel):
 
     remarks = models.TextField(null=True, blank=True)
     employee = models.ForeignKey(Employee, on_delete=models.CASCADE)
 
-class Branch(TimestampedUUIDModel):
-    name = models.CharField(max_length=200,null=True,blank=True)
+
 
 class Customer(TimestampedUUIDModel):
     INDIVIDUAL = "Individual"
@@ -79,6 +95,7 @@ class Customer(TimestampedUUIDModel):
     landmark = models.CharField(max_length=100, null=True, blank=True)
     zip_code = models.CharField(max_length=100, null=True, blank=True)
     email = models.EmailField(null=True, blank=True)
+    account = models.ForeignKey(Account,on_delete=models.SET_NULL,null=True)
 class JobType(TimestampedUUIDModel):
     name = models.CharField(max_length=200,null=True,blank=False)
 
@@ -111,6 +128,7 @@ class JobCard(TimestampedUUIDModel):
     average_daily_usage = models.IntegerField(null=True, blank=True)
     next_service_hour = models.IntegerField(null=True, blank=True)
     next_service_date = models.DateField(null=True, blank=True)
+    branch = models.ForeignKey(Branch,on_delete=models.SET_NULL,null=True)
 
 
 class BillAmount(TimestampedUUIDModel):
@@ -171,6 +189,9 @@ class Expense(TimestampedUUIDModel):
     type = models.CharField(max_length=200,choices=type_choices,null=True, blank=True)
     salary = models.FloatField(null=True,blank=True)
     other_expense = models.FloatField(null=True,blank=True)
+    branch = models.ForeignKey(Branch,on_delete=models.SET_NULL,null=True)
+
+    
 
 class Income(TimestampedUUIDModel):
     JOB = "Job"
@@ -189,3 +210,5 @@ class Income(TimestampedUUIDModel):
 class Advance_amount(TimestampedUUIDModel):
     amount = models.FloatField(null=True,blank=True)                          
     job_card = models.ForeignKey(JobCard, on_delete=models.CASCADE)                  
+
+

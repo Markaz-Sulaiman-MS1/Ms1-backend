@@ -41,6 +41,10 @@ class AddEmployeeSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
+
+    
+
+
 class UpdatesalarySerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -183,10 +187,31 @@ class AddJobCardSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
+class BranchSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Branch
+        fields = ['id', 'name']
+
+
+class AccountSerializer(serializers.ModelSerializer):
+    branches = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Account
+        fields = ['id', 'company', 'address', 'branches']
+
+    def get_branches(self, obj):
+        branches = Branch.objects.filter(account=obj)
+        return BranchSerializer(branches, many=True).data
+    
+
 class UserSerializer(serializers.ModelSerializer):
+    account = AccountSerializer()
+    branch = BranchSerializer()
     class Meta:
         model = User
-        exclude = ["password"]
+        fields = ["user_img","role","branch","passport_nmbr","visa_type",
+                  "visa_expiry","address","country","state","phone_personal","email","account","branch","team"]
 
 
 class TechnicianAddSerializer(serializers.ModelSerializer):

@@ -28,10 +28,17 @@ class CustomLoginView(LoginView):
         if response.status_code == status.HTTP_200_OK:
             user_data = UserSerializer(self.user).data
             response.data["user"] = user_data
-
+            
             refresh = RefreshToken.for_user(self.user)
-            response.data["refresh"] = str(refresh)
+            response.data["refresh"] = str(refresh)  
             response.data["access"] = str(refresh.access_token)
+            
+            session = self.request.session
+            session['account_id'] = str(self.user.account.id) if self.user.account else None
+            session['branch_id'] = str(self.user.branch.id) if self.user.branch else None
+            session['team_id'] = str(self.user.team.id) if self.user.team else None
+            session.save()
+
         return response
 
 
@@ -64,8 +71,22 @@ class ListSalary(generics.RetrieveAPIView):
 
 class ListAllEmployee(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
-    queryset = Employee.objects.all()
     serializer_class = AddEmployeeSerializer
+    
+    def get_queryset(self):
+         
+         account_id = self.request.session.get('account_id') 
+         branch_id = self.request.session.get('branch_id') 
+         if branch_id:
+            return Employee.objects.filter(branch_id=branch_id)
+
+         elif account_id:
+            branches = Branch.objects.filter(account_id=account_id).values_list('id', flat=True)
+            return Employee.objects.filter(branch_id__in=branches)
+
+         else:
+            
+            return Employee.objects.none()
 
 
 class RetrieveEmployee(generics.RetrieveAPIView):
@@ -109,8 +130,17 @@ class ListJobcards(generics.ListAPIView):
 
     def get_queryset(self):
         job_type = self.request.query_params.get("status")
+        account_id = self.request.session.get('account_id') 
+        branch_id = self.request.session.get('branch_id') 
+        if branch_id:
+            return JobCard.objects.filter(status=job_type,branch_id=branch_id)
 
-        return JobCard.objects.filter(status=job_type)
+        elif account_id:
+            branches = Branch.objects.filter(account_id=account_id).values_list('id', flat=True)
+            return Employee.objects.filter(branch_id__in=branches,status=job_type)
+
+        else:
+            return JobCard.objects.filter(status=job_type)
 
 
 class RetrieveJobs(generics.RetrieveAPIView):
@@ -226,8 +256,20 @@ class ListIssues(generics.ListAPIView):
 
 class ListBranch(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
-    queryset = Branch.objects.all()
     serializer_class = BranchSerializer
+
+    def get_queryset(self):
+        account_id = self.request.session.get('account_id') 
+        branch_id = self.request.session.get('branch_id') 
+        if branch_id:
+            return Branch.objects.get(id=branch_id)
+            
+        elif account_id:
+           return Branch.objects.filter(account_id = account_id) 
+            
+        else:
+            return Branch.objects.none()
+
 
 
 class ListJobType(generics.ListAPIView):
@@ -314,9 +356,19 @@ class ListCustomers(generics.ListAPIView):
 
     def get_queryset(self):
         customer_type = self.request.query_params.get("customer_type")
-        if customer_type:
-            return Customer.objects.filter(customer_type=customer_type)
-        return Customer.objects.all()
+
+        account_id = self.request.session.get('account_id') 
+        branch_id = self.request.session.get('branch_id') 
+        if branch_id and customer_type :
+            return Customer.objects.filter(customer_type=customer_type,branch_id=branch_id)
+            
+        elif account_id and customer_type:
+           branches = Branch.objects.filter(account_id = account_id).values_list('id',flat=True)
+           return Customer.objects.filter(customer_type=customer_type,branch_id__in=branches) 
+            
+        else:
+            return Customer.objects.none()
+    
 
 
 class AddCustomers(generics.CreateAPIView):
@@ -350,10 +402,22 @@ class ListExpense(generics.ListAPIView):
     serializer_class = AddExpenseSerializer
 
     def get_queryset(self):
-        type = self.request.query_params.get("type")
-        if type:
-            return Expense.objects.filter(type=type)
-        return Customer.objects.all()
+        
+   
+        expense_type = self.request.query_params.get("type")
+        
+        account_id = self.request.session.get('account_id') 
+        branch_id = self.request.session.get('branch_id') 
+        if branch_id and expense_type :
+            return Expense.objects.filter(type=expense_type,branch_id=branch_id)
+            
+        elif account_id and expense_type:
+           branches = Branch.objects.filter(account_id = account_id).values_list('id',flat=True)
+           return Expense.objects.filter(type=expense_type,branch_id__in=branches) 
+            
+        else:
+            return Expense.objects.none()
+
 
 
 class UpdateExpense(generics.UpdateAPIView):

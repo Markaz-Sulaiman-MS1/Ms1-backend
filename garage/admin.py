@@ -35,6 +35,8 @@ class MyUserAdmin(UserAdmin):
                     "country",
                     "state",
                     "phone_personal",
+                    "account",
+                    "team"
                 )
             },
         ),
@@ -120,6 +122,19 @@ class Advance_amountAdmin(admin.ModelAdmin):
          'created_at',
      )
 
+class AccountAdmin(admin.ModelAdmin):
+     list_display = (
+         'id',
+         'created_at',
+     )
+
+class TeamAdmin(admin.ModelAdmin):
+     list_display = (
+         'id',
+         'created_at',
+     )
+
+
 
 admin.site.register(User, MyUserAdmin)
 admin.site.register(Employee, EmployeeAdmin)
@@ -133,6 +148,10 @@ admin.site.register(BillAmount, BillAmountAdmin)
 admin.site.register(ContactPerson, ContactPersonAdmin)
 admin.site.register(Expense, ExpenseAdmin)
 admin.site.register(Advance_amount, Advance_amountAdmin)
+admin.site.register(Account, AccountAdmin)
+admin.site.register(Team, TeamAdmin)
+
+
 
 
 
