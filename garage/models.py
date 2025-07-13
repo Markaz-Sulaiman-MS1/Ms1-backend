@@ -12,7 +12,7 @@ class Account(TimestampedUUIDModel):
     
 class Branch(TimestampedUUIDModel):
     name = models.CharField(max_length=200,null=True,blank=True)
-    account = models.ForeignKey(Account,on_delete=models.CASCADE)
+    account = models.ForeignKey(Account,on_delete=models.CASCADE,null=True)
 
 class Team(TimestampedUUIDModel):
     name = models.CharField(max_length=200,null=True,blank=True)
