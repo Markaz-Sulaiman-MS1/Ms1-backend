@@ -303,6 +303,7 @@ class AddCustomerSerializer(serializers.ModelSerializer):
             "landmark",
             "zip_code",
             "email",
+            "account"
         ]
 
     def create(self, validated_data):
@@ -334,6 +335,7 @@ class ListCustomerSerializer(serializers.ModelSerializer):
             "landmark",
             "zip_code",
             "email",
+            "account"
         ]
 
 

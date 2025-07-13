@@ -128,7 +128,7 @@ class JobCard(TimestampedUUIDModel):
     average_daily_usage = models.IntegerField(null=True, blank=True)
     next_service_hour = models.IntegerField(null=True, blank=True)
     next_service_date = models.DateField(null=True, blank=True)
-    branch = models.ForeignKey(Branch,on_delete=models.SET_NULL,null=True)
+
 
 
 class BillAmount(TimestampedUUIDModel):
