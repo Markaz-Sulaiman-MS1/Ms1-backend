@@ -38,6 +38,7 @@ class CustomLoginView(LoginView):
             session['branch_id'] = str(self.user.branch.id) if self.user.branch else None
             session['team_id'] = str(self.user.team.id) if self.user.team else None
             session.save()
+            print("00000000000000000000",self.request.session.get("account_id"))
 
         return response
 
@@ -359,6 +360,7 @@ class ListCustomers(generics.ListAPIView):
 
         account_id = self.request.session.get('account_id') 
         branch_id = self.request.session.get('branch_id') 
+        print("account_id",account_id)
         if branch_id and customer_type :
             return Customer.objects.filter(customer_type=customer_type,branch_id=branch_id)
             
