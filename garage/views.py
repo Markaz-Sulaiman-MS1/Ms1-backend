@@ -11,6 +11,7 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.db.models import Sum
 from django.utils import timezone
+import logging
 
 
 
@@ -38,7 +39,9 @@ class CustomLoginView(LoginView):
             session['branch_id'] = str(self.user.branch.id) if self.user.branch else None
             session['team_id'] = str(self.user.team.id) if self.user.team else None
             session.save()
-            print("00000000000000000000",self.request.session.get("account_id"))
+            logger = logging.getLogger('django')
+            logger.debug(f"Account ID in session: {self.request.session.get('account_id')}")
+    
 
         return response
 
