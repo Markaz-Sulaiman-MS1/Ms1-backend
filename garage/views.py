@@ -81,8 +81,8 @@ class ListAllEmployee(generics.ListAPIView):
     
     def get_queryset(self):
          
-         account_id = self.request.session.get('account_id') 
-         branch_id = self.request.session.get('branch_id') 
+         account_id = getattr(self.request.user, 'account_id', None) 
+         branch_id = getattr(self.request.user, 'branch_id', None) 
          if branch_id:
             return Employee.objects.filter(branch_id=branch_id)
 
@@ -136,8 +136,8 @@ class ListJobcards(generics.ListAPIView):
 
     def get_queryset(self):
         job_type = self.request.query_params.get("status")
-        account_id = self.request.session.get('account_id') 
-        branch_id = self.request.session.get('branch_id') 
+        account_id = getattr(self.request.user, 'account_id', None) 
+        branch_id = getattr(self.request.user, 'branch_id', None) 
         if branch_id:
             return JobCard.objects.filter(status=job_type,branch_id=branch_id)
 
@@ -265,8 +265,8 @@ class ListBranch(generics.ListAPIView):
     serializer_class = BranchSerializer
 
     def get_queryset(self):
-        account_id = self.request.session.get('account_id') 
-        branch_id = self.request.session.get('branch_id') 
+        account_id = getattr(self.request.user, 'account_id', None) 
+        branch_id = getattr(self.request.user, 'branch_id', None) 
         if branch_id:
             return Branch.objects.get(id=branch_id)
             
@@ -368,7 +368,7 @@ class ListCustomers(generics.ListAPIView):
     authentication_classes = [JWTAuthentication]
     serializer_class = ListCustomerSerializer
 
-    def get_queryset(self):
+    def get_queryset(self):                                               
         customer_type = self.request.query_params.get("customer_type")
         account_id = getattr(self.request.user, 'account_id', None)
         branch_id = getattr(self.request.user, 'branch_id', None)
@@ -377,8 +377,7 @@ class ListCustomers(generics.ListAPIView):
         if account_id and customer_type:
            print("account_id222",account_id)
            
-           branches = Branch.objects.filter(account_id = account_id).values_list('id',flat=True)
-           return Customer.objects.filter(customer_type=customer_type) 
+           return Customer.objects.filter(customer_type=customer_type,account_id=account_id) 
             
         raise ValidationError({"message": "No session data","account":account_id})
     
@@ -419,8 +418,8 @@ class ListExpense(generics.ListAPIView):
    
         expense_type = self.request.query_params.get("type")
         
-        account_id = self.request.session.get('account_id') 
-        branch_id = self.request.session.get('branch_id') 
+        account_id = getattr(self.request.user, 'account_id', None) 
+        branch_id = getattr(self.request.user, 'branch_id', None) 
         if branch_id and expense_type :
             return Expense.objects.filter(type=expense_type,branch_id=branch_id)
             
