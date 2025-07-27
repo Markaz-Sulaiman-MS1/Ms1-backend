@@ -12,6 +12,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from django.db.models import Sum
 from django.utils import timezone
 import logging
+from rest_framework.exceptions import ValidationError
 
 
 
@@ -364,15 +365,14 @@ class ListCustomers(generics.ListAPIView):
         account_id = self.request.session.get('account_id') 
         branch_id = self.request.session.get('branch_id') 
         print("account_id",account_id)
-        if branch_id and customer_type :
-            return Customer.objects.filter(customer_type=customer_type,branch_id=branch_id)
+        # if branch_id and customer_type :
+        #     return Customer.objects.filter(customer_type=customer_type,branch_id=branch_id)
             
-        elif account_id and customer_type:
+        if account_id and customer_type:
            branches = Branch.objects.filter(account_id = account_id).values_list('id',flat=True)
-           return Customer.objects.filter(customer_type=customer_type,branch_id__in=branches) 
+           return Customer.objects.filter(customer_type=customer_type) 
             
-        else:
-            return Response({"message":"No session data"})
+        raise ValidationError({"message": "No session data"})
     
 
 
