@@ -374,7 +374,7 @@ class ListCustomers(generics.ListAPIView):
            branches = Branch.objects.filter(account_id = account_id).values_list('id',flat=True)
            return Customer.objects.filter(customer_type=customer_type) 
             
-        raise ValidationError({"message": "No session data"})
+        raise ValidationError({"message": "No session data","account":account_id})
     
 
 
