@@ -13,7 +13,8 @@ from django.db.models import Sum
 from django.utils import timezone
 import logging
 from rest_framework.exceptions import ValidationError
-
+from rest_framework_simplejwt.authentication import JWTAuthentication
+from rest_framework_simplejwt.tokens import AccessToken
 
 
 
@@ -35,12 +36,10 @@ class CustomLoginView(LoginView):
             response.data["refresh"] = str(refresh)  
             response.data["access"] = str(refresh.access_token)
             
-            session = self.request.session
-            session['account_id'] = str(self.user.account.id) if self.user.account else None
-            session['branch_id'] = str(self.user.branch.id) if self.user.branch else None
-            session['team_id'] = str(self.user.team.id) if self.user.team else None
-            session.save()
-            response.data["account_id"] = self.request.session.get("account_id")
+            refresh['account_id'] = str(self.user.account.id) if self.user.account else None
+            refresh['branch_id'] = str(self.user.branch.id) if self.user.branch else None
+            refresh['team_id'] = str(self.user.team.id) if self.user.team else None
+            # response.data["account_id"] = self.request.session.get("account_id")
 
             logger = logging.getLogger('django')
             logger.debug(f"Account ID in session: {self.request.session.get('account_id')}")
@@ -357,16 +356,23 @@ class TotalExpense(generics.ListAPIView):
         return Response(total)
 
 
+class CustomJWTAuthentication(JWTAuthentication):
+    def get_user(self, validated_token):
+        user = super().get_user(validated_token)
+        # Attach custom claims to the user object
+        user.account_id = validated_token.get('account_id')
+        user.branch_id = validated_token.get('branch_id')
+        user.team_id = validated_token.get('team_id')
+        return user
 class ListCustomers(generics.ListAPIView):
-    # permission_classes = [IsAuthenticated]
+    authentication_classes = [JWTAuthentication]
     serializer_class = ListCustomerSerializer
 
     def get_queryset(self):
         customer_type = self.request.query_params.get("customer_type")
-
-        account_id = self.request.session.get("account_id") 
-        # if branch_id and customer_type :
-        #     return Customer.objects.filter(customer_type=customer_type,branch_id=branch_id)
+        account_id = getattr(self.request.user, 'account_id', None)
+        branch_id = getattr(self.request.user, 'branch_id', None)
+        print("account_id",account_id)
             
         if account_id and customer_type:
            print("account_id222",account_id)
