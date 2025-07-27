@@ -355,14 +355,14 @@ class TotalExpense(generics.ListAPIView):
 
 
 class ListCustomers(generics.ListAPIView):
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
     serializer_class = ListCustomerSerializer
 
-    def get_queryset(self,request):
-        customer_type = request.query_params.get("customer_type")
+    def get_queryset(self):
+        customer_type = self.request.query_params.get("customer_type")
 
-        account_id = request.session.get('account_id') 
-        branch_id = request.session.get('branch_id') 
+        account_id = self.request.session.get('account_id') 
+        branch_id = self.request.session.get('branch_id') 
         print("account_id",account_id)
         if branch_id and customer_type :
             return Customer.objects.filter(customer_type=customer_type,branch_id=branch_id)
@@ -372,7 +372,7 @@ class ListCustomers(generics.ListAPIView):
            return Customer.objects.filter(customer_type=customer_type,branch_id__in=branches) 
             
         else:
-            return Customer.objects.none()
+            return Response({"message":"No session data"})
     
 
 
