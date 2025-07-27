@@ -365,12 +365,12 @@ class ListCustomers(generics.ListAPIView):
         customer_type = self.request.query_params.get("customer_type")
 
         account_id = self.request.session.get("account_id") 
-        branch_id = self.request.session.get('branch_id') 
-        print("account_id",account_id)
         # if branch_id and customer_type :
         #     return Customer.objects.filter(customer_type=customer_type,branch_id=branch_id)
             
         if account_id and customer_type:
+           print("account_id222",account_id)
+           
            branches = Branch.objects.filter(account_id = account_id).values_list('id',flat=True)
            return Customer.objects.filter(customer_type=customer_type) 
             
