@@ -40,6 +40,8 @@ class CustomLoginView(LoginView):
             session['branch_id'] = str(self.user.branch.id) if self.user.branch else None
             session['team_id'] = str(self.user.team.id) if self.user.team else None
             session.save()
+            response.data["account_id"] = self.request.session.get("account_id")
+
             logger = logging.getLogger('django')
             logger.debug(f"Account ID in session: {self.request.session.get('account_id')}")
     
