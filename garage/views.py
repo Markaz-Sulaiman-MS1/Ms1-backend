@@ -364,7 +364,7 @@ class ListCustomers(generics.ListAPIView):
     def get_queryset(self):
         customer_type = self.request.query_params.get("customer_type")
 
-        account_id = self.request.session.get('account_id') 
+        account_id = self.request.session.get("account_id") 
         branch_id = self.request.session.get('branch_id') 
         print("account_id",account_id)
         # if branch_id and customer_type :
