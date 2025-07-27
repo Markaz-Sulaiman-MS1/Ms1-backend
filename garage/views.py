@@ -143,7 +143,7 @@ class ListJobcards(generics.ListAPIView):
 
         elif account_id:
             branches = Branch.objects.filter(account_id=account_id).values_list('id', flat=True)
-            return Employee.objects.filter(branch_id__in=branches,status=job_type)
+            return JobCard.objects.filter(branch_id__in=branches,status=job_type)
 
         else:
             return JobCard.objects.filter(status=job_type)
