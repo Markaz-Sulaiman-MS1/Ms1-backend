@@ -364,6 +364,8 @@ class CustomJWTAuthentication(JWTAuthentication):
         user.branch_id = validated_token.get('branch_id')
         user.team_id = validated_token.get('team_id')
         return user
+    
+
 class ListCustomers(generics.ListAPIView):
     authentication_classes = [JWTAuthentication]
     serializer_class = ListCustomerSerializer
@@ -457,10 +459,31 @@ class ListIncome(generics.ListAPIView):
     serializer_class = AddIncomeSerializer
 
     def get_queryset(self):
+        account_id = getattr(self.request.user, 'account_id', None) 
+        branch_id = getattr(self.request.user, 'branch_id', None) 
         type = self.request.query_params.get("type")
-        if type:
-            return Income.objects.filter(type=type)
-        return Income.objects.all()
+        from_date = self.request.query_params.get("from_date")
+        to_date = self.request.query_params.get("to_date")
+
+
+        if branch_id and type:
+            if from_date and to_date:        
+                return Income.objects.filter(type=type,branch_id=branch_id,created_at__date__gte=from_date,created_at__date__lte=to_date)
+            else:
+                return Income.objects.filter(type=type,branch_id=branch_id)
+
+        elif account_id and type:
+            branches = Branch.objects.filter(account_id = account_id).values_list('id',flat=True)
+
+            if from_date and to_date:        
+                return Income.objects.filter(type=type,branch_id__in=branches,created_at__date__gte=from_date,created_at__date__lte=to_date)   
+            else:
+                return Income.objects.filter(type=type,branch_id__in=branches)
+        else:
+            return Income.objects.none()
+
+
+
 
 
 class UpdateIncome(generics.UpdateAPIView):
@@ -531,6 +554,310 @@ class DashboardDatas(APIView):
             "total_balance":total_balance
         }
         return Response(total_values)
+
+
+class CreateBranch(generics.CreateAPIView):
+    permission_classes = [IsAuthenticated]
+    queryset = Branch.objects.all()
+    serializer_class = BranchSerializer
+
+class CreateJobType(generics.CreateAPIView):
+    permission_classes = [IsAuthenticated]
+    queryset = JobType.objects.all()
+    serializer_class = JobTypeSerializer
+
+
+class CreateTeam(generics.CreateAPIView):
+    permission_classes = [IsAuthenticated]
+    queryset = Team.objects.all()
+    serializer_class = TeamSerializer
+
+class ListTeam(generics.ListAPIView):
+    permission_classes = [IsAuthenticated]
+    queryset = Team.objects.all()
+    serializer_class = TeamSerializer
+
+
+
+class TotalIncome(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self,request):
+        account_id = getattr(self.request.user, 'account_id', None) 
+        branch_id = getattr(self.request.user, 'branch_id', None)
+        from_date = self.request.query_params.get("from_date")
+        to_date = self.request.query_params.get("to_date") 
+        total_sum = 0
+        total_jobs_sum = 0
+        total_other_sum = 0
+
+        
+        if branch_id :
+            if from_date and to_date:        
+                total =  Income.objects.filter(branch_id=branch_id,created_at__date__gte=from_date,created_at__date__lte=to_date).aggregate(total_sum=Sum('total_income'))
+                total_jobs =  Income.objects.filter(type=Income.JOB,branch_id=branch_id,created_at__date__gte=from_date,created_at__date__lte=to_date).aggregate(total_sum=Sum('total_income'))
+                total_other =  Income.objects.filter(type=Income.OTHER,branch_id=branch_id,created_at__date__gte=from_date,created_at__date__lte=to_date).aggregate(total_sum=Sum('total_income'))
+                total_sum = total['total_sum'] or 0
+                total_jobs_sum = total_jobs['total_sum'] or 0
+                total_other_sum = total_other['total_sum'] or 0
+                                  
+            else:
+                total = Income.objects.filter(branch_id=branch_id).aggregate(total_sum=Sum('total_income'))
+                total_jobs =  Income.objects.filter(type=Income.JOB,branch_id=branch_id).aggregate(total_sum=Sum('total_income'))
+                total_other =  Income.objects.filter(type=Income.OTHER,branch_id=branch_id).aggregate(total_sum=Sum('total_income'))
+                total_sum = total['total_sum'] or 0
+                total_jobs_sum = total_jobs['total_sum'] or 0
+                total_other_sum = total_other['total_sum'] or 0
+
+            total = {
+                "total_sum":total_sum,
+                "total_jobs_sum":total_jobs_sum,
+                "total_other_sum":total_other_sum
+            }
+            
+            return Response(total)
+            
+
+        elif account_id :
+            branches = Branch.objects.filter(account_id = account_id).values_list('id',flat=True)
+
+            if from_date and to_date:        
+                total = Income.objects.filter(branch_id__in=branches,created_at__date__gte=from_date,created_at__date__lte=to_date).aggregate(total_sum=Sum('total_income'))
+                total_jobs =  Income.objects.filter(type=Income.JOB,branch_id__in=branches,created_at__date__gte=from_date,created_at__date__lte=to_date).aggregate(total_sum=Sum('total_income'))
+                total_other =  Income.objects.filter(type=Income.OTHER,branch_id__in=branches,created_at__date__gte=from_date,created_at__date__lte=to_date).aggregate(total_sum=Sum('total_income'))
+                total_sum = total['total_sum'] or 0
+                total_jobs_sum = total_jobs['total_sum'] or 0
+                total_other_sum = total_other['total_sum'] or 0
+
+            else:
+                total = Income.objects.filter(branch_id__in=branches).aggregate(total_sum=Sum('total_income'))
+                total_jobs = Income.objects.filter(type=Income.JOB,branch_id__in=branches).aggregate(total_sum=Sum('total_income'))
+                total_other = Income.objects.filter(type=Income.OTHER,branch_id__in=branches).aggregate(total_sum=Sum('total_income'))
+
+                total_sum = total['total_sum'] or 0
+                total_jobs_sum = total_jobs['total_sum'] or 0
+                total_other_sum = total_other['total_sum'] or 0
+
+            total = {
+                "total_sum":total_sum,
+                "total_jobs_sum":total_jobs_sum,
+                "total_other_sum":total_other_sum
+            }
+            
+            return Response(total)
+            
+            
+        else:
+            return Income.objects.none()
+        
+
+
+
+
+class TotalExpense(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self,request):
+        account_id = getattr(self.request.user, 'account_id', None) 
+        branch_id = getattr(self.request.user, 'branch_id', None)
+        from_date = self.request.query_params.get("from_date")
+        to_date = self.request.query_params.get("to_date") 
+        total_overtime = 0
+        total_purchase = 0
+        total_salary = 0
+        total_other = 0
+        total_sum = 0
+
+        
+        if branch_id :
+            if from_date and to_date:        
+                total =  Expense.objects.filter(branch_id=branch_id,created_at__date__gte=from_date,created_at__date__lte=to_date).aggregate(total_sum=Sum('total_income'))
+                total_purchase =  Expense.objects.filter(type=Expense.JOB,branch_id=branch_id,created_at__date__gte=from_date,created_at__date__lte=to_date).aggregate(total_sum=Sum('total_income'))
+                total_salary =  Expense.objects.filter(type=Expense.SALARY,branch_id=branch_id,created_at__date__gte=from_date,created_at__date__lte=to_date).aggregate(total_sum=Sum('total_income'))
+                total_overtime =  Expense.objects.filter(type=Expense.OVERTIME,branch_id=branch_id,created_at__date__gte=from_date,created_at__date__lte=to_date).aggregate(total_sum=Sum('total_income'))
+                total_other =  Expense.objects.filter(type=Expense.OTHER,branch_id=branch_id,created_at__date__gte=from_date,created_at__date__lte=to_date).aggregate(total_sum=Sum('total_income'))
+
+                total_overtime = total_overtime['total_sum'] or 0
+                total_purchase = total_purchase['total_sum'] or 0    
+                total_salary = total_salary['total_sum'] or 0
+                total_other = total_other['total_sum'] or 0
+                total_sum = total['total_sum'] or 0
+       
+            else:
+                total =  Expense.objects.filter(branch_id=branch_id).aggregate(total_sum=Sum('total_income'))
+                total_purchase =  Expense.objects.filter(type=Expense.JOB,branch_id=branch_id).aggregate(total_sum=Sum('total_income'))
+                total_salary =  Expense.objects.filter(type=Expense.SALARY,branch_id=branch_id).aggregate(total_sum=Sum('total_income'))
+                total_overtime =  Expense.objects.filter(type=Expense.OVERTIME,branch_id=branch_id).aggregate(total_sum=Sum('total_income'))
+                total_other =  Expense.objects.filter(type=Expense.OTHER,branch_id=branch_id).aggregate(total_sum=Sum('total_income'))
+
+                total_overtime = total_overtime['total_sum'] or 0
+                total_purchase = total_purchase['total_sum'] or 0    
+                total_salary = total_salary['total_sum'] or 0
+                total_other = total_other['total_sum'] or 0
+                total_sum = total['total_sum'] or 0
+
+            total = {
+                "total_overtime":total_overtime,
+                "total_purchase":total_purchase,
+                "total_salary":total_salary,
+                "total_other":total_other,
+                "total_sum":total_sum
+            }
+            
+            return Response(total)
+            
+
+        elif account_id :
+            branches = Branch.objects.filter(account_id = account_id).values_list('id',flat=True)
+
+            if from_date and to_date:        
+                total =  Expense.objects.filter(branch_id__in=branches,created_at__date__gte=from_date,created_at__date__lte=to_date).aggregate(total_sum=Sum('total_income'))
+                total_purchase =  Expense.objects.filter(type=Expense.JOB,branch_id__in=branches,created_at__date__gte=from_date,created_at__date__lte=to_date).aggregate(total_sum=Sum('total_income'))
+                total_salary =  Expense.objects.filter(type=Expense.SALARY,branch_id__in=branches,created_at__date__gte=from_date,created_at__date__lte=to_date).aggregate(total_sum=Sum('total_income'))
+                total_overtime =  Expense.objects.filter(type=Expense.OVERTIME,branch_id__in=branches,created_at__date__gte=from_date,created_at__date__lte=to_date).aggregate(total_sum=Sum('total_income'))
+                total_other =  Expense.objects.filter(type=Expense.OTHER,branch_id__in=branches,created_at__date__gte=from_date,created_at__date__lte=to_date).aggregate(total_sum=Sum('total_income'))
+
+                total_overtime = total_overtime['total_sum'] or 0
+                total_purchase = total_purchase['total_sum'] or 0    
+                total_salary = total_salary['total_sum'] or 0
+                total_other = total_other['total_sum'] or 0
+                total_sum = total['total_sum'] or 0
+
+
+            else:
+                total =  Expense.objects.filter(branch_id__in=branches).aggregate(total_sum=Sum('total_income'))
+                total_purchase =  Expense.objects.filter(type=Expense.JOB,branch_id__in=branches).aggregate(total_sum=Sum('total_income'))
+                total_salary =  Expense.objects.filter(type=Expense.SALARY,branch_id__in=branches).aggregate(total_sum=Sum('total_income'))
+                total_overtime =  Expense.objects.filter(type=Expense.OVERTIME,branch_id__in=branches).aggregate(total_sum=Sum('total_income'))
+                total_other =  Expense.objects.filter(type=Expense.OTHER,branch_id__in=branches).aggregate(total_sum=Sum('total_income'))
+
+                total_overtime = total_overtime['total_sum'] or 0
+                total_purchase = total_purchase['total_sum'] or 0    
+                total_salary = total_salary['total_sum'] or 0
+                total_other = total_other['total_sum'] or 0
+                total_sum = total['total_sum'] or 0
+
+   
+            total = {
+
+                "total_overtime":total_overtime,
+                "total_purchase":total_purchase,
+                "total_salary":total_salary,
+                "total_other":total_other,
+                "total_sum":total_sum
+            }
+            
+            return Response(total)
+            
+            
+        else:
+            return Income.objects.none()
+        
+
+class CreateDeposit(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def create(self,request):
+        amount = request.data.get("amount")
+        branch = request.data.get("branch")
+        deposit_type = request.data.get("deposit_type")
+
+        if deposit_type == "Cash":
+            balance, created = Balance.objects.get_or_create(
+                branch_id=branch,
+                defaults={
+                    'cash_balance': amount,
+                }
+                )
+            
+            if not created:
+                    balance.cash_balance += amount
+                    balance.save() 
+
+            RecentTransaction.objects.create(
+                        transaction_type=RecentTransaction.DEPOSIT,
+                        Description = "Deposit has been added as cash",
+                        payment_type = RecentTransaction.CASH,
+                        amount = amount,
+                        balance_cash = balance.cash_balance,
+                        balance_bank = balance.bank_balance,
+                )
+
+        elif deposit_type == "Bank":
+            balance, created = Balance.objects.get_or_create(
+                branch_id=branch,
+                defaults={
+                    'bank_balance': amount,
+                }
+                )
+            
+            if not created:
+                    balance.bank_balance += amount
+                    balance.save()
+              
+            RecentTransaction.objects.create(
+                        transaction_type=RecentTransaction.DEPOSIT,
+                        Description = "Deposit has been transferred to bank",
+                        payment_type = RecentTransaction.BANK,
+                        amount = amount,
+                        balance_cash = balance.cash_balance,
+                        balance_bank = balance.bank_balance,
+                ) 
+
+
+
+
+class CreateWithdrawal(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def create(self,request):
+        amount = request.data.get("amount")
+        branch = request.data.get("branch")
+        deposit_type = request.data.get("deposit_type")
+
+        if deposit_type == "Cash":
+            balance = Balance.objects.get(
+                branch_id=branch,
+                )
+            
+            if balance:
+                    balance.cash_balance -= amount
+                    balance.save() 
+
+            RecentTransaction.objects.create(
+                        transaction_type=RecentTransaction.WITHDRAWAL,
+                        Description = "Deposit has been added as cash",
+                        payment_type = RecentTransaction.CASH,
+                        amount = amount,
+                        balance_cash = balance.cash_balance,
+                        balance_bank = balance.bank_balance,
+                )
+
+        elif deposit_type == "Bank":
+            balance = Balance.objects.get(
+                branch_id=branch,
+                )
+            
+            if balance:
+                    balance.bank_balance -= amount
+                    balance.save()
+              
+            RecentTransaction.objects.create(
+                        transaction_type=RecentTransaction.WITHDRAWAL,
+                        Description = "Deposit has been transferred to bank",
+                        payment_type = RecentTransaction.BANK,
+                        amount = amount,
+                        balance_cash = balance.cash_balance,
+                        balance_bank = balance.bank_balance,
+                ) 
+
+
+# class ListBalance(generics.ListAPIView):
+#     permission_classes = [IsAuthenticated]
+#     serializer_class = BranchSerializer
+
+#     def get_queryset(self):
+#         branch = self.request.query_params.get("branch")
 
 
 

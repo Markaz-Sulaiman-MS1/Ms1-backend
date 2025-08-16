@@ -52,6 +52,21 @@ urlpatterns = [
     path("add-advance-payment/", AddAdvance_amount.as_view(), name="add-advance-payment"),
     path("delete-advance-payment/<uuid:id>/", DeleteAdvance_amount.as_view(), name="delete-advance-payment"),
     path("dashboard-data/", DashboardDatas.as_view(), name="dashboard-datas"),
+    path("add-branch/", CreateBranch.as_view(), name="add-branch"),
+    path("add-job-type/", CreateJobType.as_view(), name="add-job-type"),
+    path("add-team/", CreateTeam.as_view(), name="add-team"),
+    path("list-team/", ListTeam.as_view(), name="list-team"),
+    path("total-income/", TotalIncome.as_view(), name="total-income"),
+    path("total-expense/", TotalExpense.as_view(), name="total-expense"),
+    
+
+    path("add-deposit/", CreateDeposit.as_view(), name="add-deposit"),
+    path("create-withdrawal/", CreateWithdrawal.as_view(), name="create-withdrawal"),
+
+
+
+
+
 
 
 

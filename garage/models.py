@@ -12,10 +12,19 @@ class Account(TimestampedUUIDModel):
     
 class Branch(TimestampedUUIDModel):
     name = models.CharField(max_length=200,null=True,blank=True)
+    address = models.TextField(max_length=500,null=True,blank=True)
+    country = models.CharField(max_length=100, null=True, blank=True)
+    state = models.CharField(max_length=100, null=True, blank=True)      
+    town = models.CharField(max_length=100, null=True, blank=True)
+    landmark = models.CharField(max_length=100, null=True, blank=True)
+    zip_code = models.CharField(max_length=100, null=True, blank=True)
+    email = models.EmailField(max_length=100, null=True, blank=True)
+
     account = models.ForeignKey(Account,on_delete=models.CASCADE,null=True)
 
 class Team(TimestampedUUIDModel):
     name = models.CharField(max_length=200,null=True,blank=True)
+    branch = models.ForeignKey(Branch,on_delete=models.CASCADE,null=True)
 
 class User(AbstractUser, TimestampedUUIDModel):
 
@@ -40,8 +49,6 @@ class User(AbstractUser, TimestampedUUIDModel):
 
     class Meta:
         unique_together = ("email", "username")
-
-
 
 
 class Employee(TimestampedUUIDModel):
@@ -106,7 +113,9 @@ class JobCard(TimestampedUUIDModel):
     status_choices = ((CLOSED, CLOSED), (CREDIT, CREDIT), (IN_PROGRESS, IN_PROGRESS))
     CASH = "Cash"
     CREDIT = "Credit"
+    BANK = "Bank"
     bill_choice = ((CASH,CASH),(CREDIT,CREDIT))
+    payment_choice = ((CASH,CASH),(BANK,BANK))
     vehicle_nmbr = models.CharField(max_length=100, null=True, blank=True)
     phn_nmbr = models.CharField(max_length=100, null=True, blank=True)
     email = models.EmailField(null=True, blank=True)
@@ -128,6 +137,7 @@ class JobCard(TimestampedUUIDModel):
     average_daily_usage = models.IntegerField(null=True, blank=True)
     next_service_hour = models.IntegerField(null=True, blank=True)
     next_service_date = models.DateField(null=True, blank=True)
+    payment_type = models.CharField(max_length=200,choices=payment_choice,null=True)
 
 
 
@@ -181,6 +191,10 @@ class Expense(TimestampedUUIDModel):
     JOB = "Job"
     SALARY = "Salary"
     OTHER = "Other"
+    OVERTIME = "Over Time"
+    CASH = "Cash"
+    BANK = "Bank"
+    payment_choice = ((CASH,CASH),(BANK,BANK))
     type_choices = ((JOB,JOB),(SALARY,SALARY),(OTHER,OTHER))
     name = models.CharField(max_length=200, null=True, blank=True)
     description = models.TextField(null=True, blank=True)
@@ -190,25 +204,61 @@ class Expense(TimestampedUUIDModel):
     salary = models.FloatField(null=True,blank=True)
     other_expense = models.FloatField(null=True,blank=True)
     branch = models.ForeignKey(Branch,on_delete=models.SET_NULL,null=True)
+    payment_type = models.CharField(max_length=200,choices=payment_choice,null=True)
+
 
     
 
 class Income(TimestampedUUIDModel):
     JOB = "Job"
     OTHER = "Other"
-    type_choices = ((JOB,JOB),(OTHER,OTHER))
+    SPAREPARTS = "SpareParts"
+    CASH = "Cash"
+    BANK = "Bank"
+    payment_choice = ((CASH,CASH),(BANK,BANK))
+    type_choices = ((JOB,JOB),(OTHER,OTHER),(SPAREPARTS,SPAREPARTS))
     name = models.CharField(max_length=200, null=True, blank=True)
     description = models.TextField(null=True, blank=True)
     total_income = models.FloatField(null=True,blank=True)
     date = models.DateField(null=True, blank=True)
     job_card = models.OneToOneField(JobCard, on_delete=models.CASCADE,null=True,blank=True)
     type = models.CharField(max_length=200,choices=type_choices,null=True, blank=True)
-
+    branch = models.ForeignKey(Branch,on_delete=models.SET_NULL,null=True)
+    payment_type = models.CharField(max_length=200,choices=payment_choice,null=True)
 
 
 
 class Advance_amount(TimestampedUUIDModel):
     amount = models.FloatField(null=True,blank=True)                          
     job_card = models.ForeignKey(JobCard, on_delete=models.CASCADE)                  
+
+
+class Balance(TimestampedUUIDModel):
+    cash_balance =  models.FloatField(null=True,blank=True,default=0)
+    bank_balance = models.FloatField(null=True,blank=True,default=0)
+    branch = models.ForeignKey(Branch,on_delete=models.SET_NULL,null=True)
+
+    
+
+class RecentTransaction(TimestampedUUIDModel):
+    CASH = "Cash"
+    BANK = "Bank"
+    INCOME = "Income"
+    EXPENSE = "Expense"
+    DEPOSIT = "Deposit"
+    WITHDRAWAL = "Withdrawal"
+    payment_choice = ((CASH,CASH),(BANK,BANK))
+    type_choice = ((INCOME,INCOME),(EXPENSE,EXPENSE),(DEPOSIT,DEPOSIT),(WITHDRAWAL,WITHDRAWAL))
+
+    date = models.DateField(null=True, blank=True)
+    transaction_type =  models.CharField(max_length=100, null=True,choices=type_choice)
+    description = models.TextField(null=True, blank=True)
+    payment_type = models.CharField(max_length=200,choices=payment_choice,null=True)
+    amount = models.FloatField(null=True,blank=True)
+    balance_cash =  models.FloatField(null=True,blank=True)
+    balance_bank =  models.FloatField(null=True,blank=True)
+    branch = models.ForeignKey(Branch,on_delete=models.SET_NULL,null=True)
+
+
 
 

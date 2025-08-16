@@ -78,6 +78,13 @@ class JobTypeSerializer(serializers.ModelSerializer):
         model = JobType
         fields = "__all__"
 
+
+class TeamSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Team
+        fields = "__all__"
+
+
 class BranchSerializer(serializers.ModelSerializer):
     class Meta:
         model = Branch
@@ -112,7 +119,8 @@ class JobcardSerializer(serializers.ModelSerializer):
         fields = ["vehicle_nmbr","phn_nmbr","email","address","vehicle_type","model",
                   "fuel_type","engine_hour_info","status","remarks","branch","customer"
                   ,"make_and_model","job_type","bill_type","advance_payment",
-                  "average_daily_usage","next_service_hour","next_service_date","cabin_ac","reefer_unit","chiller_unit","ref_body","bill_amounts"]
+                  "average_daily_usage","next_service_hour","next_service_date","cabin_ac","reefer_unit",
+                  "chiller_unit","ref_body","bill_amounts","payment_type"]
     
     def get_bill_amounts(self, obj):
         bills = BillAmount.objects.filter(job_card=obj)
@@ -176,8 +184,73 @@ class JobcardSerializer(serializers.ModelSerializer):
             total_income=total_amount,
             job_card_id=instance.id,
             date=instance.created_at,
-            name = instance.customer.name
+            name = instance.customer.name,
+            branch = instance.branch,
+            payment_type = instance.payment_type
         )
+        if instance.payment_type == JobCard.CASH:
+            balance, created = Balance.objects.get_or_create(
+            branch_id=instance.branch.id,
+            defaults={
+                'cash_balance': total_amount,
+            }
+            )
+        
+            if not created:
+                balance.cash_balance += total_amount
+                balance.save()
+            if instance.bill_type == JobCard.CASH:
+                RecentTransaction.objects.create(
+                        transaction_type=RecentTransaction.INCOME,
+                        Description = "Job card income transferred as cash",
+                        payment_type = instance.payment_type,
+                        amount = total_amount,
+                        balance_cash = balance.cash_balance,
+                        balance_bank = balance.bank_balance,
+                )
+            else:
+                 RecentTransaction.objects.create(
+                        transaction_type=RecentTransaction.INCOME,
+                        Description = "Job card income closed as cashed credit",
+                        payment_type = instance.payment_type,
+                        amount = total_amount,
+                        balance_cash = balance.cash_balance,
+                        balance_bank = balance.bank_balance,
+                )
+            
+
+        else:
+            balance, created = Balance.objects.get_or_create(
+            branch_id=instance.branch.id,
+            defaults={
+                'bank_balance': total_amount,
+            }
+            )
+        
+            if not created:
+                balance.bank_balance += total_amount
+                balance.save()
+
+            if instance.bill_type == JobCard.CASH:
+                RecentTransaction.objects.create(
+                        transaction_type=RecentTransaction.INCOME,
+                        Description = "Job card income transferred to bank",
+                        payment_type = instance.payment_type,
+                        amount = total_amount,
+                        balance_cash = balance.cash_balance,
+                        balance_bank = balance.bank_balance,
+                )
+            else:
+                 RecentTransaction.objects.create(
+                        transaction_type=RecentTransaction.INCOME,
+                        Description = "Job card income closed as banked credit",
+                        payment_type = instance.payment_type,
+                        amount = total_amount,
+                        balance_cash = balance.cash_balance,
+                        balance_bank = balance.bank_balance,
+                )
+
+
         return instance
 
 
@@ -261,7 +334,6 @@ class BranchSerializer(serializers.ModelSerializer):
     class Meta:
         model = Branch
         fields = "__all__"
-
 
 
 
@@ -376,6 +448,7 @@ class RetrieveJobSerializer(serializers.ModelSerializer):
             "technician",
             "advance_payment",
             "bill_amount",
+            "payment_type"
         ]
 
     def get_technician(self, obj):
@@ -393,14 +466,129 @@ class AddExpenseSerializer(serializers.ModelSerializer):
         model = Expense
         fields = "__all__"
 
+    def create(self, validated_data):
+       
+        expense = super().create(validated_data)
+
+        branch_id = expense.branch.id
+        if expense.type_choices == "Salary":
+            total_amount = expense.salary
+        else:
+            total_amount = expense.total_cost
+             
+        payment_type = expense.payment_type
+
+        if payment_type == JobCard.CASH:
+                                    
+            balance, created = Balance.objects.get_or_create(
+            branch_id=branch_id,
+            defaults={
+                'cash_balance': total_amount,
+            }
+            )
+            if not created:
+                
+                balance.cash_balance -= total_amount
+                balance.save()
+
+            RecentTransaction.objects.create(
+                    transaction_type=RecentTransaction.EXPENSE,
+                    Description = f"{expense.type} expense transferred as cash",
+                    payment_type = expense.payment_type,
+                    amount = expense.total_amount,
+                    balance_cash = balance.cash_balance,
+                    balance_bank = balance.bank_balance,
+            )
+
+        elif payment_type == JobCard.BANK:
+            balance, created = Balance.objects.get_or_create(
+            branch_id=branch_id,
+            defaults={
+                'bank_balance': total_amount,
+            }
+            )
+                      
+            if not created:
+                balance.bank_balance -= total_amount
+                balance.save()
+
+            RecentTransaction.objects.create(
+                    transaction_type=RecentTransaction.EXPENSE,
+                    Description = f"{expense.type} expense transferred to bank",
+                    payment_type = expense.payment_type,
+                    amount = expense.total_amount,
+                    balance_cash = balance.cash_balance,
+                    balance_bank = balance.bank_balance,
+            )
+
+        return expense
+
 
 class AddIncomeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Income
         fields = "__all__"
 
+    def create(self, validated_data):
+        # Create the Income object first
+        income = super().create(validated_data)
+
+        branch_id = income.branch.id
+        total_amount = income.amount  # or the field name for amount
+        payment_type = income.payment_type
+
+        if payment_type == JobCard.CASH:
+            # Create or update cash balance
+            balance, created = Balance.objects.get_or_create(
+            branch_id=branch_id,
+            defaults={
+                'cash_balance': total_amount,
+            }
+            )
+        
+            if not created:
+                balance.cash_balance += total_amount
+                balance.save()
+
+            RecentTransaction.objects.create(
+                    transaction_type=RecentTransaction.INCOME,
+                    Description = "Other income transferred as cash",
+                    payment_type = income.payment_type,
+                    amount = income.total_income,
+                    balance_cash = balance.cash_balance,
+                    balance_bank = balance.bank_balance,
+            )
+                
+
+        elif payment_type == JobCard.BANK:
+            # Create or update bank balance
+            balance, created = Balance.objects.get_or_create(
+            branch_id=branch_id,
+            defaults={
+                'bank_balance': total_amount,
+            }
+            )
+        
+            if not created:
+                balance.cash_balance += total_amount
+                balance.save()
+             
+            RecentTransaction.objects.create(
+                    transaction_type=RecentTransaction.INCOME,
+                    Description = "Other income transferred to bank",
+                    payment_type = income.payment_type,
+                    amount = income.total_income,
+                    balance_cash = balance.cash_balance,
+                    balance_bank = balance.bank_balance,
+            )
+                
+
+        return income
+
 
 class AddAdvance_amountSerializer(serializers.ModelSerializer):
     class Meta:
         model = Advance_amount
         fields = "__all__"
+
+
