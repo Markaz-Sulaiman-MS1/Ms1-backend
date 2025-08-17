@@ -53,6 +53,8 @@ urlpatterns = [
     path("delete-advance-payment/<uuid:id>/", DeleteAdvance_amount.as_view(), name="delete-advance-payment"),
     path("dashboard-data/", DashboardDatas.as_view(), name="dashboard-datas"),
     path("add-branch/", CreateBranch.as_view(), name="add-branch"),
+    path("edit-branch/<uuid:id>/", UpdateBranch.as_view(), name="edit-branch"),
+
     path("delete-branch/<uuid:id>/", DeleteBranch.as_view(), name="delete-branch"),
 
     path("add-job-type/", CreateJobType.as_view(), name="add-job-type"),
