@@ -207,6 +207,7 @@ class JobcardSerializer(serializers.ModelSerializer):
                         amount = total_amount,
                         balance_cash = balance.cash_balance,
                         balance_bank = balance.bank_balance,
+                        branch_id=instance.branch.id
                 )
             else:
                  RecentTransaction.objects.create(
@@ -216,6 +217,7 @@ class JobcardSerializer(serializers.ModelSerializer):
                         amount = total_amount,
                         balance_cash = balance.cash_balance,
                         balance_bank = balance.bank_balance,
+                        branch_id=instance.branch.id
                 )
             
 
@@ -239,6 +241,7 @@ class JobcardSerializer(serializers.ModelSerializer):
                         amount = total_amount,
                         balance_cash = balance.cash_balance,
                         balance_bank = balance.bank_balance,
+                        branch_id=instance.branch.id
                 )
             else:
                  RecentTransaction.objects.create(
@@ -248,6 +251,7 @@ class JobcardSerializer(serializers.ModelSerializer):
                         amount = total_amount,
                         balance_cash = balance.cash_balance,
                         balance_bank = balance.bank_balance,
+                        branch_id=instance.branch.id
                 )
 
 
@@ -335,6 +339,12 @@ class BranchSerializer(serializers.ModelSerializer):
         model = Branch
         fields = "__all__"
 
+
+
+class TransactionsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RecentTransaction
+        fields = "__all__"
 
 
 
@@ -498,6 +508,7 @@ class AddExpenseSerializer(serializers.ModelSerializer):
                     amount = expense.total_amount,
                     balance_cash = balance.cash_balance,
                     balance_bank = balance.bank_balance,
+                    branch_id=expense.branch.id
             )
 
         elif payment_type == JobCard.BANK:
@@ -519,6 +530,8 @@ class AddExpenseSerializer(serializers.ModelSerializer):
                     amount = expense.total_amount,
                     balance_cash = balance.cash_balance,
                     balance_bank = balance.bank_balance,
+                    branch_id=expense.branch.id
+                    
             )
 
         return expense
@@ -557,6 +570,7 @@ class AddIncomeSerializer(serializers.ModelSerializer):
                     amount = income.total_income,
                     balance_cash = balance.cash_balance,
                     balance_bank = balance.bank_balance,
+                    branch_id=income.branch.id
             )
                 
 
@@ -580,6 +594,8 @@ class AddIncomeSerializer(serializers.ModelSerializer):
                     amount = income.total_income,
                     balance_cash = balance.cash_balance,
                     balance_bank = balance.bank_balance,
+                    branch_id=income.branch.id
+
             )
                 
 

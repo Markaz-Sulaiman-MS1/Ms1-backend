@@ -561,10 +561,36 @@ class CreateBranch(generics.CreateAPIView):
     queryset = Branch.objects.all()
     serializer_class = BranchSerializer
 
+class UpdateBranch(generics.UpdateAPIView):
+    permission_classes = [IsAuthenticated]
+    queryset = Branch.objects.all()
+    serializer_class = BranchSerializer
+    lookup_field = "id"
+
+
+class DeleteBranch(generics.DestroyAPIView):
+    permission_classes = [IsAuthenticated]
+    queryset = Branch.objects.all()
+    serializer_class = BranchSerializer
+    lookup_field = "id"
+
 class CreateJobType(generics.CreateAPIView):
     permission_classes = [IsAuthenticated]
     queryset = JobType.objects.all()
     serializer_class = JobTypeSerializer
+
+class UpdateJobType(generics.UpdateAPIView):
+    permission_classes = [IsAuthenticated]
+    queryset = JobType.objects.all()
+    serializer_class = JobTypeSerializer
+    lookup_field = "id"
+
+
+class DeleteJobType(generics.DestroyAPIView):
+    permission_classes = [IsAuthenticated]
+    queryset = JobType.objects.all()
+    serializer_class = JobTypeSerializer
+    lookup_field = "id"
 
 
 class CreateTeam(generics.CreateAPIView):
@@ -781,6 +807,7 @@ class CreateDeposit(APIView):
                         amount = amount,
                         balance_cash = balance.cash_balance,
                         balance_bank = balance.bank_balance,
+                        branch_id=branch
                 )
 
         elif deposit_type == "Bank":
@@ -802,6 +829,7 @@ class CreateDeposit(APIView):
                         amount = amount,
                         balance_cash = balance.cash_balance,
                         balance_bank = balance.bank_balance,
+                        branch_id=branch
                 ) 
 
 
@@ -831,6 +859,7 @@ class CreateWithdrawal(APIView):
                         amount = amount,
                         balance_cash = balance.cash_balance,
                         balance_bank = balance.bank_balance,
+                        branch_id=branch
                 )
 
         elif deposit_type == "Bank":
@@ -845,19 +874,42 @@ class CreateWithdrawal(APIView):
             RecentTransaction.objects.create(
                         transaction_type=RecentTransaction.WITHDRAWAL,
                         Description = "Deposit has been transferred to bank",
-                        payment_type = RecentTransaction.BANK,
+                    payment_type = RecentTransaction.BANK,
                         amount = amount,
                         balance_cash = balance.cash_balance,
                         balance_bank = balance.bank_balance,
+                        branch_id=branch
                 ) 
 
 
-# class ListBalance(generics.ListAPIView):
-#     permission_classes = [IsAuthenticated]
-#     serializer_class = BranchSerializer
+class ListBalance(generics.ListAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = BranchSerializer  # <- only used if you actually serialize balances
 
-#     def get_queryset(self):
-#         branch = self.request.query_params.get("branch")
+    def list(self, request, *args, **kwargs):
+        branch = request.query_params.get("branch")
+        balance = Balance.objects.filter(branch_id=branch).first()
+
+        if not balance:
+            return Response(
+                {"detail": "No balance found for this branch."}, status=404
+            )
+
+        current_balances = {
+            "cash_balance": balance.cash_balance,
+            "bank_balance": balance.bank_balance,
+        }
+        return Response(current_balances)
 
 
 
+
+class List_Transactions(generics.ListAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = TransactionsSerializer
+    def get_queryset(self):
+        branch = self.request.query_params.get("branch")
+        transactions = RecentTransaction.objects.filter(branch_id=branch)
+        return transactions
+
+    
