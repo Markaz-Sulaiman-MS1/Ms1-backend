@@ -671,11 +671,11 @@ class TotalExpense(APIView):
         
         if branch_id :
             if from_date and to_date:        
-                total =  Expense.objects.filter(branch_id=branch_id,created_at__date__gte=from_date,created_at__date__lte=to_date).aggregate(total_sum=Sum('total_income'))
-                total_purchase =  Expense.objects.filter(type=Expense.JOB,branch_id=branch_id,created_at__date__gte=from_date,created_at__date__lte=to_date).aggregate(total_sum=Sum('total_income'))
-                total_salary =  Expense.objects.filter(type=Expense.SALARY,branch_id=branch_id,created_at__date__gte=from_date,created_at__date__lte=to_date).aggregate(total_sum=Sum('total_income'))
-                total_overtime =  Expense.objects.filter(type=Expense.OVERTIME,branch_id=branch_id,created_at__date__gte=from_date,created_at__date__lte=to_date).aggregate(total_sum=Sum('total_income'))
-                total_other =  Expense.objects.filter(type=Expense.OTHER,branch_id=branch_id,created_at__date__gte=from_date,created_at__date__lte=to_date).aggregate(total_sum=Sum('total_income'))
+                total =  Expense.objects.filter(branch_id=branch_id,created_at__date__gte=from_date,created_at__date__lte=to_date).aggregate(total_sum=Sum('total_cost'))
+                total_purchase =  Expense.objects.filter(type=Expense.JOB,branch_id=branch_id,created_at__date__gte=from_date,created_at__date__lte=to_date).aggregate(total_sum=Sum('total_cost'))
+                total_salary =  Expense.objects.filter(type=Expense.SALARY,branch_id=branch_id,created_at__date__gte=from_date,created_at__date__lte=to_date).aggregate(total_sum=Sum('salary'))
+                total_overtime =  Expense.objects.filter(type=Expense.OVERTIME,branch_id=branch_id,created_at__date__gte=from_date,created_at__date__lte=to_date).aggregate(total_sum=Sum('total_cost'))
+                total_other =  Expense.objects.filter(type=Expense.OTHER,branch_id=branch_id,created_at__date__gte=from_date,created_at__date__lte=to_date).aggregate(total_sum=Sum('total_cost'))
 
                 total_overtime = total_overtime['total_sum'] or 0
                 total_purchase = total_purchase['total_sum'] or 0    
@@ -684,11 +684,11 @@ class TotalExpense(APIView):
                 total_sum = total['total_sum'] or 0
        
             else:
-                total =  Expense.objects.filter(branch_id=branch_id).aggregate(total_sum=Sum('total_income'))
-                total_purchase =  Expense.objects.filter(type=Expense.JOB,branch_id=branch_id).aggregate(total_sum=Sum('total_income'))
-                total_salary =  Expense.objects.filter(type=Expense.SALARY,branch_id=branch_id).aggregate(total_sum=Sum('total_income'))
-                total_overtime =  Expense.objects.filter(type=Expense.OVERTIME,branch_id=branch_id).aggregate(total_sum=Sum('total_income'))
-                total_other =  Expense.objects.filter(type=Expense.OTHER,branch_id=branch_id).aggregate(total_sum=Sum('total_income'))
+                total =  Expense.objects.filter(branch_id=branch_id).aggregate(total_sum=Sum('total_cost'))
+                total_purchase =  Expense.objects.filter(type=Expense.JOB,branch_id=branch_id).aggregate(total_sum=Sum('total_cost'))
+                total_salary =  Expense.objects.filter(type=Expense.SALARY,branch_id=branch_id).aggregate(total_sum=Sum('salary'))
+                total_overtime =  Expense.objects.filter(type=Expense.OVERTIME,branch_id=branch_id).aggregate(total_sum=Sum('total_cost'))
+                total_other =  Expense.objects.filter(type=Expense.OTHER,branch_id=branch_id).aggregate(total_sum=Sum('total_cost'))
 
                 total_overtime = total_overtime['total_sum'] or 0
                 total_purchase = total_purchase['total_sum'] or 0    
@@ -711,11 +711,11 @@ class TotalExpense(APIView):
             branches = Branch.objects.filter(account_id = account_id).values_list('id',flat=True)
 
             if from_date and to_date:        
-                total =  Expense.objects.filter(branch_id__in=branches,created_at__date__gte=from_date,created_at__date__lte=to_date).aggregate(total_sum=Sum('total_income'))
-                total_purchase =  Expense.objects.filter(type=Expense.JOB,branch_id__in=branches,created_at__date__gte=from_date,created_at__date__lte=to_date).aggregate(total_sum=Sum('total_income'))
-                total_salary =  Expense.objects.filter(type=Expense.SALARY,branch_id__in=branches,created_at__date__gte=from_date,created_at__date__lte=to_date).aggregate(total_sum=Sum('total_income'))
-                total_overtime =  Expense.objects.filter(type=Expense.OVERTIME,branch_id__in=branches,created_at__date__gte=from_date,created_at__date__lte=to_date).aggregate(total_sum=Sum('total_income'))
-                total_other =  Expense.objects.filter(type=Expense.OTHER,branch_id__in=branches,created_at__date__gte=from_date,created_at__date__lte=to_date).aggregate(total_sum=Sum('total_income'))
+                total =  Expense.objects.filter(branch_id__in=branches,created_at__date__gte=from_date,created_at__date__lte=to_date).aggregate(total_sum=Sum('total_cost'))
+                total_purchase =  Expense.objects.filter(type=Expense.JOB,branch_id__in=branches,created_at__date__gte=from_date,created_at__date__lte=to_date).aggregate(total_sum=Sum('total_cost'))
+                total_salary =  Expense.objects.filter(type=Expense.SALARY,branch_id__in=branches,created_at__date__gte=from_date,created_at__date__lte=to_date).aggregate(total_sum=Sum('salary'))
+                total_overtime =  Expense.objects.filter(type=Expense.OVERTIME,branch_id__in=branches,created_at__date__gte=from_date,created_at__date__lte=to_date).aggregate(total_sum=Sum('total_cost'))
+                total_other =  Expense.objects.filter(type=Expense.OTHER,branch_id__in=branches,created_at__date__gte=from_date,created_at__date__lte=to_date).aggregate(total_sum=Sum('total_cost'))
 
                 total_overtime = total_overtime['total_sum'] or 0
                 total_purchase = total_purchase['total_sum'] or 0    
@@ -725,11 +725,11 @@ class TotalExpense(APIView):
 
 
             else:
-                total =  Expense.objects.filter(branch_id__in=branches).aggregate(total_sum=Sum('total_income'))
-                total_purchase =  Expense.objects.filter(type=Expense.JOB,branch_id__in=branches).aggregate(total_sum=Sum('total_income'))
-                total_salary =  Expense.objects.filter(type=Expense.SALARY,branch_id__in=branches).aggregate(total_sum=Sum('total_income'))
-                total_overtime =  Expense.objects.filter(type=Expense.OVERTIME,branch_id__in=branches).aggregate(total_sum=Sum('total_income'))
-                total_other =  Expense.objects.filter(type=Expense.OTHER,branch_id__in=branches).aggregate(total_sum=Sum('total_income'))
+                total =  Expense.objects.filter(branch_id__in=branches).aggregate(total_sum=Sum('total_cost'))
+                total_purchase =  Expense.objects.filter(type=Expense.JOB,branch_id__in=branches).aggregate(total_sum=Sum('total_cost'))
+                total_salary =  Expense.objects.filter(type=Expense.SALARY,branch_id__in=branches).aggregate(total_sum=Sum('salary'))
+                total_overtime =  Expense.objects.filter(type=Expense.OVERTIME,branch_id__in=branches).aggregate(total_sum=Sum('total_cost'))
+                total_other =  Expense.objects.filter(type=Expense.OTHER,branch_id__in=branches).aggregate(total_sum=Sum('total_cost'))
 
                 total_overtime = total_overtime['total_sum'] or 0
                 total_purchase = total_purchase['total_sum'] or 0    
