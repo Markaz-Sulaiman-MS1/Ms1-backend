@@ -783,7 +783,7 @@ class TotalExpense(APIView):
 class CreateDeposit(APIView):
     permission_classes = [IsAuthenticated]
 
-    def create(self,request):
+    def post(self,request):
         amount = request.data.get("amount")
         branch = request.data.get("branch")
         deposit_type = request.data.get("deposit_type")
