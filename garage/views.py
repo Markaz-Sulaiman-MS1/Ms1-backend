@@ -783,54 +783,87 @@ class TotalExpense(APIView):
 class CreateDeposit(APIView):
     permission_classes = [IsAuthenticated]
 
-    def post(self,request):
-        amount = request.data.get("amount")
-        branch = request.data.get("branch")
-        deposit_type = request.data.get("deposit_type")
+    def post(self, request):
+        try:
+            amount = request.data.get("amount")
+            branch = request.data.get("branch")
+            deposit_type = request.data.get("deposit_type")
 
-        if deposit_type == "Cash":
-            balance, created = Balance.objects.get_or_create(
-                branch_id=branch,
-                defaults={
-                    'cash_balance': amount,
-                }
+            if not amount or not branch or not deposit_type:
+                return Response(
+                    {"error": "amount, branch and deposit_type are required"},
+                    status=status.HTTP_400_BAD_REQUEST
                 )
-            
-            if not created:
+
+            # Ensure amount is numeric
+            try:
+                amount = float(amount)
+            except ValueError:
+                return Response(
+                    {"error": "Amount must be a number"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            if deposit_type == "Cash":
+                balance, created = Balance.objects.get_or_create(
+                    branch_id=branch,
+                    defaults={'cash_balance': amount}
+                )
+                
+                if not created:
                     balance.cash_balance += amount
-                    balance.save() 
+                    balance.save()
 
-            RecentTransaction.objects.create(
-                        transaction_type=RecentTransaction.DEPOSIT,
-                        Description = "Deposit has been added as cash",
-                        payment_type = RecentTransaction.CASH,
-                        amount = amount,
-                        balance_cash = balance.cash_balance,
-                        balance_bank = balance.bank_balance,
-                        branch_id=branch
+                transaction = RecentTransaction.objects.create(
+                    transaction_type=RecentTransaction.DEPOSIT,
+                    Description="Deposit has been added as cash",
+                    payment_type=RecentTransaction.CASH,
+                    amount=amount,
+                    balance_cash=balance.cash_balance,
+                    balance_bank=balance.bank_balance,
+                    branch_id=branch
                 )
 
-        elif deposit_type == "Bank":
-            balance, created = Balance.objects.get_or_create(
-                branch_id=branch,
-                defaults={
-                    'bank_balance': amount,
-                }
+            elif deposit_type == "Bank":
+                balance, created = Balance.objects.get_or_create(
+                    branch_id=branch,
+                    defaults={'bank_balance': amount}
                 )
-            
-            if not created:
+                
+                if not created:
                     balance.bank_balance += amount
                     balance.save()
-              
-            RecentTransaction.objects.create(
-                        transaction_type=RecentTransaction.DEPOSIT,
-                        Description = "Deposit has been transferred to bank",
-                        payment_type = RecentTransaction.BANK,
-                        amount = amount,
-                        balance_cash = balance.cash_balance,
-                        balance_bank = balance.bank_balance,
-                        branch_id=branch
-                ) 
+
+                transaction = RecentTransaction.objects.create(
+                    transaction_type=RecentTransaction.DEPOSIT,
+                    Description="Deposit has been transferred to bank",
+                    payment_type=RecentTransaction.BANK,
+                    amount=amount,
+                    balance_cash=balance.cash_balance,
+                    balance_bank=balance.bank_balance,
+                    branch_id=branch
+                )
+            else:
+                return Response(
+                    {"error": "Invalid deposit_type. Must be 'Cash' or 'Bank'"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            return Response(
+                {
+                    "message": "Deposit created successfully",
+                    "transaction_id": transaction.id,
+                    "balance_cash": balance.cash_balance,
+                    "balance_bank": balance.bank_balance
+                },
+                status=status.HTTP_201_CREATED
+            )
+
+        except Exception as e:
+            return Response(
+                {"error": f"Something went wrong: {str(e)}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
 
 
@@ -838,48 +871,54 @@ class CreateDeposit(APIView):
 class CreateWithdrawal(APIView):
     permission_classes = [IsAuthenticated]
 
-    def create(self,request):
-        amount = request.data.get("amount")
-        branch = request.data.get("branch")
-        deposit_type = request.data.get("deposit_type")
+    def post(self, request):
+        try:
+            amount = request.data.get("amount")
+            branch = request.data.get("branch")
+            deposit_type = request.data.get("deposit_type")
 
-        if deposit_type == "Cash":
-            balance = Balance.objects.get(
-                branch_id=branch,
-                )
-            
-            if balance:
+            if deposit_type == "Cash":
+                balance = Balance.objects.get(branch_id=branch)
+                if balance:
                     balance.cash_balance -= amount
-                    balance.save() 
+                    balance.save()
 
-            RecentTransaction.objects.create(
-                        transaction_type=RecentTransaction.WITHDRAWAL,
-                        Description = "Deposit has been added as cash",
-                        payment_type = RecentTransaction.CASH,
-                        amount = amount,
-                        balance_cash = balance.cash_balance,
-                        balance_bank = balance.bank_balance,
-                        branch_id=branch
+                RecentTransaction.objects.create(
+                    transaction_type=RecentTransaction.WITHDRAWAL,
+                    Description="Deposit has been added as cash",
+                    payment_type=RecentTransaction.CASH,
+                    amount=amount,
+                    balance_cash=balance.cash_balance,
+                    balance_bank=balance.bank_balance,
+                    branch_id=branch
                 )
 
-        elif deposit_type == "Bank":
-            balance = Balance.objects.get(
-                branch_id=branch,
-                )
-            
-            if balance:
+            elif deposit_type == "Bank":
+                balance = Balance.objects.get(branch_id=branch)
+                if balance:
                     balance.bank_balance -= amount
                     balance.save()
-              
-            RecentTransaction.objects.create(
-                        transaction_type=RecentTransaction.WITHDRAWAL,
-                        Description = "Deposit has been transferred to bank",
-                    payment_type = RecentTransaction.BANK,
-                        amount = amount,
-                        balance_cash = balance.cash_balance,
-                        balance_bank = balance.bank_balance,
-                        branch_id=branch
-                ) 
+
+                RecentTransaction.objects.create(
+                    transaction_type=RecentTransaction.WITHDRAWAL,
+                    Description="Deposit has been transferred to bank",
+                    payment_type=RecentTransaction.BANK,
+                    amount=amount,
+                    balance_cash=balance.cash_balance,
+                    balance_bank=balance.bank_balance,
+                    branch_id=branch
+                )
+
+            return Response(
+                {"message": "Withdrawal successful"},
+                status=status.HTTP_201_CREATED
+            )
+
+        except Exception as e:
+            return Response(
+                {"error": f"Something went wrong: {str(e)}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            ) 
 
 
 class ListBalance(generics.ListAPIView):
