@@ -816,7 +816,7 @@ class CreateDeposit(APIView):
 
                 transaction = RecentTransaction.objects.create(
                     transaction_type=RecentTransaction.DEPOSIT,
-                    Description="Deposit has been added as cash",
+                    description="Deposit has been added as cash",
                     payment_type=RecentTransaction.CASH,
                     amount=amount,
                     balance_cash=balance.cash_balance,
@@ -836,7 +836,7 @@ class CreateDeposit(APIView):
 
                 transaction = RecentTransaction.objects.create(
                     transaction_type=RecentTransaction.DEPOSIT,
-                    Description="Deposit has been transferred to bank",
+                    description="Deposit has been transferred to bank",
                     payment_type=RecentTransaction.BANK,
                     amount=amount,
                     balance_cash=balance.cash_balance,
@@ -885,7 +885,7 @@ class CreateWithdrawal(APIView):
 
                 RecentTransaction.objects.create(
                     transaction_type=RecentTransaction.WITHDRAWAL,
-                    Description="Deposit has been added as cash",
+                    description="Deposit has been added as cash",
                     payment_type=RecentTransaction.CASH,
                     amount=amount,
                     balance_cash=balance.cash_balance,
@@ -901,7 +901,7 @@ class CreateWithdrawal(APIView):
 
                 RecentTransaction.objects.create(
                     transaction_type=RecentTransaction.WITHDRAWAL,
-                    Description="Deposit has been transferred to bank",
+                    description="Deposit has been transferred to bank",
                     payment_type=RecentTransaction.BANK,
                     amount=amount,
                     balance_cash=balance.cash_balance,
