@@ -788,6 +788,8 @@ class CreateDeposit(APIView):
             amount = request.data.get("amount")
             branch = request.data.get("branch")
             deposit_type = request.data.get("deposit_type")
+            date = request.data.get("date")
+            description = request.data.get("description")
 
             if not amount or not branch or not deposit_type:
                 return Response(
@@ -816,14 +818,14 @@ class CreateDeposit(APIView):
 
                 transaction = RecentTransaction.objects.create(
                     transaction_type=RecentTransaction.DEPOSIT,
-                    description="Deposit has been added as cash",
+                    description=description,
                     payment_type=RecentTransaction.CASH,
                     amount=amount,
                     balance_cash=balance.cash_balance,
                     balance_bank=balance.bank_balance,
-                    branch_id=branch
+                    branch_id=branch,
+                    date=date
                 )
-
             elif deposit_type == "Bank":
                 balance, created = Balance.objects.get_or_create(
                     branch_id=branch,
@@ -836,12 +838,13 @@ class CreateDeposit(APIView):
 
                 transaction = RecentTransaction.objects.create(
                     transaction_type=RecentTransaction.DEPOSIT,
-                    description="Deposit has been transferred to bank",
+                    description=description,
                     payment_type=RecentTransaction.BANK,
                     amount=amount,
                     balance_cash=balance.cash_balance,
                     balance_bank=balance.bank_balance,
-                    branch_id=branch
+                    branch_id=branch,
+                    date=date
                 )
             else:
                 return Response(
@@ -876,6 +879,9 @@ class CreateWithdrawal(APIView):
             amount = request.data.get("amount")
             branch = request.data.get("branch")
             deposit_type = request.data.get("deposit_type")
+            date = request.data.get("date")
+            description = request.data.get("description")
+
 
             if deposit_type == "Cash":
                 balance = Balance.objects.get(branch_id=branch)
@@ -885,12 +891,14 @@ class CreateWithdrawal(APIView):
 
                 RecentTransaction.objects.create(
                     transaction_type=RecentTransaction.WITHDRAWAL,
-                    description="Deposit has been added as cash",
+                    description=description,
                     payment_type=RecentTransaction.CASH,
                     amount=amount,
                     balance_cash=balance.cash_balance,
                     balance_bank=balance.bank_balance,
-                    branch_id=branch
+                    branch_id=branch,
+                    date=date
+
                 )
 
             elif deposit_type == "Bank":
@@ -901,12 +909,13 @@ class CreateWithdrawal(APIView):
 
                 RecentTransaction.objects.create(
                     transaction_type=RecentTransaction.WITHDRAWAL,
-                    description="Deposit has been transferred to bank",
+                    description=description,
                     payment_type=RecentTransaction.BANK,
                     amount=amount,
                     balance_cash=balance.cash_balance,
                     balance_bank=balance.bank_balance,
-                    branch_id=branch
+                    branch_id=branch,
+                    date=date
                 )
 
             return Response(

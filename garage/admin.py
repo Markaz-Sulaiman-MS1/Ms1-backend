@@ -144,6 +144,14 @@ class InvoiceAdmin(admin.ModelAdmin):
      )
 
 
+class RecentTransactionAdmin(admin.ModelAdmin):
+     list_display = (
+         'id',
+         'created_at',
+     )
+
+
+
 
 admin.site.register(User, MyUserAdmin)
 admin.site.register(Employee, EmployeeAdmin)
@@ -160,6 +168,8 @@ admin.site.register(Advance_amount, Advance_amountAdmin)
 admin.site.register(Account, AccountAdmin)
 admin.site.register(Team, TeamAdmin)
 admin.site.register(Income, InvoiceAdmin)
+admin.site.register(RecentTransaction, RecentTransactionAdmin)
+
 
 
 
