@@ -108,19 +108,21 @@ class JobcardSerializer(serializers.ModelSerializer):
     job_type = JobTypeSerializer(many=True)
     bill_amounts = serializers.SerializerMethodField()
 
+    bill_items = serializers.ListField(
+        child=serializers.DictField(
+            child=serializers.DecimalField(max_digits=10, decimal_places=2)
+        ),
+        write_only=True,
+        required=False
+    )
 
-    cabin_ac = serializers.CharField(write_only=True, required=False)
-    reefer_unit = serializers.CharField(write_only=True, required=False)
-    chiller_unit = serializers.CharField(write_only=True, required=False)
-    ref_body = serializers.CharField(write_only=True, required=False)
 
     class Meta:
         model = JobCard
         fields = ["vehicle_nmbr","phn_nmbr","email","address","vehicle_type","model",
                   "fuel_type","engine_hour_info","status","remarks","branch","customer"
                   ,"make_and_model","job_type","bill_type","advance_payment",
-                  "average_daily_usage","next_service_hour","next_service_date","cabin_ac","reefer_unit",
-                  "chiller_unit","ref_body","bill_amounts","payment_type"]
+                  "average_daily_usage","next_service_hour","next_service_date","bill_amounts","payment_type","bill_items"]
     
     def get_bill_amounts(self, obj):
         bills = BillAmount.objects.filter(job_card=obj)
@@ -128,19 +130,9 @@ class JobcardSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
 
-        cabin_ac = validated_data.pop("cabin_ac", None)
-        reefer_unit = validated_data.pop("reefer_unit", None)
-        chiller_unit = validated_data.pop("chiller_unit", None)
-        ref_body = validated_data.pop("ref_body", None)
-
-        # bill_type = validated_data.pop("bill_type", None)
-        # customer = validated_data.pop("customer", None)
-        # customer_data = Customer.objects.get(id=customer)
-
+        bill_items = validated_data.pop("bill_items", None)
         job_type_data = validated_data.pop("job_type", None)
 
-        # if bill_type:
-        #     instance.bill_type = bill_type
 
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
@@ -148,33 +140,24 @@ class JobcardSerializer(serializers.ModelSerializer):
 
         if job_type_data:
             instance.job_type.set(job_type_data)
-    
-        # if customer_data:
-        #     instance.customer.set(customer_data)
-        # if bill_type == "Cash":
-        cabic_ac_job_type = JobType.objects.get(name="Cabin Ac")
-        reefer_unit_job_type = JobType.objects.get(name="Reefer Unit")
-        chiller_unit_job_type = JobType.objects.get(name="Chiller Unit")
-        ref_body_job_type = JobType.objects.get(name="Ref Body")
-            
-        if cabin_ac:
-            BillAmount.objects.create(
-                job_card=instance, job_type=cabic_ac_job_type, amount=cabin_ac
-            )
-        if reefer_unit:
-            BillAmount.objects.create(
-                job_card=instance, job_type=reefer_unit_job_type, amount=reefer_unit
-            )
-        if chiller_unit:
-            BillAmount.objects.create(
-                job_card=instance,
-                job_type=chiller_unit_job_type,
-                amount=chiller_unit,
-            )
-        if ref_body:
-            BillAmount.objects.create(
-                job_card=instance, job_type=ref_body_job_type, amount=ref_body
-            )
+
+        if bill_items:
+                for item in bill_items:
+                    for job_type_id, amount in item.items():
+                        try:
+                            job_type_obj = JobType.objects.get(id=job_type_id)
+                            BillAmount.objects.create(
+                                job_card=instance,
+                                job_type=job_type_obj,
+                                amount=amount
+                            )
+                        except JobType.DoesNotExist:
+                            raise serializers.ValidationError(
+                                {"bill_items": f"JobType with id {job_type_id} does not exist"}
+                            )
+
+
+
         total_amount = BillAmount.objects.filter(job_card_id=instance.id).aggregate(
             Sum("amount")
         )["amount__sum"]
@@ -288,7 +271,7 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ["user_img","role","branch","passport_nmbr","visa_type",
-                  "visa_expiry","address","country","state","phone_personal","email","account","branch","team"]
+                  "visa_expiry","address","country","state","phone_personal","email","account","branch","team","first_name","last_name"]
 
 
 class TechnicianAddSerializer(serializers.ModelSerializer):
@@ -458,7 +441,8 @@ class RetrieveJobSerializer(serializers.ModelSerializer):
             "technician",
             "advance_payment",
             "bill_amount",
-            "payment_type"
+            "payment_type",
+            "created_at"
         ]
 
     def get_technician(self, obj):

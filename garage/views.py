@@ -939,9 +939,12 @@ class ListBalance(generics.ListAPIView):
         balance = Balance.objects.filter(branch_id=branch).first()
 
         if not balance:
-            return Response(
-                {"detail": "No balance found for this branch."}, status=404
-            )
+            current_balances = {
+            "cash_balance": 0,
+            "bank_balance": 0,
+            }
+            return Response(current_balances)
+             
 
         current_balances = {
             "cash_balance": balance.cash_balance,
