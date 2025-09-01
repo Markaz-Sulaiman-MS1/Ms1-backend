@@ -185,7 +185,7 @@ class JobcardSerializer(serializers.ModelSerializer):
             if instance.bill_type == JobCard.CASH:
                 RecentTransaction.objects.create(
                         transaction_type=RecentTransaction.INCOME,
-                        Description = "Job card income transferred as cash",
+                        description = "Job card income transferred as cash",
                         payment_type = instance.payment_type,
                         amount = total_amount,
                         balance_cash = balance.cash_balance,
@@ -195,7 +195,7 @@ class JobcardSerializer(serializers.ModelSerializer):
             else:
                  RecentTransaction.objects.create(
                         transaction_type=RecentTransaction.INCOME,
-                        Description = "Job card income closed as cashed credit",
+                        description = "Job card income closed as cashed credit",
                         payment_type = instance.payment_type,
                         amount = total_amount,
                         balance_cash = balance.cash_balance,
@@ -219,7 +219,7 @@ class JobcardSerializer(serializers.ModelSerializer):
             if instance.bill_type == JobCard.CASH:
                 RecentTransaction.objects.create(
                         transaction_type=RecentTransaction.INCOME,
-                        Description = "Job card income transferred to bank",
+                        description = "Job card income transferred to bank",
                         payment_type = instance.payment_type,
                         amount = total_amount,
                         balance_cash = balance.cash_balance,
@@ -229,7 +229,7 @@ class JobcardSerializer(serializers.ModelSerializer):
             else:
                  RecentTransaction.objects.create(
                         transaction_type=RecentTransaction.INCOME,
-                        Description = "Job card income closed as banked credit",
+                        description = "Job card income closed as banked credit",
                         payment_type = instance.payment_type,
                         amount = total_amount,
                         balance_cash = balance.cash_balance,
@@ -487,7 +487,7 @@ class AddExpenseSerializer(serializers.ModelSerializer):
 
             RecentTransaction.objects.create(
                     transaction_type=RecentTransaction.EXPENSE,
-                    Description = f"{expense.type} expense transferred as cash",
+                    description = f"{expense.type} expense transferred as cash",
                     payment_type = expense.payment_type,
                     amount = expense.total_amount,
                     balance_cash = balance.cash_balance,
@@ -509,7 +509,7 @@ class AddExpenseSerializer(serializers.ModelSerializer):
 
             RecentTransaction.objects.create(
                     transaction_type=RecentTransaction.EXPENSE,
-                    Description = f"{expense.type} expense transferred to bank",
+                    description = f"{expense.type} expense transferred to bank",
                     payment_type = expense.payment_type,
                     amount = expense.total_amount,
                     balance_cash = balance.cash_balance,
@@ -549,7 +549,7 @@ class AddIncomeSerializer(serializers.ModelSerializer):
 
             RecentTransaction.objects.create(
                     transaction_type=RecentTransaction.INCOME,
-                    Description = "Other income transferred as cash",
+                    description = "Other income transferred as cash",
                     payment_type = income.payment_type,
                     amount = income.total_income,
                     balance_cash = balance.cash_balance,
@@ -573,7 +573,7 @@ class AddIncomeSerializer(serializers.ModelSerializer):
              
             RecentTransaction.objects.create(
                     transaction_type=RecentTransaction.INCOME,
-                    Description = "Other income transferred to bank",
+                    description = "Other income transferred to bank",
                     payment_type = income.payment_type,
                     amount = income.total_income,
                     balance_cash = balance.cash_balance,
