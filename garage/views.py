@@ -15,7 +15,8 @@ import logging
 from rest_framework.exceptions import ValidationError
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.tokens import AccessToken
-
+from datetime import date, timedelta
+from django.db.models import Max
 
 
 # pylint: disable=E1101,W0702
@@ -964,3 +965,59 @@ class List_Transactions(generics.ListAPIView):
         return transactions
 
     
+
+
+class LastDayBalanceView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        try:
+            # Find the most recent date that has a transaction (before today)
+            last_txn_date = RecentTransaction.objects.filter(
+                date__lt=date.today()
+            ).aggregate(last_date=Max("date"))["last_date"]
+
+            if not last_txn_date:
+                return Response(
+                    {"message": "No past transactions found"},
+                    status=404
+                )
+
+            # Get the latest transaction of that day
+            last_txn = RecentTransaction.objects.filter(
+                date=last_txn_date
+            ).order_by("-created_at").first()
+
+            data = {
+                "date": str(last_txn_date),
+                "balance_cash": last_txn.balance_cash,
+                "balance_bank": last_txn.balance_bank,
+                "all_balance":last_txn.balance_cash + last_txn.balance_bank 
+            }
+            return Response(data, status=200)
+
+        except Exception as e:
+            return Response(
+                {"error": str(e)},
+                status=500
+            )
+        
+
+class CreditOutstandingView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        try:
+            credit_jobcards = JobCard.objects.filter(bill_type=JobCard.CREDIT)
+
+            total_credit = BillAmount.objects.filter(
+                job_card__in=credit_jobcards
+            ).aggregate(total=Sum("amount"))["total"] or 0
+
+            return Response(
+                {"total_credit_outstanding": total_credit},
+                status=200
+            )
+
+        except Exception as e:
+            return Response({"error": str(e)}, status=500) 

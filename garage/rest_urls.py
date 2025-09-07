@@ -74,6 +74,10 @@ urlpatterns = [
 
     path("add-deposit/", CreateDeposit.as_view(), name="add-deposit"),
     path("create-withdrawal/", CreateWithdrawal.as_view(), name="create-withdrawal"),
+    path("opening-balance/", LastDayBalanceView.as_view(), name="opening-balance"),
+    path("credit-outstanding/", CreditOutstandingView.as_view(), name="credit-outstanding"),
+
+
 
 
 
