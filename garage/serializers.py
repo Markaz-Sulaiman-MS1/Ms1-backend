@@ -132,11 +132,13 @@ class JobcardSerializer(serializers.ModelSerializer):
 
         bill_items = validated_data.pop("bill_items", None)
         job_type_data = validated_data.pop("job_type", None)
-
+        status = validated_data.pop("status", None)
+        
 
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
         instance.save()
+     
 
         if job_type_data:
             instance.job_type.set(job_type_data)
@@ -161,81 +163,84 @@ class JobcardSerializer(serializers.ModelSerializer):
         total_amount = BillAmount.objects.filter(job_card_id=instance.id).aggregate(
             Sum("amount")
         )["amount__sum"]
-
-        Income.objects.create(
-            type="Job",
-            total_income=total_amount,
-            job_card_id=instance.id,
-            date=instance.created_at,
-            name = instance.customer.name,
-            branch = instance.branch,
-            payment_type = instance.payment_type
-        )
-        if instance.payment_type == JobCard.CASH:
-            balance, created = Balance.objects.get_or_create(
-            branch_id=instance.branch.id,
-            defaults={
-                'cash_balance': total_amount,
-            }
-            )
         
-            if not created:
-                balance.cash_balance += total_amount
-                balance.save()
-            if instance.bill_type == JobCard.CASH:
-                RecentTransaction.objects.create(
-                        transaction_type=RecentTransaction.INCOME,
-                        description = "Job card income transferred as cash",
-                        payment_type = instance.payment_type,
-                        amount = total_amount,
-                        balance_cash = balance.cash_balance,
-                        balance_bank = balance.bank_balance,
-                        branch_id=instance.branch.id
-                )
-            else:
-                 RecentTransaction.objects.create(
-                        transaction_type=RecentTransaction.INCOME,
-                        description = "Job card income closed as cashed credit",
-                        payment_type = instance.payment_type,
-                        amount = total_amount,
-                        balance_cash = balance.cash_balance,
-                        balance_bank = balance.bank_balance,
-                        branch_id=instance.branch.id
+        if status == "Closed":
+            
+            Income.objects.create(
+                type="Job",
+                total_income=total_amount,
+                job_card_id=instance.id,
+                date=instance.created_at,
+                name = instance.customer.name,
+                branch = instance.branch,
+                payment_type = instance.payment_type
+            )
+
+            if instance.payment_type == JobCard.CASH:
+                balance, created = Balance.objects.get_or_create(
+                branch_id=instance.branch.id,
+                defaults={
+                    'cash_balance': total_amount,
+                }
                 )
             
+                if not created:
+                    balance.cash_balance += total_amount
+                    balance.save()
+                if instance.bill_type == JobCard.CASH:
+                    RecentTransaction.objects.create(
+                            transaction_type=RecentTransaction.INCOME,
+                            description = "Job card income transferred as cash",
+                            payment_type = instance.payment_type,
+                            amount = total_amount,
+                            balance_cash = balance.cash_balance,
+                            balance_bank = balance.bank_balance,
+                            branch_id=instance.branch.id
+                    )
+                else:
+                    RecentTransaction.objects.create(
+                            transaction_type=RecentTransaction.INCOME,
+                            description = "Job card income closed as cashed credit",
+                            payment_type = instance.payment_type,
+                            amount = total_amount,
+                            balance_cash = balance.cash_balance,
+                            balance_bank = balance.bank_balance,
+                            branch_id=instance.branch.id
+                    )
+                
 
-        else:
-            balance, created = Balance.objects.get_or_create(
-            branch_id=instance.branch.id,
-            defaults={
-                'bank_balance': total_amount,
-            }
-            )
-        
-            if not created:
-                balance.bank_balance += total_amount
-                balance.save()
-
-            if instance.bill_type == JobCard.CASH:
-                RecentTransaction.objects.create(
-                        transaction_type=RecentTransaction.INCOME,
-                        description = "Job card income transferred to bank",
-                        payment_type = instance.payment_type,
-                        amount = total_amount,
-                        balance_cash = balance.cash_balance,
-                        balance_bank = balance.bank_balance,
-                        branch_id=instance.branch.id
-                )
             else:
-                 RecentTransaction.objects.create(
-                        transaction_type=RecentTransaction.INCOME,
-                        description = "Job card income closed as banked credit",
-                        payment_type = instance.payment_type,
-                        amount = total_amount,
-                        balance_cash = balance.cash_balance,
-                        balance_bank = balance.bank_balance,
-                        branch_id=instance.branch.id
+                balance, created = Balance.objects.get_or_create(
+                branch_id=instance.branch.id,
+                defaults={
+                    'bank_balance': total_amount,
+                }
                 )
+            
+                if not created:
+                    balance.bank_balance += total_amount
+                    balance.save()
+
+                if instance.bill_type == JobCard.CASH:
+                    RecentTransaction.objects.create(
+                            transaction_type=RecentTransaction.INCOME,
+                            description = "Job card income transferred to bank",
+                            payment_type = instance.payment_type,
+                            amount = total_amount,
+                            balance_cash = balance.cash_balance,
+                            balance_bank = balance.bank_balance,
+                            branch_id=instance.branch.id
+                    )
+                else:
+                    RecentTransaction.objects.create(
+                            transaction_type=RecentTransaction.INCOME,
+                            description = "Job card income closed as banked credit",
+                            payment_type = instance.payment_type,
+                            amount = total_amount,
+                            balance_cash = balance.cash_balance,
+                            balance_bank = balance.bank_balance,
+                            branch_id=instance.branch.id
+                    )
 
 
         return instance
