@@ -141,7 +141,7 @@ class JobcardSerializer(serializers.ModelSerializer):
         
         if status is not None:
             instance.status = status
-            
+
         instance.save()
      
 
@@ -160,7 +160,7 @@ class JobcardSerializer(serializers.ModelSerializer):
                                     amount=amount
                                 )
                             if status == "Closed":
-                                bill_amount = BillAmount.objects.filter(job_card=instance,job_type=job_type_obj)
+                                bill_amount = BillAmount.objects.filter(job_card=instance,job_type=job_type_obj).first()
                                 if bill_amount:
                                     bill_amount.amount = amount
                                     bill_amount.save()
