@@ -137,6 +137,11 @@ class JobcardSerializer(serializers.ModelSerializer):
 
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
+
+        
+        if status is not None:
+            instance.status = status
+            
         instance.save()
      
 
