@@ -148,11 +148,24 @@ class JobcardSerializer(serializers.ModelSerializer):
                     for job_type_id, amount in item.items():
                         try:
                             job_type_obj = JobType.objects.get(id=job_type_id)
-                            BillAmount.objects.create(
-                                job_card=instance,
-                                job_type=job_type_obj,
-                                amount=amount
-                            )
+                            if status == "Credit":
+                                BillAmount.objects.create(
+                                    job_card=instance,
+                                    job_type=job_type_obj,
+                                    amount=amount
+                                )
+                            if status == "Closed":
+                                bill_amount = BillAmount.objects.filter(job_card=instance,job_type=job_type_obj)
+                                if bill_amount:
+                                    bill_amount.amount = amount
+                                    bill_amount.save()
+                                else:
+                                    BillAmount.objects.create(
+                                    job_card=instance,
+                                    job_type=job_type_obj,
+                                    amount=amount
+                                )
+
                         except JobType.DoesNotExist:
                             raise serializers.ValidationError(
                                 {"bill_items": f"JobType with id {job_type_id} does not exist"}
@@ -165,7 +178,7 @@ class JobcardSerializer(serializers.ModelSerializer):
         )["amount__sum"]
         
         if status == "Closed":
-            
+
             Income.objects.create(
                 type="Job",
                 total_income=total_amount,
