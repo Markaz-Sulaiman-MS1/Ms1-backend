@@ -971,10 +971,11 @@ class LastDayBalanceView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
+        branch = request.query_params.get("branch")
         try:
             # Find the most recent date that has a transaction (before today)
             last_txn_date = RecentTransaction.objects.filter(
-                date__lt=date.today()
+                date__lt=date.today(),branch_id=branch
             ).aggregate(last_date=Max("date"))["last_date"]
 
             if not last_txn_date:
@@ -985,7 +986,7 @@ class LastDayBalanceView(APIView):
 
             # Get the latest transaction of that day
             last_txn = RecentTransaction.objects.filter(
-                date=last_txn_date
+                date=last_txn_date,branch_id=branch
             ).order_by("-created_at").first()
 
             data = {
@@ -1007,8 +1008,9 @@ class CreditOutstandingView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
+        branch = request.query_params.get("branch")
         try:
-            credit_jobcards = JobCard.objects.filter(bill_type=JobCard.CREDIT)
+            credit_jobcards = JobCard.objects.filter(bill_type=JobCard.CREDIT,branch_id=branch)
 
             total_credit = BillAmount.objects.filter(
                 job_card__in=credit_jobcards
