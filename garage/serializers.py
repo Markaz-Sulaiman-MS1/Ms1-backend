@@ -488,7 +488,7 @@ class AddExpenseSerializer(serializers.ModelSerializer):
         expense = super().create(validated_data)
 
         branch_id = expense.branch.id
-        if expense.type_choices == "Salary":
+        if expense.type == "Salary":
             total_amount = expense.salary
         else:
             total_amount = expense.total_cost
