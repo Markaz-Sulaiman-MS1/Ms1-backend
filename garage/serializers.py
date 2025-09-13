@@ -512,7 +512,7 @@ class AddExpenseSerializer(serializers.ModelSerializer):
                     transaction_type=RecentTransaction.EXPENSE,
                     description = f"{expense.type} expense transferred as cash",
                     payment_type = expense.payment_type,
-                    amount = expense.total_amount,
+                    amount = expense.total_cost,
                     balance_cash = balance.cash_balance,
                     balance_bank = balance.bank_balance,
                     branch_id=expense.branch.id
@@ -534,7 +534,7 @@ class AddExpenseSerializer(serializers.ModelSerializer):
                     transaction_type=RecentTransaction.EXPENSE,
                     description = f"{expense.type} expense transferred to bank",
                     payment_type = expense.payment_type,
-                    amount = expense.total_amount,
+                    amount = expense.total_cost,
                     balance_cash = balance.cash_balance,
                     balance_bank = balance.bank_balance,
                     branch_id=expense.branch.id
@@ -554,7 +554,7 @@ class AddIncomeSerializer(serializers.ModelSerializer):
         income = super().create(validated_data)
 
         branch_id = income.branch.id
-        total_amount = income.amount  # or the field name for amount
+        total_amount = income.total_income  # or the field name for amount
         payment_type = income.payment_type
 
         if payment_type == JobCard.CASH:
