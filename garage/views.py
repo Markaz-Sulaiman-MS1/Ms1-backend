@@ -883,6 +883,14 @@ class CreateWithdrawal(APIView):
             date = request.data.get("date")
             description = request.data.get("description")
 
+            try:
+                amount = float(amount)
+            except ValueError:
+                return Response(
+                    {"error": "Amount must be a number"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
 
             if deposit_type == "Cash":
                 balance = Balance.objects.get(branch_id=branch)
