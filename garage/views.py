@@ -20,6 +20,7 @@ from django.db.models import Max
 from django.utils import timezone
 from django.db.models import F, Sum, Value
 from django.db.models.functions import Coalesce
+from datetime import datetime
 
 
 # pylint: disable=E1101,W0702
@@ -687,101 +688,65 @@ class TotalIncome(APIView):
 class TotalExpense(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get(self,request):
-        account_id = getattr(self.request.user, 'account_id', None) 
-        branch_id = getattr(self.request.user, 'branch_id', None)
-        from_date = self.request.query_params.get("from_date")
-        to_date = self.request.query_params.get("to_date") 
-        total_overtime = 0
-        total_purchase = 0
-        total_salary = 0
-        total_other = 0
-        total_sum = 0
+    def parse_date(self, date_str):
+        """Safely parse a YYYY-MM-DD string to a date object."""
+        if not date_str:
+            return None
+        try:
+            return datetime.strptime(date_str, "%Y-%m-%d").date()
+        except ValueError:
+            return None
 
-        
-        if branch_id :
-            if from_date and to_date:        
-                total = Expense.objects.filter(branch_id=branch_id,created_at__date__gte=from_date,created_at__date__lte=to_date).aggregate(total_sum=Sum(Coalesce(F('total_cost'), Value(0)) + Coalesce(F('salary'), Value(0)) + Coalesce(F('other_expense'), Value(0))))
-                total_purchase =  Expense.objects.filter(type=Expense.JOB,branch_id=branch_id,created_at__date__gte=from_date,created_at__date__lte=to_date).aggregate(total_sum=Sum('total_cost'))
-                total_salary =  Expense.objects.filter(type=Expense.SALARY,branch_id=branch_id,created_at__date__gte=from_date,created_at__date__lte=to_date).aggregate(total_sum=Sum('salary'))
-                total_overtime =  Expense.objects.filter(type=Expense.OVERTIME,branch_id=branch_id,created_at__date__gte=from_date,created_at__date__lte=to_date).aggregate(total_sum=Sum('total_cost'))
-                total_other =  Expense.objects.filter(type=Expense.OTHER,branch_id=branch_id,created_at__date__gte=from_date,created_at__date__lte=to_date).aggregate(total_sum=Sum('total_cost'))
+    def get(self, request):
+        account_id = getattr(request.user, "account_id", None)
+        branch_id = getattr(request.user, "branch_id", None)
 
-                total_overtime = total_overtime['total_sum'] or 0
-                total_purchase = total_purchase['total_sum'] or 0    
-                total_salary = total_salary['total_sum'] or 0
-                total_other = total_other['total_sum'] or 0
-                total_sum = total['total_sum'] or 0
-       
-            else:
-                total =  Expense.objects.filter(branch_id=branch_id,created_at__date__gte=from_date,created_at__date__lte=to_date).aggregate(total_sum=Sum(Coalesce(F('total_cost'), Value(0)) + Coalesce(F('salary'), Value(0)) + Coalesce(F('other_expense'), Value(0))))
-                total_purchase =  Expense.objects.filter(type=Expense.JOB,branch_id=branch_id).aggregate(total_sum=Sum('total_cost'))
-                total_salary =  Expense.objects.filter(type=Expense.SALARY,branch_id=branch_id).aggregate(total_sum=Sum('salary'))
-                total_overtime =  Expense.objects.filter(type=Expense.OVERTIME,branch_id=branch_id).aggregate(total_sum=Sum('total_cost'))
-                total_other =  Expense.objects.filter(type=Expense.OTHER,branch_id=branch_id).aggregate(total_sum=Sum('total_cost'))
+        # Parse dates safely
+        from_date = self.parse_date(request.query_params.get("from_date"))
+        to_date = self.parse_date(request.query_params.get("to_date"))
 
-                total_overtime = total_overtime['total_sum'] or 0
-                total_purchase = total_purchase['total_sum'] or 0    
-                total_salary = total_salary['total_sum'] or 0
-                total_other = total_other['total_sum'] or 0
-                total_sum = total['total_sum'] or 0
+        # Build date filters if valid
+        date_filter = {}
+        if from_date:
+            date_filter["created_at__date__gte"] = from_date
+        if to_date:
+            date_filter["created_at__date__lte"] = to_date
 
-            total = {
-                "total_overtime":total_overtime,
-                "total_purchase":total_purchase,
-                "total_salary":total_salary,
-                "total_other":total_other,
-                "total_sum":total_sum
-            }
-            
-            return Response(total)
-            
-
-        elif account_id :
-            branches = Branch.objects.filter(account_id = account_id).values_list('id',flat=True)
-
-            if from_date and to_date:        
-                total =  Expense.objects.filter(branch_id__in=branches,created_at__date__gte=from_date,created_at__date__lte=to_date).aggregate(total_sum=Sum(Coalesce(F('total_cost'), Value(0)) + Coalesce(F('salary'), Value(0)) + Coalesce(F('other_expense'), Value(0))))
-                total_purchase =  Expense.objects.filter(type=Expense.JOB,branch_id__in=branches,created_at__date__gte=from_date,created_at__date__lte=to_date).aggregate(total_sum=Sum('total_cost'))
-                total_salary =  Expense.objects.filter(type=Expense.SALARY,branch_id__in=branches,created_at__date__gte=from_date,created_at__date__lte=to_date).aggregate(total_sum=Sum('salary'))
-                total_overtime =  Expense.objects.filter(type=Expense.OVERTIME,branch_id__in=branches,created_at__date__gte=from_date,created_at__date__lte=to_date).aggregate(total_sum=Sum('total_cost'))
-                total_other =  Expense.objects.filter(type=Expense.OTHER,branch_id__in=branches,created_at__date__gte=from_date,created_at__date__lte=to_date).aggregate(total_sum=Sum('total_cost'))
-
-                total_overtime = total_overtime['total_sum'] or 0
-                total_purchase = total_purchase['total_sum'] or 0    
-                total_salary = total_salary['total_sum'] or 0
-                total_other = total_other['total_sum'] or 0
-                total_sum = total['total_sum'] or 0
-
-
-            else:
-                total =  Expense.objects.filter(branch_id__in=branches).aggregate(total_sum=Sum(Coalesce(F('total_cost'), Value(0)) + Coalesce(F('salary'), Value(0)) + Coalesce(F('other_expense'), Value(0))))
-                total_purchase =  Expense.objects.filter(type=Expense.JOB,branch_id__in=branches).aggregate(total_sum=Sum('total_cost'))
-                total_salary =  Expense.objects.filter(type=Expense.SALARY,branch_id__in=branches).aggregate(total_sum=Sum('salary'))
-                total_overtime =  Expense.objects.filter(type=Expense.OVERTIME,branch_id__in=branches).aggregate(total_sum=Sum('total_cost'))
-                total_other =  Expense.objects.filter(type=Expense.OTHER,branch_id__in=branches).aggregate(total_sum=Sum('total_cost'))
-
-                total_overtime = total_overtime['total_sum'] or 0
-                total_purchase = total_purchase['total_sum'] or 0    
-                total_salary = total_salary['total_sum'] or 0
-                total_other = total_other['total_sum'] or 0
-                total_sum = total['total_sum'] or 0
-
-   
-            total = {
-
-                "total_overtime":total_overtime,
-                "total_purchase":total_purchase,
-                "total_salary":total_salary,
-                "total_other":total_other,
-                "total_sum":total_sum
-            }
-            
-            return Response(total)
-            
-            
+        # Determine branches to filter
+        if branch_id:
+            branches = [branch_id]
+        elif account_id:
+            branches = Branch.objects.filter(account_id=account_id).values_list("id", flat=True)
         else:
-            return Income.objects.none()
+            return Response([])  # No branch or account -> return empty
+
+        # Base queryset
+        base_qs = Expense.objects.filter(branch_id__in=branches, **date_filter)
+
+        # Aggregate totals safely using Coalesce
+        total_sum = base_qs.aggregate(
+            total_sum=Sum(
+                Coalesce(F("total_cost"), Value(0))
+                + Coalesce(F("salary"), Value(0))
+                + Coalesce(F("other_expense"), Value(0))
+            )
+        )["total_sum"] or 0
+
+        # Aggregate individual types
+        total_purchase = base_qs.filter(type=Expense.JOB).aggregate(total_sum=Sum("total_cost"))["total_sum"] or 0
+        total_salary = base_qs.filter(type=Expense.SALARY).aggregate(total_sum=Sum("salary"))["total_sum"] or 0
+        total_overtime = base_qs.filter(type=Expense.OVERTIME).aggregate(total_sum=Sum("total_cost"))["total_sum"] or 0
+        total_other = base_qs.filter(type=Expense.OTHER).aggregate(total_sum=Sum("total_cost"))["total_sum"] or 0
+
+        result = {
+            "total_overtime": total_overtime,
+            "total_purchase": total_purchase,
+            "total_salary": total_salary,
+            "total_other": total_other,
+            "total_sum": total_sum,
+        }
+
+        return Response(result)
         
 
 class CreateDeposit(APIView):
