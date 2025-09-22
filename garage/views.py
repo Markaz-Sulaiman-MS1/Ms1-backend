@@ -21,6 +21,7 @@ from django.utils import timezone
 from django.db.models import F, Sum, Value
 from django.db.models.functions import Coalesce
 from datetime import datetime
+from django.db.models import FloatField
 
 
 # pylint: disable=E1101,W0702
@@ -725,11 +726,12 @@ class TotalExpense(APIView):
 
         # Aggregate totals safely using Coalesce
         total_sum = base_qs.aggregate(
-            total_sum=Sum(
-                Coalesce(F("total_cost"), Value(0))
-                + Coalesce(F("salary"), Value(0))
-                + Coalesce(F("other_expense"), Value(0))
-            )
+          total_sum=Sum(
+        Coalesce(F("total_cost"), Value(0, output_field=FloatField()))
+        + Coalesce(F("salary"), Value(0, output_field=FloatField()))
+        + Coalesce(F("other_expense"), Value(0, output_field=FloatField())),
+        output_field=FloatField()
+    )
         )["total_sum"] or 0
 
         # Aggregate individual types
