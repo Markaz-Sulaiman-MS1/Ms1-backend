@@ -18,6 +18,8 @@ from rest_framework_simplejwt.tokens import AccessToken
 from datetime import date, timedelta
 from django.db.models import Max
 from django.utils import timezone
+from django.db.models import F, Sum, Value
+from django.db.models.functions import Coalesce
 
 
 # pylint: disable=E1101,W0702
@@ -699,7 +701,7 @@ class TotalExpense(APIView):
         
         if branch_id :
             if from_date and to_date:        
-                total =  Expense.objects.filter(branch_id=branch_id,created_at__date__gte=from_date,created_at__date__lte=to_date).aggregate(total_sum=Sum('total_cost'))
+                total = Expense.objects.filter(branch_id=branch_id,created_at__date__gte=from_date,created_at__date__lte=to_date).aggregate(total_sum=Sum(Coalesce(F('total_cost'), Value(0)) + Coalesce(F('salary'), Value(0)) + Coalesce(F('other_expense'), Value(0))))
                 total_purchase =  Expense.objects.filter(type=Expense.JOB,branch_id=branch_id,created_at__date__gte=from_date,created_at__date__lte=to_date).aggregate(total_sum=Sum('total_cost'))
                 total_salary =  Expense.objects.filter(type=Expense.SALARY,branch_id=branch_id,created_at__date__gte=from_date,created_at__date__lte=to_date).aggregate(total_sum=Sum('salary'))
                 total_overtime =  Expense.objects.filter(type=Expense.OVERTIME,branch_id=branch_id,created_at__date__gte=from_date,created_at__date__lte=to_date).aggregate(total_sum=Sum('total_cost'))
