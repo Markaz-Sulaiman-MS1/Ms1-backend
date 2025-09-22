@@ -489,9 +489,9 @@ class AddExpenseSerializer(serializers.ModelSerializer):
 
         branch_id = expense.branch.id
         if expense.type == "Salary":
-            total_amount = expense.salary
+            total_amount = float(expense.salary) + float(expense.other_expense)  
         else:
-            total_amount = expense.total_cost
+            total_amount = float(expense.total_cost) + float(expense.other_expense)
              
         payment_type = expense.payment_type
 
@@ -512,7 +512,7 @@ class AddExpenseSerializer(serializers.ModelSerializer):
                     transaction_type=RecentTransaction.EXPENSE,
                     description = f"{expense.type} expense transferred as cash",
                     payment_type = expense.payment_type,
-                    amount = expense.total_cost,
+                    amount = total_amount,
                     balance_cash = balance.cash_balance,
                     balance_bank = balance.bank_balance,
                     branch_id=expense.branch.id
@@ -534,7 +534,7 @@ class AddExpenseSerializer(serializers.ModelSerializer):
                     transaction_type=RecentTransaction.EXPENSE,
                     description = f"{expense.type} expense transferred to bank",
                     payment_type = expense.payment_type,
-                    amount = expense.total_cost,
+                    amount = total_amount,
                     balance_cash = balance.cash_balance,
                     balance_bank = balance.bank_balance,
                     branch_id=expense.branch.id

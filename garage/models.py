@@ -202,7 +202,7 @@ class Expense(TimestampedUUIDModel):
     date = models.DateField(null=True, blank=True)
     type = models.CharField(max_length=200,choices=type_choices,null=True, blank=True)
     salary = models.FloatField(null=True,blank=True)
-    other_expense = models.FloatField(null=True,blank=True)
+    other_expense = models.FloatField(null=True,blank=True,default=0.0)
     branch = models.ForeignKey(Branch,on_delete=models.SET_NULL,null=True)
     payment_type = models.CharField(max_length=200,choices=payment_choice,null=True)
 
