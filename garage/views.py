@@ -714,7 +714,7 @@ class TotalExpense(APIView):
                 total_sum = total['total_sum'] or 0
        
             else:
-                total =  Expense.objects.filter(branch_id=branch_id).aggregate(total_sum=Sum('total_cost'))
+                total =  Expense.objects.filter(branch_id=branch_id,created_at__date__gte=from_date,created_at__date__lte=to_date).aggregate(total_sum=Sum(Coalesce(F('total_cost'), Value(0)) + Coalesce(F('salary'), Value(0)) + Coalesce(F('other_expense'), Value(0))))
                 total_purchase =  Expense.objects.filter(type=Expense.JOB,branch_id=branch_id).aggregate(total_sum=Sum('total_cost'))
                 total_salary =  Expense.objects.filter(type=Expense.SALARY,branch_id=branch_id).aggregate(total_sum=Sum('salary'))
                 total_overtime =  Expense.objects.filter(type=Expense.OVERTIME,branch_id=branch_id).aggregate(total_sum=Sum('total_cost'))
@@ -741,7 +741,7 @@ class TotalExpense(APIView):
             branches = Branch.objects.filter(account_id = account_id).values_list('id',flat=True)
 
             if from_date and to_date:        
-                total =  Expense.objects.filter(branch_id__in=branches,created_at__date__gte=from_date,created_at__date__lte=to_date).aggregate(total_sum=Sum('total_cost'))
+                total =  Expense.objects.filter(branch_id__in=branches,created_at__date__gte=from_date,created_at__date__lte=to_date).aggregate(total_sum=Sum(Coalesce(F('total_cost'), Value(0)) + Coalesce(F('salary'), Value(0)) + Coalesce(F('other_expense'), Value(0))))
                 total_purchase =  Expense.objects.filter(type=Expense.JOB,branch_id__in=branches,created_at__date__gte=from_date,created_at__date__lte=to_date).aggregate(total_sum=Sum('total_cost'))
                 total_salary =  Expense.objects.filter(type=Expense.SALARY,branch_id__in=branches,created_at__date__gte=from_date,created_at__date__lte=to_date).aggregate(total_sum=Sum('salary'))
                 total_overtime =  Expense.objects.filter(type=Expense.OVERTIME,branch_id__in=branches,created_at__date__gte=from_date,created_at__date__lte=to_date).aggregate(total_sum=Sum('total_cost'))
@@ -755,7 +755,7 @@ class TotalExpense(APIView):
 
 
             else:
-                total =  Expense.objects.filter(branch_id__in=branches).aggregate(total_sum=Sum('total_cost'))
+                total =  Expense.objects.filter(branch_id__in=branches).aggregate(total_sum=Sum(Coalesce(F('total_cost'), Value(0)) + Coalesce(F('salary'), Value(0)) + Coalesce(F('other_expense'), Value(0))))
                 total_purchase =  Expense.objects.filter(type=Expense.JOB,branch_id__in=branches).aggregate(total_sum=Sum('total_cost'))
                 total_salary =  Expense.objects.filter(type=Expense.SALARY,branch_id__in=branches).aggregate(total_sum=Sum('salary'))
                 total_overtime =  Expense.objects.filter(type=Expense.OVERTIME,branch_id__in=branches).aggregate(total_sum=Sum('total_cost'))
