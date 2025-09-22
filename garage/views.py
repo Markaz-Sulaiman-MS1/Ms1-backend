@@ -1018,7 +1018,7 @@ class CreditOutstandingView(APIView):
     def get(self, request):
         branch = request.query_params.get("branch")
         try:
-            credit_jobcards = JobCard.objects.filter(bill_type=JobCard.CREDIT,branch_id=branch)
+            credit_jobcards = JobCard.objects.filter(status=JobCard.CREDIT,branch_id=branch)
 
             total_credit = BillAmount.objects.filter(
                 job_card__in=credit_jobcards
