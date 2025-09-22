@@ -17,6 +17,7 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.tokens import AccessToken
 from datetime import date, timedelta
 from django.db.models import Max
+from django.utils import timezone
 
 
 # pylint: disable=E1101,W0702
@@ -981,36 +982,35 @@ class LastDayBalanceView(APIView):
     def get(self, request):
         branch = request.query_params.get("branch")
         try:
-            # Find the most recent date that has a transaction (before today)
-            last_txn_date = RecentTransaction.objects.filter(
-                date__lt=date.today(),branch_id=branch
-            ).aggregate(last_date=Max("date"))["last_date"]
+            today = timezone.localdate()
+
+            # Find the last transaction date before today
+            last_txn_date = (RecentTransaction.objects
+                .filter(created_at__lt=today, branch_id=branch)
+                .aggregate(last_date=Max("created_at"))["last_date"])
 
             if not last_txn_date:
-                return Response(
-                    {"message": "No past transactions found"},
-                    status=404
-                )
+                return Response({"message": "No past transactions found"}, status=404)
 
             # Get the latest transaction of that day
-            last_txn = RecentTransaction.objects.filter(
-                date=last_txn_date,branch_id=branch
-            ).order_by("-created_at").first()
+            last_txn = (RecentTransaction.objects
+                .filter(created_at=last_txn_date, branch_id=branch)
+                .order_by("-created_at")
+                .first())
 
             data = {
                 "date": str(last_txn_date),
                 "balance_cash": last_txn.balance_cash,
                 "balance_bank": last_txn.balance_bank,
-                "all_balance":last_txn.balance_cash + last_txn.balance_bank 
+                "all_balance": last_txn.balance_cash + last_txn.balance_bank
             }
             return Response(data, status=200)
-
+        
         except Exception as e:
             return Response(
                 {"error": str(e)},
                 status=500
             )
-        
 
 class CreditOutstandingView(APIView):
     permission_classes = [IsAuthenticated]
