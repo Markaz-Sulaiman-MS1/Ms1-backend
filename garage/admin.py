@@ -102,6 +102,7 @@ class BillAmountAdmin(admin.ModelAdmin):
          'id',
          'amount',
          'job_card',
+         'created_at'
      )
 
 class ContactPersonAdmin(admin.ModelAdmin):
