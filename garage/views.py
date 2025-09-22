@@ -690,7 +690,7 @@ class TotalExpense(APIView):
     permission_classes = [IsAuthenticated]
 
     def parse_date(self, date_str):
-        """Safely parse a YYYY-MM-DD string to a date object."""
+
         if not date_str:
             return None
         try:
@@ -736,7 +736,7 @@ class TotalExpense(APIView):
 
         # Aggregate individual types
         total_purchase = base_qs.filter(type=Expense.JOB).aggregate(total_sum=Sum("total_cost"))["total_sum"] or 0
-        total_salary = base_qs.filter(type=Expense.SALARY).aggregate(total_sum=Sum("salary"))["total_sum"] or 0
+        total_salary = base_qs.filter(type=Expense.SALARY).aggregate(total_sum=Sum(Coalesce(F("salary"), Value(0, output_field=FloatField()))+ Coalesce(F("other_expense"), Value(0, output_field=FloatField())),output_field=FloatField()))["total_sum"] or 0
         total_overtime = base_qs.filter(type=Expense.OVERTIME).aggregate(total_sum=Sum("total_cost"))["total_sum"] or 0
         total_other = base_qs.filter(type=Expense.OTHER).aggregate(total_sum=Sum("total_cost"))["total_sum"] or 0
 
