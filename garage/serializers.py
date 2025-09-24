@@ -591,7 +591,7 @@ class AddIncomeSerializer(serializers.ModelSerializer):
             )
         
             if not created:
-                balance.cash_balance += total_amount
+                balance.bank_balance += total_amount
                 balance.save()
              
             RecentTransaction.objects.create(
