@@ -19,18 +19,29 @@ class Branch(TimestampedUUIDModel):
     landmark = models.CharField(max_length=100, null=True, blank=True)
     zip_code = models.CharField(max_length=100, null=True, blank=True)
     email = models.EmailField(max_length=100, null=True, blank=True)
-
     account = models.ForeignKey(Account,on_delete=models.CASCADE,null=True)
 
 class Team(TimestampedUUIDModel):
     name = models.CharField(max_length=200,null=True,blank=True)
     branch = models.ForeignKey(Branch,on_delete=models.CASCADE,null=True)
 
+
+class Role(TimestampedUUIDModel):
+    name=models.CharField(max_length=200,null=True,blank=True)
+
+
+class Designation(TimestampedUUIDModel):
+    title = models.CharField(max_length=200,null=True,blank=True)
+    role = models.ForeignKey(Role,on_delete=models.SET_NULL,null=True)
+    account = models.ForeignKey(Account,on_delete=models.CASCADE,null=True)
+
+
+
 class User(AbstractUser, TimestampedUUIDModel):
 
     user_img = models.ImageField(upload_to="users", null=True, blank=True)
-    role = models.CharField(max_length=100, null=True, blank=True)
     branch = models.CharField(max_length=100, null=True, blank=True)
+    role = models.ForeignKey(Role,on_delete=models.SET_NULL,null=True)
     passport_nmbr = models.CharField(max_length=100, null=True, blank=True)
     visa_type = models.CharField(max_length=100, null=True, blank=True)
     visa_expiry = models.DateField(null=True, blank=True)
@@ -42,6 +53,15 @@ class User(AbstractUser, TimestampedUUIDModel):
     account = models.ForeignKey(Account,on_delete=models.CASCADE,null=True)
     branch = models.ForeignKey(Branch,on_delete=models.SET_NULL,null=True,blank=True)
     team = models.ForeignKey(Team,on_delete=models.SET_NULL,null=True,blank=True)
+    designation = models.ForeignKey(Designation,on_delete=models.SET_NULL,null=True,blank=True)
+    date_of_joining = models.DateField(null=True, blank=True)
+    date_of_birth = models.DateField(null=True, blank=True)
+    town = models.CharField(max_length=100, null=True, blank=True)
+    zip_code = models.CharField(max_length=100, null=True, blank=True)
+    net_payable_salary = models.FloatField(null=True,blank=True)
+    other_expense = models.FloatField(null=True,blank=True)
+
+
 
 
     USERNAME_FIELD = "email"

@@ -76,6 +76,11 @@ urlpatterns = [
     path("create-withdrawal/", CreateWithdrawal.as_view(), name="create-withdrawal"),
     path("opening-balance/", LastDayBalanceView.as_view(), name="opening-balance"),
     path("credit-outstanding/", CreditOutstandingView.as_view(), name="credit-outstanding"),
+    path("create-user/", UserCreateAPIView.as_view(), name="user-create"),
+    path("update-user/<uuid:pk>/", UserEditAPIView.as_view(), name="user-edit"),
+    path("list-designations/", GetDepartment.as_view(), name="get-dept"),
+    path("list-role/", ListRole.as_view(), name="list-role"),
+
 
 
 

@@ -22,6 +22,7 @@ from django.db.models import F, Sum, Value
 from django.db.models.functions import Coalesce
 from datetime import datetime
 from django.db.models import FloatField
+from django.shortcuts import get_object_or_404
 
 
 # pylint: disable=E1101,W0702
@@ -472,8 +473,8 @@ class ListIncome(generics.ListAPIView):
     serializer_class = AddIncomeSerializer
 
     def get_queryset(self):
-        account_id = getattr(self.request.user, 'account_id', None) 
-        branch_id = self.request.query_params.get("branch") 
+        account_id = getattr(self.request.user, 'account_id', None)
+        branch_id = self.request.query_params.get("branch")
         type = self.request.query_params.get("type")
         from_date = self.request.query_params.get("from_date")
         to_date = self.request.query_params.get("to_date")
@@ -1007,3 +1008,46 @@ class CreditOutstandingView(APIView):
 
         except Exception as e:
             return Response({"error": str(e)}, status=500) 
+        
+
+class UserCreateAPIView(APIView):
+    def post(self, request):
+        serializer = UserSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({"message": "User created successfully", "data": serializer.data}, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class UserEditAPIView(APIView):
+    def put(self, request, pk):
+        user = get_object_or_404(User, pk=pk)
+        serializer = UserSerializer(user, data=request.data, partial=False)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({"message": "User updated successfully", "data": serializer.data}, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def patch(self, request, pk):
+        user = get_object_or_404(User, pk=pk)
+        serializer = UserSerializer(user, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({"message": "User partially updated", "data": serializer.data}, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+
+
+class GetDepartment(APIView):
+    def get(self, request):
+        role = request.query_params.get("role")
+        if not role:
+            return Response({"error": "role query parameter is required"}, status=status.HTTP_400_BAD_REQUEST)
+        departments = Designation.objects.filter(role_id=role)
+        serializer = DesignationSerializer(departments, many=True)
+        return Response({"departments": serializer.data}, status=status.HTTP_200_OK)
+    
+
+class ListRole(generics.ListAPIView):
+    queryset = Role.objects.all()
+    serializer_class = RoleSerializer

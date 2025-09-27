@@ -157,6 +157,18 @@ class BalanceAdmin(admin.ModelAdmin):
          'created_at',
      )
 
+class DesignationAdmin(admin.ModelAdmin):
+     list_display = (
+         'id',
+         'created_at',
+     )
+
+
+class RoleAdmin(admin.ModelAdmin):
+     list_display = (
+         'id',
+         'created_at',
+     )
 
 
 admin.site.register(User, MyUserAdmin)
@@ -176,6 +188,10 @@ admin.site.register(Team, TeamAdmin)
 admin.site.register(Income, InvoiceAdmin)
 admin.site.register(RecentTransaction, RecentTransactionAdmin)
 admin.site.register(Balance, BalanceAdmin)
+admin.site.register(Designation, DesignationAdmin)
+admin.site.register(Role, RoleAdmin)
+
+
 
 
 
