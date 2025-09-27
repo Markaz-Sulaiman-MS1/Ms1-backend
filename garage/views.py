@@ -286,8 +286,14 @@ class ListBranch(generics.ListAPIView):
 
 class ListJobType(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
-    queryset = JobType.objects.all()
-    serializer_class = JobTypeSerializer
+
+    def get_queryset(self):
+        account_id = getattr(self.request.user, 'account_id', None) 
+
+        if account_id:
+           return JobType.objects.filter(account_id = account_id)   
+        else:
+            return JobType.objects.none() 
 
 
 class SpareAmount(generics.ListAPIView):
@@ -427,7 +433,7 @@ class ListExpense(generics.ListAPIView):
         expense_type = self.request.query_params.get("type")
         
         account_id = getattr(self.request.user, 'account_id', None) 
-        branch_id = getattr(self.request.user, 'branch_id', None) 
+        branch_id = self.request.query_params.get("branch")              
         if branch_id and expense_type :
             return Expense.objects.filter(type=expense_type,branch_id=branch_id)
             
@@ -438,7 +444,7 @@ class ListExpense(generics.ListAPIView):
         else:
             return Expense.objects.none()
 
-
+             
 
 class UpdateExpense(generics.UpdateAPIView):
     permission_classes = [IsAuthenticated]
@@ -466,7 +472,7 @@ class ListIncome(generics.ListAPIView):
 
     def get_queryset(self):
         account_id = getattr(self.request.user, 'account_id', None) 
-        branch_id = getattr(self.request.user, 'branch_id', None) 
+        branch_id = self.request.query_params.get("branch") 
         type = self.request.query_params.get("type")
         from_date = self.request.query_params.get("from_date")
         to_date = self.request.query_params.get("to_date")
@@ -616,7 +622,7 @@ class TotalIncome(APIView):
 
     def get(self,request):
         account_id = getattr(self.request.user, 'account_id', None) 
-        branch_id = getattr(self.request.user, 'branch_id', None)
+        branch_id = request.query_params.get("branch")
         from_date = self.request.query_params.get("from_date")
         to_date = self.request.query_params.get("to_date") 
         total_sum = 0
@@ -700,7 +706,7 @@ class TotalExpense(APIView):
 
     def get(self, request):
         account_id = getattr(request.user, "account_id", None)
-        branch_id = getattr(request.user, "branch_id", None)
+        branch_id = request.query_params.get("branch")
 
         # Parse dates safely
         from_date = self.parse_date(request.query_params.get("from_date"))

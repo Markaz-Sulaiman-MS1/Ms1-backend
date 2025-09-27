@@ -105,6 +105,7 @@ class Customer(TimestampedUUIDModel):
     account = models.ForeignKey(Account,on_delete=models.SET_NULL,null=True)
 class JobType(TimestampedUUIDModel):
     name = models.CharField(max_length=200,null=True,blank=False)
+    account = models.ForeignKey(Account,on_delete=models.CASCADE,null=True)
 
 class JobCard(TimestampedUUIDModel):
     IN_PROGRESS = "In progress"
