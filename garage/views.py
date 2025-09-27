@@ -286,6 +286,7 @@ class ListBranch(generics.ListAPIView):
 
 class ListJobType(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
+    serializer_class = JobTypeSerializer
 
     def get_queryset(self):
         account_id = getattr(self.request.user, 'account_id', None) 
