@@ -1012,7 +1012,7 @@ class CreditOutstandingView(APIView):
 
 class UserCreateAPIView(APIView):
     def post(self, request):
-        serializer = UserSerializer(data=request.data)
+        serializer = UsersSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response({"message": "User created successfully", "data": serializer.data}, status=status.HTTP_201_CREATED)
@@ -1030,7 +1030,7 @@ class UserEditAPIView(APIView):
 
     def patch(self, request, pk):
         user = get_object_or_404(User, pk=pk)
-        serializer = UserSerializer(user, data=request.data, partial=True)
+        serializer = UsersSerializer(user, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
             return Response({"message": "User partially updated", "data": serializer.data}, status=status.HTTP_200_OK)
