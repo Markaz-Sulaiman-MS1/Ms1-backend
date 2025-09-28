@@ -23,8 +23,7 @@ from django.db.models.functions import Coalesce
 from datetime import datetime
 from django.db.models import FloatField
 from django.shortcuts import get_object_or_404
-
-
+from zoneinfo import ZoneInfo 
 # pylint: disable=E1101,W0702
 
 
@@ -958,7 +957,14 @@ class LastDayBalanceView(APIView):
     def get(self, request):
         branch = request.query_params.get("branch")
         try:
-            today = timezone.localdate()
+
+            branch = Branch.objects.select_related("timezone").get(id=branch)
+            if not branch.timezone or not branch.timezone.name:
+                return Response({"error": "Branch has no timezone configured"}, status=400)
+            
+            branch_tz = ZoneInfo(branch.timezone.name)
+            today = timezone.now().astimezone(branch_tz).date()
+    
 
             # Find the last transaction date before today
             last_txn_date = (RecentTransaction.objects

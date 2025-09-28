@@ -171,6 +171,13 @@ class RoleAdmin(admin.ModelAdmin):
      )
 
 
+class TimeZoneAdmin(admin.ModelAdmin):
+     list_display = (
+         'id',
+         'name',
+     )
+
+
 admin.site.register(User, MyUserAdmin)
 admin.site.register(Employee, EmployeeAdmin)
 admin.site.register(Remarks, RemarksAdmin)
@@ -190,6 +197,8 @@ admin.site.register(RecentTransaction, RecentTransactionAdmin)
 admin.site.register(Balance, BalanceAdmin)
 admin.site.register(Designation, DesignationAdmin)
 admin.site.register(Role, RoleAdmin)
+admin.site.register(TimeZone, TimeZoneAdmin)
+
 
 
 
