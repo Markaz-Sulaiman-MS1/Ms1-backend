@@ -9,6 +9,9 @@ from MsOne.models import TimestampedUUIDModel
 class Account(TimestampedUUIDModel):
     company = models.CharField(max_length=200, null=True, blank=True)
     address = models.CharField(max_length=500, null=True, blank=True)
+
+    def __str__(self):
+        return self.company
     
 class Branch(TimestampedUUIDModel):
     name = models.CharField(max_length=200,null=True,blank=True)
@@ -21,6 +24,10 @@ class Branch(TimestampedUUIDModel):
     email = models.EmailField(max_length=100, null=True, blank=True)
     account = models.ForeignKey(Account,on_delete=models.CASCADE,null=True)
 
+    
+    def __str__(self):
+        return self.name
+
 class Team(TimestampedUUIDModel):
     name = models.CharField(max_length=200,null=True,blank=True)
     branch = models.ForeignKey(Branch,on_delete=models.CASCADE,null=True)
@@ -28,12 +35,19 @@ class Team(TimestampedUUIDModel):
 
 class Role(TimestampedUUIDModel):
     name=models.CharField(max_length=200,null=True,blank=True)
+    
+    def __str__(self):
+        return self.name
 
 
 class Designation(TimestampedUUIDModel):
     title = models.CharField(max_length=200,null=True,blank=True)
     role = models.ForeignKey(Role,on_delete=models.SET_NULL,null=True)
     account = models.ForeignKey(Account,on_delete=models.CASCADE,null=True)
+
+    
+    def __str__(self):
+        return self.title
 
 
 
@@ -60,7 +74,6 @@ class User(AbstractUser, TimestampedUUIDModel):
     zip_code = models.CharField(max_length=100, null=True, blank=True)
     net_payable_salary = models.FloatField(null=True,blank=True)
     other_expense = models.FloatField(null=True,blank=True)
-
 
 
 
@@ -126,6 +139,10 @@ class Customer(TimestampedUUIDModel):
 class JobType(TimestampedUUIDModel):
     name = models.CharField(max_length=200,null=True,blank=False)
     account = models.ForeignKey(Account,on_delete=models.CASCADE,null=True)
+
+    
+    def __str__(self):
+        return self.name
 
 class JobCard(TimestampedUUIDModel):
     IN_PROGRESS = "In progress"
