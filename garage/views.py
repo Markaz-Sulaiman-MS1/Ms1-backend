@@ -1051,3 +1051,9 @@ class GetDepartment(APIView):
 class ListRole(generics.ListAPIView):
     queryset = Role.objects.all()
     serializer_class = RoleSerializer
+
+
+class ListUsers(generics.ListAPIView):
+    queryset = User.objects.all()
+    serializer_class = UsersSerializer
+    
