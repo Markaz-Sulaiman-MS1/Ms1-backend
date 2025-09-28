@@ -81,6 +81,7 @@ urlpatterns = [
     path("list-designations/", GetDepartment.as_view(), name="get-dept"),
     path("list-role/", ListRole.as_view(), name="list-role"),
     path("list-users/", ListUsers.as_view(), name="list-users"),
+    path("list-time-zones/", ListTimezones.as_view(), name="list-time-zones"),
 
 
 

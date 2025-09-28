@@ -1074,3 +1074,7 @@ class ListUsers(generics.ListAPIView):
             return User.objects.none()
 
     
+class ListTimezones(generics.ListAPIView):
+    serializer_class = TimeZoneSerilaizer
+    queryset = TimeZone.objects.all()
+    

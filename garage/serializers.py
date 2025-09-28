@@ -657,3 +657,10 @@ class DesignationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Designation
         fields = ["id", "title", "role","account"]
+
+class TimeZoneSerilaizer(serializers.ModelSerializer):
+
+    class Meta:
+        model = TimeZone
+        fields = "__all__"
+    
