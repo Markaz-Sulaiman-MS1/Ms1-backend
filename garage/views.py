@@ -388,7 +388,6 @@ class ListCustomers(generics.ListAPIView):
         customer_type = self.request.query_params.get("customer_type")
         account_id = getattr(self.request.user, 'account_id', None)
         branch_id = getattr(self.request.user, 'branch_id', None)
-        print("account_id",account_id)
             
         if account_id and customer_type:
            print("account_id222",account_id)
@@ -1054,6 +1053,18 @@ class ListRole(generics.ListAPIView):
 
 
 class ListUsers(generics.ListAPIView):
-    queryset = User.objects.all()
+
     serializer_class = UsersSerializer
+    def get_queryset(self):
+        account_id = getattr(self.request.user, 'account_id', None) 
+        branch_id = getattr(self.request.user, 'branch_id', None) 
+        if branch_id:
+            return User.objects.filter(branch_id=branch_id)
+            
+        elif account_id:
+           return User.objects.filter(account_id=account_id)         
+            
+        else:
+            return User.objects.none()
+
     
