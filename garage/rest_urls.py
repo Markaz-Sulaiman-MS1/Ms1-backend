@@ -82,6 +82,21 @@ urlpatterns = [
     path("list-role/", ListRole.as_view(), name="list-role"),
     path("list-users/", ListUsers.as_view(), name="list-users"),
     path("list-time-zones/", ListTimezones.as_view(), name="list-time-zones"),
+    path("create-brand/", CreateBrand.as_view(), name="create-brand"),
+    path("list-brand/", ListBrand.as_view(), name="list-brand"),
+    path("create-category/", CreateCategory.as_view(), name="create-category"),
+    path("list-category/", ListCategory.as_view(), name="list-category"),
+    path("create-vendor/", CreateVendor.as_view(), name="create-vendor"),
+    path("list-vendor/", ListVendor.as_view(), name="list-vendor"),
+    path("create-product/", CreateProductView.as_view(), name="create-product"),
+    path("list-product/", ProductListView.as_view(), name="list-product"),
+
+
+
+
+
+
+
 
 
 

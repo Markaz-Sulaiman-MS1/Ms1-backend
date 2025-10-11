@@ -1027,7 +1027,7 @@ class UserCreateAPIView(APIView):
 class UserEditAPIView(APIView):
     def put(self, request, pk):
         user = get_object_or_404(User, pk=pk)
-        serializer = UserSerializer(user, data=request.data, partial=False)
+        serializer = UsersSerializer(user, data=request.data, partial=False)
         if serializer.is_valid():
             serializer.save()
             return Response({"message": "User updated successfully", "data": serializer.data}, status=status.HTTP_200_OK)
@@ -1078,3 +1078,155 @@ class ListTimezones(generics.ListAPIView):
     serializer_class = TimeZoneSerilaizer
     queryset = TimeZone.objects.all()
     
+
+
+
+
+class CreateBrand(APIView):
+    # permission_classes = [IsAuthenticated]
+    def post(self, request):
+        try:
+            account_id = getattr(self.request.user, 'account_id', None)
+            if not account_id:
+                return Response({"error": "Account not found for user"}, status=400)
+
+            name = request.data.get("name")
+            description = request.data.get("description")
+
+            if not name:
+                return Response({"error": "Name is required"}, status=400)
+
+            brand = Brand.objects.create(
+                name=name,
+                description=description,
+                account_id=account_id 
+            )
+
+            return Response(
+                {"message": "Brand created successfully", "brand_id": brand.id},
+                status=201
+            )
+
+        except Exception as e:
+            return Response({"error": str(e)}, status=500)
+        
+
+class ListBrand(generics.ListAPIView):
+    # permission_classes = [IsAuthenticated]
+    serializer_class = BrandSerializer
+    def get_queryset(self):
+        account_id = getattr(self.request.user, 'account_id', None) 
+            
+        if account_id:
+           return Brand.objects.filter(account_id=account_id)         
+            
+        else:
+            return Brand.objects.none()
+
+
+
+
+
+class CreateCategory(APIView):
+    def post(self, request):
+        try:
+            account_id = getattr(self.request.user, 'account_id', None)
+            if not account_id:
+                return Response({"error": "Account not found for user"}, status=400)
+
+            name = request.data.get("name")
+            description = request.data.get("description")
+
+            if not name:
+                return Response({"error": "Name is required"}, status=400)
+
+            category = Category.objects.create(
+                name=name,
+                description=description,
+                account_id=account_id 
+            )
+
+            return Response(
+                {"message": "Category created successfully", "category_id": category.id},
+                status=201
+            )
+
+        except Exception as e:
+            return Response({"error": str(e)}, status=500)
+        
+
+
+class ListCategory(generics.ListAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = CategorySerializer
+    def get_queryset(self):
+        account_id = getattr(self.request.user, 'account_id', None) 
+            
+        if account_id:
+           return Category.objects.filter(account_id=account_id)         
+            
+        else:
+            return Category.objects.none()
+
+class CreateVendor(APIView):
+    def post(self, request):
+        try:
+            account_id = getattr(self.request.user, 'account_id', None)
+            if not account_id:
+                return Response({"error": "Account not found for user"}, status=400)
+
+            name = request.data.get("name")
+            description = request.data.get("description")
+
+            if not name:
+                return Response({"error": "Name is required"}, status=400)
+
+            vendor = Vendor.objects.create(
+                name=name,
+                description=description,
+                account_id=account_id 
+            )
+
+            return Response(
+                {"message": "Category created successfully", "vendor_id": vendor.id},
+                status=201
+            )
+
+        except Exception as e:
+            return Response({"error": str(e)}, status=500)
+        
+
+class ListVendor(generics.ListAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = VendorSerializer
+    def get_queryset(self):
+        account_id = getattr(self.request.user, 'account_id', None) 
+            
+        if account_id:
+           return Vendor.objects.filter(account_id=account_id)         
+            
+        else:
+            return Vendor.objects.none()
+        
+
+
+
+class CreateProductView(generics.CreateAPIView):
+    queryset = Product.objects.all()
+    serializer_class = ProductSerializer
+    # permission_classes = [IsAuthenticated] 
+
+    def perform_create(self, serializer):
+        account_id = "1436dfef-640c-4f39-943a-216dc46e8582"
+        if not account_id:
+            raise serializers.ValidationError("Account not found for user.")
+        serializer.save(account_id=account_id)
+
+
+class ProductListView(generics.ListAPIView):
+    serializer_class = ProductListSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        account_id = getattr(self.request.user, 'account_id', None)
+        return Product.objects.filter(account_id=account_id)

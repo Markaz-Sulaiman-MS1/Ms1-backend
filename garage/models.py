@@ -304,5 +304,41 @@ class RecentTransaction(TimestampedUUIDModel):
     branch = models.ForeignKey(Branch,on_delete=models.SET_NULL,null=True)
 
 
+class Brand(TimestampedUUIDModel):
+    name = models.CharField(max_length=200, null=True, blank=True)
+    description = models.TextField(null=True, blank=True)
+    account = models.ForeignKey(Account,on_delete=models.CASCADE,null=True)
 
 
+
+class Category(TimestampedUUIDModel):
+    name = models.CharField(max_length=200, null=True, blank=True)
+    description = models.TextField(null=True, blank=True)
+    account = models.ForeignKey(Account,on_delete=models.CASCADE,null=True)
+
+class Units(TimestampedUUIDModel):
+    name=models.CharField(max_length=200, null=True, blank=True)
+
+class Vendor(TimestampedUUIDModel):
+    name = models.CharField(max_length=200, null=True, blank=True)
+    description = models.TextField(null=True, blank=True)
+    address=models.TextField(null=True, blank=True)
+    account = models.ForeignKey(Account,on_delete=models.CASCADE,null=True)
+    
+
+class Product(TimestampedUUIDModel):
+    NEW = "New"
+    USED = "Used"
+    type_choice = ((NEW,NEW),(USED,USED))
+    product_img = models.ImageField(upload_to="products", null=True, blank=True)
+    product_code = models.CharField(max_length=200, null=True, blank=True)
+    product_name = models.CharField(max_length=200, null=True, blank=True)
+    condition_type = models.CharField(max_length=200,choices=type_choice,null=True)
+    brand = models.ForeignKey(Brand,on_delete=models.CASCADE,null=True)
+    cost_price = models.FloatField(null=True,blank=True)
+    base_quantity = models.ForeignKey(Units,on_delete=models.SET_NULL,null=True,blank=True)
+    category = models.ForeignKey(Category,on_delete=models.SET_NULL,null=True,blank=True)
+    selling_price = models.FloatField(null=True,blank=True)
+    stock_reorder_level  = models.IntegerField(null=True,blank=True)
+    description = models.TextField(null=True, blank=True)
+    account = models.ForeignKey(Account,on_delete=models.CASCADE,null=True)

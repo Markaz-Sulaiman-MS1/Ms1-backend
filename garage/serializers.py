@@ -617,6 +617,8 @@ class AddAdvance_amountSerializer(serializers.ModelSerializer):
 
 class UsersSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, required=True)
+    account_info =  AccountSerializer(read_only=True)
+    branch_info =  BranchSerializer(read_only=True)
 
     class Meta:
         model = User
@@ -625,7 +627,7 @@ class UsersSerializer(serializers.ModelSerializer):
             "user_img", "role", "passport_nmbr", "visa_type", "visa_expiry",
             "address", "country", "state", "phone_personal", "account",
             "branch", "team", "designation", "date_of_joining", "date_of_birth",
-            "town", "zip_code", "net_payable_salary", "other_expense"
+            "town", "zip_code", "net_payable_salary", "other_expense","account_info","branch_info"
         ]
         extra_kwargs = {
             "password": {"write_only": True},
@@ -664,3 +666,61 @@ class TimeZoneSerilaizer(serializers.ModelSerializer):
         model = TimeZone
         fields = "__all__"
     
+class BrandSerializer(serializers.ModelSerializer):
+    account =  AccountSerializer(read_only=True)
+    class Meta:
+        model=Brand
+        fields=["name","description","account","id"]
+
+
+
+class CategorySerializer(serializers.ModelSerializer):
+    account =  AccountSerializer(read_only=True)
+    class Meta:
+        model=Category
+        fields=["name","description","account",]
+
+
+
+class VendorSerializer(serializers.ModelSerializer):
+    account =  AccountSerializer(read_only=True)
+    class Meta:
+        model=Vendor
+        fields=["name","description","account","address"]
+
+
+
+class ProductSerializer(serializers.ModelSerializer):
+    product_img = serializers.ImageField(required=False)
+
+    brand = serializers.PrimaryKeyRelatedField(queryset=Brand.objects.all())
+    base_quantity = serializers.PrimaryKeyRelatedField(
+        queryset=Units.objects.all(),
+        required=False,
+        allow_null=True
+    )
+    category = serializers.PrimaryKeyRelatedField(queryset=Category.objects.all())
+
+
+    class Meta:
+        model = Product
+        fields = [
+            "id", "product_img", "product_code", "product_name", "condition_type",
+            "brand", "cost_price", "base_quantity", "category", "selling_price",
+            "stock_reorder_level", "description","account"
+        ]
+
+class ProductListSerializer(serializers.ModelSerializer):
+    product_img = serializers.ImageField(required=False)
+    account =  AccountSerializer(read_only=True)
+    brand = BrandSerializer(read_only=True)
+    category = CategorySerializer(read_only=True)
+
+
+    class Meta:
+        model = Product
+        fields = [
+            "id", "product_img", "product_code", "product_name", "condition_type",
+            "brand", "cost_price", "base_quantity", "category", "selling_price",
+            "stock_reorder_level", "description","account"
+        ]

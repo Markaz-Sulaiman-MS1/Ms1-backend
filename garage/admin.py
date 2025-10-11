@@ -178,6 +178,35 @@ class TimeZoneAdmin(admin.ModelAdmin):
      )
 
 
+class BrandAdmin(admin.ModelAdmin):
+     list_display = (
+         'id',
+         'name',
+     )
+
+class CategoryAdmin(admin.ModelAdmin):
+     list_display = (
+         'id',
+         'name',
+     )
+class UnitsAdmin(admin.ModelAdmin):
+     list_display = (
+         'id',
+         'name',
+     )
+class VendorAdmin(admin.ModelAdmin):
+     list_display = (
+         'id',
+        'name'
+     )
+
+
+class ProductAdmin(admin.ModelAdmin):
+     list_display = (
+         'id',
+     )
+
+
 admin.site.register(User, MyUserAdmin)
 admin.site.register(Employee, EmployeeAdmin)
 admin.site.register(Remarks, RemarksAdmin)
@@ -198,6 +227,14 @@ admin.site.register(Balance, BalanceAdmin)
 admin.site.register(Designation, DesignationAdmin)
 admin.site.register(Role, RoleAdmin)
 admin.site.register(TimeZone, TimeZoneAdmin)
+admin.site.register(Brand, BrandAdmin)
+admin.site.register(Category, CategoryAdmin)
+admin.site.register(Units, UnitsAdmin)
+admin.site.register(Vendor, VendorAdmin)
+admin.site.register(Product, ProductAdmin)
+
+
+
 
 
 
