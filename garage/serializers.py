@@ -724,3 +724,15 @@ class ProductListSerializer(serializers.ModelSerializer):
             "brand", "cost_price", "base_quantity", "category", "selling_price",
             "stock_reorder_level", "description","account"
         ]
+
+
+class SellPackSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SellPack
+        fields = "__all__"
+
+
+class SellPartSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SellPart
+        fields = "__all__"

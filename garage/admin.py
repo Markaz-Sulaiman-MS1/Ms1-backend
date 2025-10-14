@@ -175,6 +175,7 @@ class TimeZoneAdmin(admin.ModelAdmin):
      list_display = (
          'id',
          'name',
+         'created_at',
      )
 
 
@@ -182,30 +183,49 @@ class BrandAdmin(admin.ModelAdmin):
      list_display = (
          'id',
          'name',
+         'created_at',
      )
 
 class CategoryAdmin(admin.ModelAdmin):
      list_display = (
          'id',
          'name',
+         'created_at',
      )
 class UnitsAdmin(admin.ModelAdmin):
      list_display = (
          'id',
          'name',
+         'created_at',
      )
 class VendorAdmin(admin.ModelAdmin):
      list_display = (
          'id',
-        'name'
+        'name',
+        'created_at',
      )
 
 
 class ProductAdmin(admin.ModelAdmin):
      list_display = (
          'id',
+         'created_at',
      )
 
+
+class SellPackAdmin(admin.ModelAdmin):
+     list_display = (
+         'id',
+         'name',
+         'created_at',
+     )
+
+class SellPartAdmin(admin.ModelAdmin):
+     list_display = (
+         'id',
+         'name',
+         'created_at',
+     )
 
 admin.site.register(User, MyUserAdmin)
 admin.site.register(Employee, EmployeeAdmin)
@@ -232,11 +252,8 @@ admin.site.register(Category, CategoryAdmin)
 admin.site.register(Units, UnitsAdmin)
 admin.site.register(Vendor, VendorAdmin)
 admin.site.register(Product, ProductAdmin)
-
-
-
-
-
+admin.site.register(SellPack, SellPackAdmin)
+admin.site.register(SellPart, SellPartAdmin)
 
 
 

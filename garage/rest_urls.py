@@ -90,6 +90,12 @@ urlpatterns = [
     path("list-vendor/", ListVendor.as_view(), name="list-vendor"),
     path("create-product/", CreateProductView.as_view(), name="create-product"),
     path("list-product/", ProductListView.as_view(), name="list-product"),
+    path('sell-pack/create/', CreateSellPack.as_view(), name='create-sell-pack'),
+    path('sell-part/create/', CreateSellPart.as_view(), name='create-sell-part'),
+    path('list-sell-part/', ListSellPart.as_view(), name='list-sell-part'),
+    path('list-sell-pack/', ListSellPack.as_view(), name='list-sell-pack'),
+
+
 
 
 

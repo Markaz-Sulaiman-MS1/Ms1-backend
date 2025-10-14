@@ -1214,7 +1214,7 @@ class ListVendor(generics.ListAPIView):
 class CreateProductView(generics.CreateAPIView):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
-    # permission_classes = [IsAuthenticated] 
+    permission_classes = [IsAuthenticated] 
 
     def perform_create(self, serializer):
         account_id = "1436dfef-640c-4f39-943a-216dc46e8582"
@@ -1230,3 +1230,43 @@ class ProductListView(generics.ListAPIView):
     def get_queryset(self):
         account_id = getattr(self.request.user, 'account_id', None)
         return Product.objects.filter(account_id=account_id)
+    
+
+class CreateSellPack(generics.CreateAPIView):
+    queryset = SellPack.objects.all()
+    serializer_class = SellPackSerializer
+    permission_classes = [IsAuthenticated]
+
+
+class CreateSellPart(generics.CreateAPIView):
+    queryset = SellPart.objects.all()
+    serializer_class = SellPartSerializer
+    permission_classes = [IsAuthenticated]
+
+
+class ListSellPack(generics.ListAPIView):
+    serializer_class = SellPackSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        product_id = self.request.query_params.get("product") 
+            
+        if product_id:
+           return SellPack.objects.filter(product_id=product_id)         
+            
+        else:
+            return SellPart.objects.none()
+        
+
+class ListSellPart(generics.ListAPIView):
+    serializer_class = SellPackSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        product_id = self.request.query_params.get("product") 
+            
+        if product_id:
+           return SellPart.objects.filter(product_id=product_id)         
+            
+        else:
+            return SellPart.objects.none()

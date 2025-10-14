@@ -342,3 +342,22 @@ class Product(TimestampedUUIDModel):
     stock_reorder_level  = models.IntegerField(null=True,blank=True)
     description = models.TextField(null=True, blank=True)
     account = models.ForeignKey(Account,on_delete=models.CASCADE,null=True)
+
+
+class SellPack(TimestampedUUIDModel):
+    name = models.CharField(max_length=200, null=True, blank=True)
+    product_code = models.CharField(max_length=200, null=True, blank=True)
+    quantity = models.FloatField(null=True,blank=True)
+    no_of_pieces = models.IntegerField(null=True,blank=True)
+    cost_price = models.FloatField(null=True,blank=True)
+    selling_price = models.FloatField(null=True,blank=True)
+    product = models.ForeignKey(Product,on_delete=models.CASCADE,null=True)
+
+
+class SellPart(TimestampedUUIDModel):
+    name = models.CharField(max_length=200, null=True, blank=True)
+    product_code = models.CharField(max_length=200, null=True, blank=True)
+    no_of_pieces = models.IntegerField(null=True,blank=True)
+    cost_price = models.FloatField(null=True,blank=True)
+    selling_price = models.FloatField(null=True,blank=True)
+    product = models.ForeignKey(Product,on_delete=models.CASCADE,null=True)
