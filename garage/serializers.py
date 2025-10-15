@@ -42,8 +42,19 @@ class AddEmployeeSerializer(serializers.ModelSerializer):
 
 
 
-    
+class RoleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Role
+        fields = ["id","name"]
 
+
+
+class DesignationSerializer(serializers.ModelSerializer):
+
+    role = RoleSerializer()
+    class Meta:
+        model = Designation
+        fields = ["id", "title", "role","account"]
 
 class UpdatesalarySerializer(serializers.ModelSerializer):
 
@@ -619,6 +630,8 @@ class UsersSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, required=True)
     account_info =  AccountSerializer(source="account",read_only=True)
     branch_info =  BranchSerializer(source="branch",read_only=True)
+    role  = RoleSerializer()
+    designation = DesignationSerializer()
 
     class Meta:
         model = User
@@ -649,16 +662,8 @@ class UsersSerializer(serializers.ModelSerializer):
         instance.save()
         return instance
     
-class RoleSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Role
-        fields = ["id","name"]
-class DesignationSerializer(serializers.ModelSerializer):
 
-    role = RoleSerializer()
-    class Meta:
-        model = Designation
-        fields = ["id", "title", "role","account"]
+
 
 class TimeZoneSerilaizer(serializers.ModelSerializer):
 
