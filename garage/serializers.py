@@ -617,8 +617,8 @@ class AddAdvance_amountSerializer(serializers.ModelSerializer):
 
 class UsersSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, required=True)
-    account_info =  AccountSerializer(read_only=True)
-    branch_info =  BranchSerializer(read_only=True)
+    account_info =  AccountSerializer(source="account",read_only=True)
+    branch_info =  BranchSerializer(source="branch",read_only=True)
 
     class Meta:
         model = User
