@@ -1035,7 +1035,7 @@ class UserEditAPIView(APIView):
 
     def patch(self, request, pk):
         user = get_object_or_404(User, pk=pk)
-        serializer = UsersSerializer(user, data=request.data, partial=True)
+        serializer = UsersCreateSerializer(user, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
             return Response({"message": "User partially updated", "data": serializer.data}, status=status.HTTP_200_OK)
