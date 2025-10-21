@@ -319,6 +319,7 @@ class TechnicianAddSerializer(serializers.ModelSerializer):
 class TechnicianSerializer(serializers.ModelSerializer):
     employee = AddEmployeeSerializer()
     job_card = JobcardSerializer()
+    user = UserSerializer()
 
     class Meta:
         model = Technician
