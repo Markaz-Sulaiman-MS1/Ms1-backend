@@ -36,7 +36,8 @@ class MyUserAdmin(UserAdmin):
                     "state",
                     "phone_personal",
                     "account",
-                    "team"
+                    "team",
+                    "designation"
                 )
             },
         ),

@@ -196,6 +196,7 @@ class Technician(TimestampedUUIDModel):
     employee = models.ForeignKey(Employee, on_delete=models.SET_NULL, null=True)
     labour_charge = models.FloatField(default=0)
     job_card = models.ForeignKey(JobCard, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
 
 
 class Issues(TimestampedUUIDModel):

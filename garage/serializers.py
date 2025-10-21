@@ -302,9 +302,11 @@ class AccountSerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.ModelSerializer):
     account = AccountSerializer()
     branch = BranchSerializer()
+    role  = RoleSerializer()
+    designation = DesignationSerializer()
     class Meta:
         model = User
-        fields = ["user_img","role","branch","passport_nmbr","visa_type",
+        fields = ["user_img","role","designation","branch","passport_nmbr","visa_type",
                   "visa_expiry","address","country","state","phone_personal","email","account","branch","team","first_name","last_name"]
 
 
@@ -320,7 +322,7 @@ class TechnicianSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Technician
-        fields = ["employee", "labour_charge", "job_card", "id"]
+        fields = ["employee", "labour_charge", "job_card", "id","user"]
 
 
 class SparePartsAddSerializer(serializers.ModelSerializer):
