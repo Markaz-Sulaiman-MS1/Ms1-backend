@@ -433,13 +433,21 @@ class ListExpense(generics.ListAPIView):
         expense_type = self.request.query_params.get("type")
         
         account_id = getattr(self.request.user, 'account_id', None) 
-        branch_id = self.request.query_params.get("branch")              
+        branch_id = self.request.query_params.get("branch")
+        from_date = self.request.query_params.get("from_date")
+        to_date = self.request.query_params.get("to_date")              
         if branch_id and expense_type :
-            return Expense.objects.filter(type=expense_type,branch_id=branch_id)
+            if from_date and to_date:
+                return Expense.objects.filter(type=expense_type,branch_id=branch_id,created_at__date__gte=from_date,created_at__date__lte=to_date)
+            else: 
+                return Expense.objects.filter(type=expense_type,branch_id=branch_id)
             
         elif account_id and expense_type:
            branches = Branch.objects.filter(account_id = account_id).values_list('id',flat=True)
-           return Expense.objects.filter(type=expense_type,branch_id__in=branches) 
+           if from_date and to_date:
+               return Expense.objects.filter(type=expense_type,branch_id__in=branches,created_at__date__gte=from_date,created_at__date__lte=to_date)
+           else:
+            return Expense.objects.filter(type=expense_type,branch_id__in=branches) 
             
         else:
             return Expense.objects.none()
@@ -999,8 +1007,13 @@ class CreditOutstandingView(APIView):
 
     def get(self, request):
         branch = request.query_params.get("branch")
+        from_date = self.request.query_params.get("from_date")
+        to_date = self.request.query_params.get("to_date")  
         try:
-            credit_jobcards = JobCard.objects.filter(status=JobCard.CREDIT,branch_id=branch)
+            if from_date and to_date:
+                credit_jobcards = JobCard.objects.filter(status=JobCard.CREDIT,branch_id=branch,created_at__date__gte=from_date,created_at__date__lte=to_date)
+            else:
+                credit_jobcards = JobCard.objects.filter(status=JobCard.CREDIT,branch_id=branch)
 
             total_credit = BillAmount.objects.filter(
                 job_card__in=credit_jobcards
