@@ -228,6 +228,30 @@ class SellPartAdmin(admin.ModelAdmin):
          'created_at',
      )
 
+class PurchaseAdmin(admin.ModelAdmin):
+          list_display = (
+         'id',
+         'po_nmbr',
+         'created_at',
+     )
+     
+
+class ProductItemAdmin(admin.ModelAdmin):
+          list_display = (
+         'id',
+         'purchase',
+         'created_at',
+     )
+     
+
+class LabourAdmin(admin.ModelAdmin):
+          list_display = (
+         'id',
+         'job_card'
+     )
+     
+
+
 admin.site.register(User, MyUserAdmin)
 admin.site.register(Employee, EmployeeAdmin)
 admin.site.register(Remarks, RemarksAdmin)
@@ -255,6 +279,12 @@ admin.site.register(Vendor, VendorAdmin)
 admin.site.register(Product, ProductAdmin)
 admin.site.register(SellPack, SellPackAdmin)
 admin.site.register(SellPart, SellPartAdmin)
+admin.site.register(Purchase, PurchaseAdmin)
+admin.site.register(ProductItem, ProductItemAdmin)
+admin.site.register(Labour, LabourAdmin)
+
+
+
 
 
 

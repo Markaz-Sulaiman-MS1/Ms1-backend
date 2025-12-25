@@ -779,3 +779,80 @@ class SellPartSerializer(serializers.ModelSerializer):
     class Meta:
         model = SellPart
         fields = "__all__"
+
+
+class PurchaseSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Purchase
+        fields = "__all__"
+        read_only_fields = ["po_nmbr"]
+
+
+
+# class PurchaseListSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = Purchase
+#         fields = "__all__"
+        
+
+
+class ProductItemSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProductItem
+        fields = "__all__"
+
+
+
+class ProductItemSerializer(serializers.ModelSerializer):
+    product_name = serializers.CharField(source='product.product_name', read_only=True)
+
+    class Meta:
+        model = ProductItem
+        fields = ["id", "product", "product_name", "quantity", "amount", "purchase", "created_at", "updated_at"]
+
+
+
+
+class PurchaseListSerializer(serializers.ModelSerializer):
+    vendor_name = serializers.CharField(source='vendor.name', read_only=True)
+    branch_name = serializers.CharField(source='branch.name', read_only=True)
+    items_no = serializers.SerializerMethodField()
+    total_bill = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Purchase
+        fields = [
+            "id", "po_nmbr", "vendor", "vendor_name", "branch", "branch_name",
+            "exp_date_delivery", "description", "purchase_type", "created_at","items_no","total_bill"
+        ]
+        
+    def get_items_no(self, obj):
+            return ProductItem.objects.filter(purchase=obj,is_deleted=False).count()
+
+    def get_total_bill(self, obj):
+        total = ProductItem.objects.filter(purchase=obj, is_deleted=False).aggregate(
+            total_amount=Sum('amount')
+        )['total_amount']
+        return total or 0 
+
+class EditPurchaseSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Purchase
+        fields = ["vendor", "exp_date_delivery", "branch", "description", "purchase_type"]
+
+class BatchSerializer(serializers.ModelSerializer):
+    product_name = serializers.CharField(source='product.name', read_only=True)
+
+    class Meta:
+        model = Batch
+        fields = [
+            "id", "batch_code", "product_code", "manufacture_date",
+            "expiry_date", "cost_price", "product", "product_name", "created_at"
+        ]
+
+
+class LabourSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Labour
+        fields = "__all__"
+        read_only_fields = ("id", "is_deleted", "created_at", "updated_at")

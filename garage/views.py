@@ -24,6 +24,7 @@ from datetime import datetime
 from django.db.models import FloatField
 from django.shortcuts import get_object_or_404
 from zoneinfo import ZoneInfo 
+
 # pylint: disable=E1101,W0702
 
 
@@ -1230,7 +1231,7 @@ class CreateProductView(generics.CreateAPIView):
     permission_classes = [IsAuthenticated] 
 
     def perform_create(self, serializer):
-        account_id = "1436dfef-640c-4f39-943a-216dc46e8582"
+        account_id = getattr(self.request.user, 'account_id', None)
         if not account_id:
             raise serializers.ValidationError("Account not found for user.")
         serializer.save(account_id=account_id)
@@ -1283,3 +1284,313 @@ class ListSellPart(generics.ListAPIView):
             
         else:
             return SellPart.objects.none()
+        
+
+
+class AddPurchaseAPIView(generics.CreateAPIView):
+    queryset = Purchase.objects.all()
+    serializer_class = PurchaseSerializer
+
+class ListPurchase(APIView):
+    def get(self, request):
+        branch_id =  getattr(self.request.user, 'branch_id', None)
+        account_id = getattr(self.request.user, 'account_id', None) 
+        status_filter = request.query_params.get("status", None)
+
+        if status_filter and account_id :
+            purchases = Purchase.objects.filter(purchase_type=status_filter,is_deleted = False,account_id=account_id)
+        elif status_filter and branch_id:
+            purchases = Purchase.objects.filter(purchase_type=status_filter,is_deleted = False,branch_id=branch_id)
+        else:
+            purchases = Purchase.objects.none
+
+
+        serializer = PurchaseListSerializer(purchases, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+
+class EditPurchase(APIView):
+    def patch(self, request, purchase_id):
+        try:
+            purchase = Purchase.objects.get(id=purchase_id)
+        except Purchase.DoesNotExist:
+            return Response({"error": "Purchase not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = EditPurchaseSerializer(purchase, data=request.data, partial=True)
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response({"message": "Purchase updated successfully", "data": serializer.data},
+                            status=status.HTTP_200_OK)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+
+
+
+class DeletePurchase(APIView):
+    def delete(self, request, item_id):
+        try:
+            item = Purchase.objects.get(id=item_id)
+        except ProductItem.DoesNotExist:
+            return Response({"error": "Purchase item not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        item.is_deleted = True
+        item.save()
+
+        return Response({"message": "Purchase item deleted successfully"}, status=status.HTTP_200_OK)
+
+class AddPurchaseItems(APIView):
+    def post(self, request):
+        purchase_id = request.data.get("purchase_id")
+        items = request.data.get("items")
+
+        if not purchase_id or not items:
+            return Response({"error": "purchase_id and items are required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            purchase = Purchase.objects.get(id=purchase_id)
+        except Purchase.DoesNotExist:
+            return Response({"error": "Invalid purchase_id"}, status=status.HTTP_404_NOT_FOUND)
+
+        created_items = []
+
+        for item in items:
+            product_id = item.get("product_id")
+            quantity = item.get("quantity")
+            amount = item.get("amount")
+
+            try:
+                product = Product.objects.get(id=product_id)
+            except Product.DoesNotExist:
+                return Response({"error": f"Invalid product_id: {product_id}"}, status=status.HTTP_404_NOT_FOUND)
+
+            p_item = ProductItem.objects.create(
+                purchase=purchase,
+                product=product,
+                quantity=quantity,
+                amount=float(quantity) * float(product.cost_price)
+            )
+            created_items.append(p_item.id)
+
+        return Response({
+            "message": "Items added successfully",
+            "count": len(created_items),
+            "item_ids": created_items
+        }, status=status.HTTP_201_CREATED)
+
+
+class EditPurchaseItems(APIView):
+    def patch(self, request, item_id):
+        try:
+            item = ProductItem.objects.get(id=item_id)
+        except ProductItem.DoesNotExist:
+            return Response({"error": "Purchase item not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        quantity = request.data.get("quantity")
+        amount = request.data.get("amount")
+
+        if quantity is not None:
+            item.quantity = quantity
+        if amount is not None:
+            item.amount = amount
+
+        item.save()
+
+        return Response({
+            "message": "Purchase item updated successfully",
+            "item_id": str(item.id),
+            "data": {
+                "product": str(item.product.id),
+                "quantity": item.quantity,
+                "amount": item.amount
+            }
+        }, status=status.HTTP_200_OK)
+    
+
+
+class ListPurchaseItems(APIView):
+    def get(self, request):
+        purchase_id = request.query_params.get("purchase_id", None)
+
+        if purchase_id:
+            items = ProductItem.objects.filter(purchase__id=purchase_id,is_deleted=False)
+        else:
+            items = ProductItem.objects.none
+
+        serializer = ProductItemSerializer(items, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+
+
+class DeletePurchaseItem(APIView):
+    def delete(self, request, item_id):
+        try:
+            item = ProductItem.objects.get(id=item_id)
+        except ProductItem.DoesNotExist:
+            return Response({"error": "Purchase item not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        item.is_deleted = True
+        item.save()
+
+        return Response({"message": "Purchase item deleted successfully"}, status=status.HTTP_200_OK)
+    
+
+
+class UpdatePurchaseStatus(APIView):
+    def patch(self,request,item_id):
+        status = request.data.get("status")
+        cash_type = request.data.get("cash_type")
+        try:
+            purchase = Purchase.objects.get(id=item_id)
+        except Purchase.DoesNotExist:
+            return Response({"error": "Purchase not found"}, status=status.HTTP_404_NOT_FOUND)
+        
+        purchase.purchase_type = status
+        purchase.save()
+
+        if purchase.purchase_type == Purchase.COMPLETED:
+
+            total = ProductItem.objects.filter(purchase=purchase, is_deleted=False).aggregate(total_amount=Sum('amount'))['total_amount']
+
+            expense = Expense.objects.create(
+                payment_type=cash_type,
+                type=Expense.PURCHASE,
+                name=f"Purchase {purchase.po_nmbr}",
+                description = f"Purchase done for {total}",
+                total_cost = total,
+                date=timezone.now().date(),
+                other_expense =  total,
+                branch=purchase.branch,
+            )
+
+            if cash_type == JobCard.CASH:
+                                    
+                balance, created = Balance.objects.get_or_create(
+                branch=purchase.branch,
+                defaults={
+                    'cash_balance': total,
+                }
+                )
+                if not created:
+                    
+                    balance.cash_balance -= total
+                    balance.save()
+
+                RecentTransaction.objects.create(
+                        transaction_type=RecentTransaction.EXPENSE,
+                        description = f"{expense.type} expense transferred as cash",
+                        payment_type = expense.payment_type,
+                        amount = total,
+                        balance_cash = balance.cash_balance,
+                        balance_bank = balance.bank_balance,
+                        branch_id=expense.branch.id
+                )
+
+            elif cash_type == JobCard.BANK:
+                balance, created = Balance.objects.get_or_create(
+                branch=purchase.branch,
+                defaults={
+                    'bank_balance': total,
+                }
+                )
+                        
+                if not created:
+                    balance.bank_balance -= total
+                    balance.save()
+
+                RecentTransaction.objects.create(
+                        transaction_type=RecentTransaction.EXPENSE,
+                        description = f"{expense.type} expense transferred to bank",
+                        payment_type = expense.payment_type,
+                        amount = total,
+                        balance_cash = balance.cash_balance,
+                        balance_bank = balance.bank_balance,
+                        branch_id=expense.branch.id
+                        
+                 )
+
+
+class CreateBatch(APIView):
+    def post(self, request):
+        serializer = BatchSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(
+                {"message": "Batch created successfully", "data": serializer.data},
+                status=status.HTTP_201_CREATED 
+            )
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+
+class UpdateBatch(APIView):
+    def patch(self, request, batch_id):
+        try:
+            batch = Batch.objects.get(id=batch_id, is_deleted=False)
+        except Batch.DoesNotExist:
+            return Response({"error": "Batch not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = BatchSerializer(batch, data=request.data, partial=True)
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response({"message": "Batch updated successfully", "data": serializer.data}, status=status.HTTP_200_OK)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+
+
+class LabourCreateAPIView(generics.CreateAPIView):
+    serializer_class = LabourSerializer
+
+    def perform_create(self, serializer):
+        account_id = getattr(self.request.user, 'account_id', None)
+        if not account_id:
+            raise serializers.ValidationError("Account not found for user.")
+        serializer.save(account_id=account_id)
+
+
+class LabourListAPIView(generics.ListAPIView):
+    serializer_class = LabourSerializer
+
+    def get_queryset(self):
+        account_id = getattr(self.request.user, 'account_id', None)
+        if not account_id:
+            raise serializers.ValidationError("Account not found for user.")
+        return Labour.objects.filter(
+            account_id=account_id,
+            is_deleted=False
+        )
+    
+class LabourUpdateAPIView(generics.UpdateAPIView):
+    serializer_class = LabourSerializer
+    lookup_field = "id"
+
+    def get_queryset(self):
+        account_id = "1436dfef-640c-4f39-943a-216dc46e8582"
+        return Labour.objects.filter(
+            account_id=account_id,
+            is_deleted=False
+        )
+    
+
+class LabourSoftDeleteAPIView(generics.DestroyAPIView):
+    lookup_field = "id"
+
+    def get_queryset(self):
+        account_id = getattr(self.request.user, 'account_id', None)
+        return Labour.objects.filter(
+            account_id=account_id,
+            is_deleted=False
+        )
+
+    def delete(self, request, *args, **kwargs):
+        labour = self.get_object()
+        labour.is_deleted = True
+        labour.save()
+        return Response(
+            {"message": "Labour deleted successfully"},
+            status=status.HTTP_200_OK
+        )

@@ -94,6 +94,26 @@ urlpatterns = [
     path('sell-part/create/', CreateSellPart.as_view(), name='create-sell-part'),
     path('list-sell-part/', ListSellPart.as_view(), name='list-sell-part'),
     path('list-sell-pack/', ListSellPack.as_view(), name='list-sell-pack'),
+    path('add-purchase/', AddPurchaseAPIView.as_view(), name='add-product'),
+    path('add-purchase-items/', AddPurchaseItems.as_view(), name='add-purchase-items'),
+    path('edit-purchase-items/<uuid:item_id>/', EditPurchaseItems.as_view(), name='edit-purchase-items'),
+    path('list-purchase-items/', ListPurchaseItems.as_view(), name='list-purchase-items'),
+    path('delete-purchase-items/<uuid:item_id>/', DeletePurchaseItem.as_view(), name='delete-purchase-items'),
+    path('list-purchase/', ListPurchase.as_view(), name='list-purchase'),
+    path('edit-purchase/<uuid:purchase_id>/', EditPurchase.as_view(), name='edit-purchase'),
+    path('delete-purchase/<uuid:item_id>/', DeletePurchase.as_view(), name='delete-purchase'),
+    path("labour/create/", LabourCreateAPIView.as_view(), name='edit-purchase'),
+    path("labour/list/", LabourListAPIView.as_view(), name='edit-purchase'),
+    path("labour/<uuid:id>/update/", LabourUpdateAPIView.as_view(), name='edit-purchase'),
+    path("labour/<uuid:id>/delete/", LabourSoftDeleteAPIView.as_view(), name='edit-purchase'),
+
+
+
+
+
+
+
+
 
 
 

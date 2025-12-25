@@ -3,6 +3,7 @@ from django.db import models
 # Create your models here.
 from django.contrib.auth.models import AbstractUser
 from MsOne.models import TimestampedUUIDModel
+from django.db.models import Max
 
 
 
@@ -154,7 +155,8 @@ class JobCard(TimestampedUUIDModel):
     IN_PROGRESS = "In progress"
     CLOSED = "Closed"
     CREDIT = "Credit"
-    status_choices = ((CLOSED, CLOSED), (CREDIT, CREDIT), (IN_PROGRESS, IN_PROGRESS))
+    DRAFT = "Draft"
+    status_choices = ((CLOSED, CLOSED), (CREDIT, CREDIT), (IN_PROGRESS, IN_PROGRESS),(DRAFT,DRAFT))
     CASH = "Cash"
     CREDIT = "Credit"
     BANK = "Bank"
@@ -182,8 +184,7 @@ class JobCard(TimestampedUUIDModel):
     next_service_hour = models.IntegerField(null=True, blank=True)
     next_service_date = models.DateField(null=True, blank=True)
     payment_type = models.CharField(max_length=200,choices=payment_choice,null=True)
-
-
+    job_card_doc = models.FileField(upload_to="job_cards/",null=True,blank=True)
 
 class BillAmount(TimestampedUUIDModel):
     job_type = models.ForeignKey(JobType,on_delete=models.SET_NULL,null=True)
@@ -236,6 +237,7 @@ class Expense(TimestampedUUIDModel):
     JOB = "Job"
     SALARY = "Salary"
     OTHER = "Other"
+    PURCHASE = "Purchase"
     OVERTIME = "Over Time"
     CASH = "Cash"
     BANK = "Bank"
@@ -362,3 +364,63 @@ class SellPart(TimestampedUUIDModel):
     cost_price = models.FloatField(null=True,blank=True)
     selling_price = models.FloatField(null=True,blank=True)
     product = models.ForeignKey(Product,on_delete=models.CASCADE,null=True)
+
+
+class Purchase(TimestampedUUIDModel):
+    DRAFT = "Draft"
+    INPROGRESS = "In Progress"
+    RECEIVED = "Received"
+    COMPLETED = "Completed"
+    CANCELLED = "Cancelled"
+    type_choice = ((DRAFT,DRAFT),(INPROGRESS,INPROGRESS),(RECEIVED,RECEIVED),(COMPLETED,COMPLETED),(CANCELLED,CANCELLED))
+    po_nmbr = models.CharField(max_length=200, unique=True, blank=True)
+    vendor = models.ForeignKey(Vendor,on_delete=models.SET_NULL,null=True,blank=True)
+    exp_date_delivery = models.DateField(null=True, blank=True)
+    branch = models.ForeignKey(Branch,on_delete=models.SET_NULL,null=True)
+    description = models.TextField(null=True, blank=True)
+    purchase_type = models.CharField(max_length=200,choices=type_choice,default=DRAFT,null=True,blank=True)
+    is_deleted = models.BooleanField(default=False, null=True, blank=True)
+    account = models.ForeignKey(Account,on_delete=models.CASCADE,null=True)
+
+    def save(self, *args, **kwargs):
+        if not self.po_nmbr:
+            last_po = Purchase.objects.aggregate(max_po=Max('po_nmbr'))['max_po']
+            
+            if last_po:
+                # Extract number from MS001 → 1, MS245 → 245
+                last_number = int(last_po.replace("MS", ""))
+                new_number = last_number + 1
+            else:
+                new_number = 1
+
+            self.po_nmbr = f"MS{new_number:03d}"   # Formats like MS001, MS002
+
+        super().save(*args, **kwargs)
+
+class ProductItem(TimestampedUUIDModel):
+    quantity = models.IntegerField(null=True,blank=True)
+    product = models.ForeignKey(Product,on_delete=models.CASCADE,null=True)
+    amount = models.FloatField(null=True,blank=True)
+    purchase = models.ForeignKey(Purchase,on_delete=models.CASCADE,null=True)
+    is_deleted = models.BooleanField(default=False, null=True, blank=True)
+
+
+class Batch(TimestampedUUIDModel):
+    batch_code = models.CharField(max_length=200, null=True, blank=True)
+    product_code = models.CharField(max_length=200, null=True, blank=True)
+    manufacture_date = models.DateField(null=True, blank=True)
+    expiry_date = models.DateField(null=True, blank=True)
+    cost_price = models.FloatField(null=True,blank=True)
+    product = models.ForeignKey(Product,on_delete=models.CASCADE,null=True)
+    is_deleted = models.BooleanField(default=False, null=True, blank=True)
+
+class Labour(TimestampedUUIDModel):
+    name = models.CharField(max_length=200, null=True, blank=True)
+    description = models.TextField( null=True, blank=True)
+    code = models.CharField(max_length=200, null=True, blank=True)
+    rate = models.FloatField(null=True, blank=True)
+    job_type = models.ForeignKey(JobType,on_delete=models.SET_NULL,null=True)
+    account = models.ForeignKey(Account,on_delete=models.CASCADE,null=True)
+    job_card = models.ForeignKey(JobCard, on_delete=models.CASCADE)
+    is_deleted = models.BooleanField(default=False, null=True, blank=True)
+
