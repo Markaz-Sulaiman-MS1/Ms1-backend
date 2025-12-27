@@ -150,6 +150,18 @@ class JobType(TimestampedUUIDModel):
     
     def __str__(self):
         return self.name
+    
+
+
+
+class Labour(TimestampedUUIDModel):
+    name = models.CharField(max_length=200, null=True, blank=True)
+    description = models.TextField( null=True, blank=True)
+    code = models.CharField(max_length=200, null=True, blank=True)
+    rate = models.FloatField(null=True, blank=True)
+    job_type = models.ForeignKey(JobType,on_delete=models.SET_NULL,null=True)
+    account = models.ForeignKey(Account,on_delete=models.CASCADE,null=True)
+    is_deleted = models.BooleanField(default=False, null=True, blank=True)
 
 class JobCard(TimestampedUUIDModel):
     IN_PROGRESS = "In progress"
@@ -177,7 +189,9 @@ class JobCard(TimestampedUUIDModel):
     branch = models.ForeignKey(Branch,on_delete=models.SET_NULL,null=True)
     customer = models.ForeignKey(Customer,on_delete=models.SET_NULL,null=True)
     make_and_model = models.CharField(max_length=200,null=True,blank=True)
-    job_type = models.ManyToManyField(JobType)
+    job_type = models.ManyToManyField(JobType,blank=True)
+    labour = models.ManyToManyField(Labour,blank=True)
+
     bill_type = models.CharField(max_length=200,choices=bill_choice,null=True)
     advance_payment = models.FloatField(null=True,blank=True)
     average_daily_usage = models.IntegerField(null=True, blank=True)
@@ -414,13 +428,4 @@ class Batch(TimestampedUUIDModel):
     product = models.ForeignKey(Product,on_delete=models.CASCADE,null=True)
     is_deleted = models.BooleanField(default=False, null=True, blank=True)
 
-class Labour(TimestampedUUIDModel):
-    name = models.CharField(max_length=200, null=True, blank=True)
-    description = models.TextField( null=True, blank=True)
-    code = models.CharField(max_length=200, null=True, blank=True)
-    rate = models.FloatField(null=True, blank=True)
-    job_type = models.ForeignKey(JobType,on_delete=models.SET_NULL,null=True)
-    account = models.ForeignKey(Account,on_delete=models.CASCADE,null=True)
-    job_card = models.ForeignKey(JobCard, on_delete=models.CASCADE)
-    is_deleted = models.BooleanField(default=False, null=True, blank=True)
 

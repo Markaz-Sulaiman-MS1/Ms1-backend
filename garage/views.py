@@ -20,10 +20,12 @@ from django.db.models import Max
 from django.utils import timezone
 from django.db.models import F, Sum, Value
 from django.db.models.functions import Coalesce
-from datetime import datetime
+from datetime import datetime, time
 from django.db.models import FloatField
 from django.shortcuts import get_object_or_404
 from zoneinfo import ZoneInfo 
+from django.utils.timezone import make_aware
+from django.utils.dateparse import parse_datetime
 
 # pylint: disable=E1101,W0702
 
@@ -439,14 +441,18 @@ class ListExpense(generics.ListAPIView):
         to_date = self.request.query_params.get("to_date")              
         if branch_id and expense_type :
             if from_date and to_date:
-                return Expense.objects.filter(type=expense_type,branch_id=branch_id,created_at__date__gte=from_date,created_at__date__lte=to_date)
+                from_dt = parse_datetime(from_date)
+                to_dt = parse_datetime(to_date)
+                return Expense.objects.filter(type=expense_type,branch_id=branch_id,  created_at__range=(from_dt, to_dt))
             else: 
                 return Expense.objects.filter(type=expense_type,branch_id=branch_id)
             
         elif account_id and expense_type:
            branches = Branch.objects.filter(account_id = account_id).values_list('id',flat=True)
            if from_date and to_date:
-               return Expense.objects.filter(type=expense_type,branch_id__in=branches,created_at__date__gte=from_date,created_at__date__lte=to_date)
+                from_dt = parse_datetime(from_date)
+                to_dt = parse_datetime(to_date)
+                return Expense.objects.filter(type=expense_type,branch_id__in=branches,created_at__range=(from_dt, to_dt))
            else:
             return Expense.objects.filter(type=expense_type,branch_id__in=branches) 
             
@@ -488,16 +494,21 @@ class ListIncome(generics.ListAPIView):
 
 
         if branch_id and type:
-            if from_date and to_date:        
-                return Income.objects.filter(type=type,branch_id=branch_id,created_at__date__gte=from_date,created_at__date__lte=to_date)
+            if from_date and to_date:
+                from_dt = parse_datetime(from_date)
+                to_dt = parse_datetime(to_date)
+        
+                return Income.objects.filter(type=type,branch_id=branch_id,created_at__range=(from_dt, to_dt))
             else:
                 return Income.objects.filter(type=type,branch_id=branch_id)
 
         elif account_id and type:
             branches = Branch.objects.filter(account_id = account_id).values_list('id',flat=True)
 
-            if from_date and to_date:        
-                return Income.objects.filter(type=type,branch_id__in=branches,created_at__date__gte=from_date,created_at__date__lte=to_date)   
+            if from_date and to_date: 
+                from_dt = parse_datetime(from_date)
+                to_dt = parse_datetime(to_date)
+                return Income.objects.filter(type=type,branch_id__in=branches,created_at__range=(from_dt, to_dt))   
             else:
                 return Income.objects.filter(type=type,branch_id__in=branches)
         else:
@@ -640,10 +651,13 @@ class TotalIncome(APIView):
 
         
         if branch_id :
-            if from_date and to_date:        
-                total =  Income.objects.filter(branch_id=branch_id,created_at__date__gte=from_date,created_at__date__lte=to_date).aggregate(total_sum=Sum('total_income'))
-                total_jobs =  Income.objects.filter(type=Income.JOB,branch_id=branch_id,created_at__date__gte=from_date,created_at__date__lte=to_date).aggregate(total_sum=Sum('total_income'))
-                total_other =  Income.objects.filter(type=Income.OTHER,branch_id=branch_id,created_at__date__gte=from_date,created_at__date__lte=to_date).aggregate(total_sum=Sum('total_income'))
+            if from_date and to_date:
+                from_dt = parse_datetime(from_date)
+                to_dt = parse_datetime(to_date)
+                    
+                total =  Income.objects.filter(branch_id=branch_id,created_at__range=(from_dt, to_dt)).aggregate(total_sum=Sum('total_income'))
+                total_jobs =  Income.objects.filter(type=Income.JOB,branch_id=branch_id,created_at__date__gte=from_dt,created_at__date__lte=to_dt).aggregate(total_sum=Sum('total_income'))
+                total_other =  Income.objects.filter(type=Income.OTHER,branch_id=branch_id,created_at__date__gte=from_dt,created_at__date__lte=to_dt).aggregate(total_sum=Sum('total_income'))
                 total_sum = total['total_sum'] or 0
                 total_jobs_sum = total_jobs['total_sum'] or 0
                 total_other_sum = total_other['total_sum'] or 0
@@ -668,10 +682,12 @@ class TotalIncome(APIView):
         elif account_id :
             branches = Branch.objects.filter(account_id = account_id).values_list('id',flat=True)
 
-            if from_date and to_date:        
-                total = Income.objects.filter(branch_id__in=branches,created_at__date__gte=from_date,created_at__date__lte=to_date).aggregate(total_sum=Sum('total_income'))
-                total_jobs =  Income.objects.filter(type=Income.JOB,branch_id__in=branches,created_at__date__gte=from_date,created_at__date__lte=to_date).aggregate(total_sum=Sum('total_income'))
-                total_other =  Income.objects.filter(type=Income.OTHER,branch_id__in=branches,created_at__date__gte=from_date,created_at__date__lte=to_date).aggregate(total_sum=Sum('total_income'))
+            if from_date and to_date:
+                from_dt = parse_datetime(from_date)
+                to_dt = parse_datetime(to_date)      
+                total = Income.objects.filter(branch_id__in=branches,created_at__range=(from_dt, to_dt)).aggregate(total_sum=Sum('total_income'))
+                total_jobs =  Income.objects.filter(type=Income.JOB,branch_id__in=branches,created_at__date__gte=from_dt,created_at__date__lte=to_dt).aggregate(total_sum=Sum('total_income'))
+                total_other =  Income.objects.filter(type=Income.OTHER,branch_id__in=branches,created_at__date__gte=from_dt,created_at__date__lte=to_dt).aggregate(total_sum=Sum('total_income'))
                 total_sum = total['total_sum'] or 0
                 total_jobs_sum = total_jobs['total_sum'] or 0
                 total_other_sum = total_other['total_sum'] or 0
@@ -724,9 +740,11 @@ class TotalExpense(APIView):
         # Build date filters if valid
         date_filter = {}
         if from_date:
-            date_filter["created_at__date__gte"] = from_date
+            from_dt = parse_datetime(from_date)
+            date_filter["created_at__gte"] = from_dt
         if to_date:
-            date_filter["created_at__date__lte"] = to_date
+            to_dt = parse_datetime(to_date) 
+            date_filter["created_at__lte"] = to_dt
 
         # Determine branches to filter
         if branch_id:
@@ -1012,7 +1030,9 @@ class CreditOutstandingView(APIView):
         to_date = self.request.query_params.get("to_date")  
         try:
             if from_date and to_date:
-                credit_jobcards = JobCard.objects.filter(status=JobCard.CREDIT,branch_id=branch,created_at__date__gte=from_date,created_at__date__lte=to_date)
+                from_dt = parse_datetime(from_date)
+                to_dt = parse_datetime(to_date)
+                credit_jobcards = JobCard.objects.filter(status=JobCard.CREDIT,branch_id=branch,created_at__range=(from_dt, to_dt))
             else:
                 credit_jobcards = JobCard.objects.filter(status=JobCard.CREDIT,branch_id=branch)
 
