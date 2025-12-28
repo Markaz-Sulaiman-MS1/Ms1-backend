@@ -247,7 +247,6 @@ class ProductItemAdmin(admin.ModelAdmin):
 class LabourAdmin(admin.ModelAdmin):
           list_display = (
          'id',
-         'job_card'
      )
      
 
