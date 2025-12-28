@@ -133,7 +133,7 @@ class JobcardSerializer(serializers.ModelSerializer):
         fields = ["vehicle_nmbr","phn_nmbr","email","address","vehicle_type","model",
                   "fuel_type","engine_hour_info","status","remarks","branch","customer"
                   ,"make_and_model","job_type","bill_type","advance_payment",
-                  "average_daily_usage","next_service_hour","next_service_date","bill_amounts","payment_type","bill_items"]
+                  "average_daily_usage","next_service_hour","next_service_date","bill_amounts","payment_type","bill_items","job_card_doc"]
     
     def get_bill_amounts(self, obj):
         bills = BillAmount.objects.filter(job_card=obj)
