@@ -1589,7 +1589,7 @@ class LabourUpdateAPIView(generics.UpdateAPIView):
     lookup_field = "id"
 
     def get_queryset(self):
-        account_id = "1436dfef-640c-4f39-943a-216dc46e8582"
+        account_id = getattr(self.request.user, 'account_id', None)
         return Labour.objects.filter(
             account_id=account_id,
             is_deleted=False
