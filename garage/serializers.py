@@ -485,7 +485,8 @@ class RetrieveJobSerializer(serializers.ModelSerializer):
             "bill_amount",
             "payment_type",
             "created_at",
-            "labour"
+            "labour",
+            "job_card_doc"
         ]
 
     def get_technician(self, obj):
