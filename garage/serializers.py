@@ -448,13 +448,18 @@ class BillAmountSerializer(serializers.ModelSerializer):
         fields = "__all__"
         
 
-
+class LabourSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Labour
+        fields = "__all__"
+        read_only_fields = ("id", "is_deleted", "created_at", "updated_at")
 class RetrieveJobSerializer(serializers.ModelSerializer):
     branch = BranchSerializer()
     customer = CustomerSerializer()
     job_type = JobTypeSerializer(many=True)
     technician = serializers.SerializerMethodField()
     bill_amount = serializers.SerializerMethodField()
+    labour = LabourSerializer()
 
     class Meta:
         model = JobCard
@@ -479,7 +484,8 @@ class RetrieveJobSerializer(serializers.ModelSerializer):
             "advance_payment",
             "bill_amount",
             "payment_type",
-            "created_at"
+            "created_at",
+            "labour"
         ]
 
     def get_technician(self, obj):
@@ -851,8 +857,3 @@ class BatchSerializer(serializers.ModelSerializer):
         ]
 
 
-class LabourSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Labour
-        fields = "__all__"
-        read_only_fields = ("id", "is_deleted", "created_at", "updated_at")
