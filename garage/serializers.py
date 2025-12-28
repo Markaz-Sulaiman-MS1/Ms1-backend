@@ -459,7 +459,7 @@ class RetrieveJobSerializer(serializers.ModelSerializer):
     job_type = JobTypeSerializer(many=True)
     technician = serializers.SerializerMethodField()
     bill_amount = serializers.SerializerMethodField()
-    labour = LabourSerializer()
+    labour = LabourSerializer(many=True)
 
     class Meta:
         model = JobCard
