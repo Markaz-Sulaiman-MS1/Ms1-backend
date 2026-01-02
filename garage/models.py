@@ -199,6 +199,8 @@ class JobCard(TimestampedUUIDModel):
     next_service_date = models.DateField(null=True, blank=True)
     payment_type = models.CharField(max_length=200,choices=payment_choice,null=True)
     job_card_doc = models.FileField(upload_to="job_cards/",null=True,blank=True)
+    payment_due_date = models.DateField(null=True, blank=True)
+    delivery_due_date = models.DateField(null=True, blank=True)
 
 class BillAmount(TimestampedUUIDModel):
     job_type = models.ForeignKey(JobType,on_delete=models.SET_NULL,null=True)

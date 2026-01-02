@@ -734,8 +734,8 @@ class TotalExpense(APIView):
         branch_id = request.query_params.get("branch")
 
         # Parse dates safely
-        from_date = self.parse_date(request.query_params.get("from_date"))
-        to_date = self.parse_date(request.query_params.get("to_date"))
+        from_date = self.request.query_params.get("from_date")
+        to_date = self.request.query_params.get("to_date")
 
         # Build date filters if valid
         date_filter = {}

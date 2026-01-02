@@ -112,12 +112,21 @@ class BillAmountSerializer(serializers.ModelSerializer):
     class Meta:
         model = BillAmount
         fields = ['job_type', 'amount']
+
+
+class LabourSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Labour
+        fields = "__all__"
+        read_only_fields = ("id", "is_deleted", "created_at", "updated_at")
+
 class JobcardSerializer(serializers.ModelSerializer):
 
     branch = BranchSerializer(read_only=True)  
     customer = CustomerSerializer(read_only=True)
     job_type = JobTypeSerializer(many=True)
     bill_amounts = serializers.SerializerMethodField()
+    labour = LabourSerializer(many=True)
 
     bill_items = serializers.ListField(
         child=serializers.DictField(
@@ -133,7 +142,8 @@ class JobcardSerializer(serializers.ModelSerializer):
         fields = ["vehicle_nmbr","phn_nmbr","email","address","vehicle_type","model",
                   "fuel_type","engine_hour_info","status","remarks","branch","customer"
                   ,"make_and_model","job_type","bill_type","advance_payment",
-                  "average_daily_usage","next_service_hour","next_service_date","bill_amounts","payment_type","bill_items","job_card_doc"]
+                  "average_daily_usage","next_service_hour","next_service_date","bill_amounts","payment_type","bill_items","job_card_doc","labour","payment_due_date","delivery_due_date","created_at",
+                  "payment_due_date","delivery_due_date"]
     
     def get_bill_amounts(self, obj):
         bills = BillAmount.objects.filter(job_card=obj)
@@ -143,6 +153,8 @@ class JobcardSerializer(serializers.ModelSerializer):
 
         bill_items = validated_data.pop("bill_items", None)
         job_type_data = validated_data.pop("job_type", None)
+        labour_data = validated_data.pop("labour", None)
+
         status = validated_data.pop("status", None)
         
 
@@ -158,6 +170,10 @@ class JobcardSerializer(serializers.ModelSerializer):
 
         if job_type_data:
             instance.job_type.set(job_type_data)
+        
+        if labour_data:
+            instance.labour.set(labour_data)
+        
 
         if bill_items:
                 for item in bill_items:
@@ -448,11 +464,7 @@ class BillAmountSerializer(serializers.ModelSerializer):
         fields = "__all__"
         
 
-class LabourSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Labour
-        fields = "__all__"
-        read_only_fields = ("id", "is_deleted", "created_at", "updated_at")
+
 class RetrieveJobSerializer(serializers.ModelSerializer):
     branch = BranchSerializer()
     customer = CustomerSerializer()
