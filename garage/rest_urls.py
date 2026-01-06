@@ -106,6 +106,7 @@ urlpatterns = [
     path("labour/list/", LabourListAPIView.as_view(), name='edit-purchase'),
     path("labour/<uuid:id>/update/", LabourUpdateAPIView.as_view(), name='edit-purchase'),
     path("labour/<uuid:id>/delete/", LabourSoftDeleteAPIView.as_view(), name='edit-purchase'),
+    path("jobcards/<uuid:jobcard_id>/quotation-pdf/",jobcard_quotation_pdf, name='job-quotation')
 
 
 
