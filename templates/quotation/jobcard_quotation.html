@@ -1,172 +1,108 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sale Quotation</title>
+<meta charset="UTF-8">
+<title>Sale Quotation</title>
 </head>
 
-<body
-    style="margin: 0; padding: 0; background-color: #f5f5f5; font-family: Arial, Helvetica, sans-serif; -webkit-print-color-adjust: exact; print-color-adjust: exact;">
+<body style="margin:0;background:#f5f5f5;font-family:Arial;-webkit-print-color-adjust:exact;">
+<div style="width:210mm;min-height:297mm;margin:20px auto;background:white;padding:40px;box-sizing:border-box;position:relative;display:flex;flex-direction:column;">
 
-    <div
-        style="width: 210mm; min-height: 297mm; margin: 20px auto; background-color: white; box-shadow: 0 0 10px rgba(0,0,0,0.1); padding: 40px; box-sizing: border-box; position: relative; display: flex; flex-direction: column;">
+<div style="position:absolute;top:0;left:0;right:0;height:15px;background:#1a3b5c;"></div>
 
-        <!-- Top Border -->
-        <div style="position: absolute; top: 0; left: 0; right: 0; height: 15px; background-color: #1a3b5c;"></div>
+<!-- HEADER -->
+<div style="display:flex;justify-content:space-between;margin-top:20px;">
+<div>
+<b>MSI COLDCHAIN TECHNOLOGIES</b><br>
+<span style="font-size:12px;">CR: 7051695406</span>
+</div>
+</div>
 
-        <!-- Header -->
-        <div
-            style="display: flex; justify-content: space-between; align-items: flex-start; margin-top: 20px; margin-bottom: 20px;">
+<hr>
 
-            <!-- Logo -->
-            <div style="width: 200px; height: 60px;">
-                <!-- SVG UNCHANGED -->
-                <!-- (kept exactly as you provided) -->
-                {{ logo_svg|safe }}
-            </div>
+<!-- TITLE -->
+<div style="text-align:center;margin-bottom:20px;">
+<div style="font-size:20px;">SALE QUOTATION</div>
+<div style="display:flex;justify-content:space-between;">
+<div style="color:red;font-weight:bold;">{{ quotation_number }}</div>
+<div style="font-size:12px;">DATE : {{ date }}</div>
+</div>
+</div>
 
-            <!-- Company Info -->
-            <div style="text-align: right; color: #1a3b5c;">
-                <div style="font-weight: bold; font-size: 16px;">MSI COLDCHAIN TECHNOLOGIES</div>
-                <div style="font-weight: bold; font-size: 16px; direction: rtl;">
-                    إم إس ون لتقنيات سلسلة التبريد
-                </div>
-                <div style="font-size: 12px; margin-top: 5px; color: #333;">
-                    CR: 7051695406
-                </div>
-            </div>
-        </div>
+<!-- CUSTOMER INFO -->
+<div style="font-size:13px;margin-bottom:20px;">
+<div><b>Customer Name</b> : {{ customer_name }}</div>
+<div><b>Customer Number</b> : {{ customer_phone }}</div>
+<div><b>Vehicle Number</b> : {{ vehicle_number }}</div>
+<div><b>Vehicle Model</b> : {{ vehicle_model }}</div>
+</div>
 
-        <div style="border-bottom: 1px solid #1a3b5c; margin-bottom: 30px;"></div>
+<div style="text-align:center;font-weight:bold;">ESTIMATE</div>
 
-        <!-- Title -->
-        <div style="text-align: center; margin-bottom: 30px;">
-            <div style="font-size: 20px; margin-bottom: 20px;">SALE QUOTATION</div>
-            <div style="display: flex; justify-content: space-between;">
-                <div style="color: red; font-weight: bold; font-size: 16px;">
-                    {{ quotation_number }}
-                </div>
-                <div style="font-size: 12px; font-weight: bold;">
-                    DATE : {{ quotation_date }}
-                </div>
-            </div>
-        </div>
+<table width="100%" border="0" cellspacing="0" style="font-size:12px;margin-top:10px;">
+<thead>
+<tr style="background:#dbe4f1;">
+<th>NO</th>
+<th>DESCRIPTION</th>
+<th>PRICE</th>
+<th>QTY</th>
+<th>AMOUNT</th>
+</tr>
+</thead>
+<tbody>
 
-        <!-- Customer Info -->
-        <div style="margin-bottom: 30px; font-size: 13px; line-height: 1.6;">
-            <div style="display: flex;">
-                <div style="width: 130px; font-weight: bold;">Customer Name</div>
-                <div style="font-weight: bold;">: {{ customer_name }}</div>
-            </div>
-            <div style="display: flex;">
-                <div style="width: 130px; font-weight: bold;">Customer Number</div>
-                <div style="font-weight: bold;">: {{ customer_phone }}</div>
-            </div>
-            <div style="display: flex;">
-                <div style="width: 130px; font-weight: bold;">Vehicle Number</div>
-                <div style="font-weight: bold;">: {{ vehicle_number }}</div>
-            </div>
-            <div style="display: flex;">
-                <div style="width: 130px; font-weight: bold;">Vehicle Model</div>
-                <div style="font-weight: bold;">: {{ vehicle_model }}</div>
-            </div>
-        </div>
+<!-- SPARES -->
+<tr><td colspan="5"><b>A. SPARE PARTS</b></td></tr>
 
-        <!-- ESTIMATE -->
-        <div style="text-align: center; font-weight: bold; font-size: 14px; margin-bottom: 15px;">
-            ESTIMATE
-        </div>
+{% for row in spare_rows %}
+<tr>
+<td align="center">{{ row.no }}</td>
+<td align="center"><b>{{ row.name }}</b></td>
+<td align="center">{{ row.price }}</td>
+<td align="center">{{ row.qty }}</td>
+<td align="center"><b>{{ row.amount }}</b></td>
+</tr>
+{% endfor %}
 
-        <!-- TABLE -->
-        <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
-            <thead>
-                <tr style="background-color: #dbe4f1;">
-                    <th>NO.</th>
-                    <th>DESCRIPTION</th>
-                    <th>PRICE</th>
-                    <th>QTY</th>
-                    <th>AMOUNT</th>
-                </tr>
-            </thead>
-            <tbody>
+<tr>
+<td colspan="4" align="right"><b>Total Spare Parts</b></td>
+<td align="center"><b>{{ spare_total }}</b></td>
+</tr>
 
-                <!-- SPARE PARTS -->
-                <tr style="background-color:#f0f4f8;">
-                    <td colspan="5" style="font-weight:bold;color:#1a3b5c;">
-                        A. SPARE PARTS
-                    </td>
-                </tr>
+<!-- LABOUR -->
+<tr><td colspan="5"><b>B. LABOUR CHARGES</b></td></tr>
 
-                {% for item in spare_parts %}
-                <tr>
-                    <td align="center">{{ forloop.counter }}</td>
-                    <td align="center" style="font-weight:bold;">{{ item.name }}</td>
-                    <td align="center">{{ item.price }}</td>
-                    <td align="center">{{ item.qty }}</td>
-                    <td align="center" style="font-weight:bold;">{{ item.amount }}</td>
-                </tr>
-                {% endfor %}
+{% for row in labour_rows %}
+<tr>
+<td align="center">{{ row.no }}</td>
+<td align="center"><b>{{ row.description }}</b></td>
+<td align="center">{{ row.price }}</td>
+<td align="center">{{ row.qty }}</td>
+<td align="center"><b>{{ row.amount }}</b></td>
+</tr>
+{% endfor %}
 
-                <tr>
-                    <td colspan="4" align="right" style="font-weight:bold;">Total Spare Parts</td>
-                    <td align="center" style="font-weight:bold;">{{ spare_total }}</td>
-                </tr>
+<tr>
+<td colspan="4" align="right"><b>Total Labour Charges</b></td>
+<td align="center"><b>{{ labour_total }}</b></td>
+</tr>
 
-                <!-- LABOUR -->
-                <tr style="background-color:#f0f4f8;">
-                    <td colspan="5" style="font-weight:bold;color:#1a3b5c;">
-                        B. LABOUR CHARGES
-                    </td>
-                </tr>
+</tbody>
+</table>
 
-                {% for item in labour_items %}
-                <tr>
-                    <td align="center">{{ forloop.counter|add:spare_count }}</td>
-                    <td align="center" style="font-weight:bold;">{{ item.description }}</td>
-                    <td align="center">{{ item.price }}</td>
-                    <td align="center">1</td>
-                    <td align="center" style="font-weight:bold;">{{ item.amount }}</td>
-                </tr>
-                {% endfor %}
+<!-- TOTALS -->
+<div style="margin-top:20px;width:300px;float:right;font-size:12px;">
+<div style="display:flex;justify-content:space-between;"><b>TOTAL</b><b>{{ subtotal }}</b></div>
+<div style="display:flex;justify-content:space-between;"><b>DISCOUNT</b><b>{{ discount }}</b></div>
+<div style="display:flex;justify-content:space-between;"><b>VAT 15%</b><b>{{ vat }}</b></div>
+</div>
 
-                <tr>
-                    <td colspan="4" align="right" style="font-weight:bold;">Total Labour Charges</td>
-                    <td align="center" style="font-weight:bold;">{{ labour_total }}</td>
-                </tr>
+<!-- GRAND TOTAL -->
+<div style="clear:both;margin-top:20px;background:#f2f2f2;padding:10px;display:flex;justify-content:space-between;">
+<div>Amount in Words : {{ amount_words }}</div>
+<div><b>GRAND TOTAL : {{ grand_total }}</b></div>
+</div>
 
-            </tbody>
-        </table>
-
-        <!-- TOTALS -->
-        <div style="display:flex;margin-top:20px;">
-            <div style="flex:1;"></div>
-            <div style="width:300px;font-size:12px;">
-                <div style="display:flex;justify-content:space-between;">
-                    <b>TOTAL</b><b>{{ subtotal }}</b>
-                </div>
-                <div style="display:flex;justify-content:space-between;">
-                    <b>DISCOUNT</b><b>{{ discount }}</b>
-                </div>
-                <div style="display:flex;justify-content:space-between;">
-                    <b>VAT 15%</b><b>{{ vat }}</b>
-                </div>
-            </div>
-        </div>
-
-        <!-- GRAND TOTAL -->
-        <div style="margin-top:10px;background:#f2f2f2;padding:15px;display:flex;justify-content:space-between;">
-            <div>
-                <span>Amount in Words</span>
-                <b>{{ amount_words }}</b>
-            </div>
-            <div>
-                <b>GRAND TOTAL</b> {{ grand_total }}
-            </div>
-        </div>
-
-    </div>
+</div>
 </body>
-
 </html>
