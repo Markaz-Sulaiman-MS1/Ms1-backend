@@ -30,6 +30,8 @@ from django.utils.dateparse import parse_datetime
 from django.template.loader import render_to_string
 from weasyprint import HTML
 from datetime import date
+from num2words import num2words
+from django.templatetags.static import static
 
 # pylint: disable=E1101,W0702
 
@@ -1623,6 +1625,24 @@ class LabourSoftDeleteAPIView(generics.DestroyAPIView):
 
 
 
+
+def amount_to_words(amount):
+    """
+    Convert numeric amount to words in Riyal format.
+    Example: 1380.50 -> ONE THOUSAND THREE HUNDRED EIGHTY RIYAL AND FIFTY HALALA ONLY
+    """
+    amount = round(float(amount), 2)
+    integer_part = int(amount)
+    decimal_part = int(round((amount - integer_part) * 100))
+
+    words = num2words(integer_part, lang="en").upper() + " RIYAL"
+
+    if decimal_part > 0:
+        words += " AND " + num2words(decimal_part, lang="en").upper() + " HALALA"
+
+    return words + " ONLY"
+
+
 def jobcard_quotation_pdf(request, jobcard_id):
     jobcard = get_object_or_404(JobCard, id=jobcard_id)
 
@@ -1667,6 +1687,10 @@ def jobcard_quotation_pdf(request, jobcard_id):
     discount = Decimal("0.00")
     vat = subtotal * Decimal("0.15")
     grand_total = subtotal + vat - discount
+    
+    logo_url = request.build_absolute_uri(
+        static("image/logo-color.png")
+    )
 
     context = {
         # Header
@@ -1675,7 +1699,7 @@ def jobcard_quotation_pdf(request, jobcard_id):
 
         # Customer & Vehicle
         "customer_name": jobcard.customer.name if jobcard.customer else "",
-        "customer_phone": jobcard.phn_nmbr or "",
+        "customer_phone": jobcard.customer.phn_nmbr or "",
         "vehicle_number": jobcard.vehicle_nmbr or "",
         "vehicle_model": jobcard.make_and_model or "",
 
@@ -1692,7 +1716,9 @@ def jobcard_quotation_pdf(request, jobcard_id):
         "grand_total": f"{grand_total:.2f}",
 
         # Amount in words (simple)
-        "amount_words": "ONE THOUSAND THREE HUNDRED AND EIGHTY RIYAL ONLY",
+        "amount_words": amount_to_words(grand_total),
+
+        "logo_url":logo_url
     }
 
     html_string = render_to_string(
