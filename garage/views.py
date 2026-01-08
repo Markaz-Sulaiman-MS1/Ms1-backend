@@ -32,7 +32,8 @@ from weasyprint import HTML
 from datetime import date
 from num2words import num2words
 from django.templatetags.static import static
-
+import os
+from django.conf import settings
 # pylint: disable=E1101,W0702
 
 
@@ -1688,9 +1689,16 @@ def jobcard_quotation_pdf(request, jobcard_id):
     vat = subtotal * Decimal("0.15")
     grand_total = subtotal + vat - discount
     
-    logo_url = request.build_absolute_uri(
-        static("image/logo-color.png")
-    )
+    # logo_url = request.build_absolute_uri(
+    #     static("image/logo-color.png")
+    # )
+
+    logo_path = os.path.join(
+    settings.BASE_DIR,
+    "static",
+    "images",
+    "msi-logo.png"
+)
 
     context = {
         # Header
@@ -1717,9 +1725,8 @@ def jobcard_quotation_pdf(request, jobcard_id):
 
         # Amount in words (simple)
         "amount_words": amount_to_words(grand_total),
-
-        "logo_url":logo_url
     }
+    context["logo_url"] = f"file:///{logo_path.replace(os.sep, '/')}"
 
     html_string = render_to_string(
         "quotation/jobcard_quotation.html",
