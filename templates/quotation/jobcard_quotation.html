@@ -1,108 +1,304 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8">
-<title>Sale Quotation</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sale Quotation</title>
+    <style>
+        /* Minimal print rules only; layout/styles are applied inline for backend usage */
+        @page {
+            size: 595px 842px;
+            margin: 0;
+        }
+
+        @media print {
+
+            html,
+            body {
+                background: #fff;
+            }
+        }
+    </style>
+    
 </head>
 
-<body style="margin:0;background:#f5f5f5;font-family:Arial;-webkit-print-color-adjust:exact;">
-<div style="width:210mm;min-height:297mm;margin:20px auto;background:white;padding:40px;box-sizing:border-box;position:relative;display:flex;flex-direction:column;">
+<body
+    style="margin:0;background:#f5f5f5;font-family:Arial,Helvetica,sans-serif;-webkit-print-color-adjust:exact;print-color-adjust:exact;">
 
-<div style="position:absolute;top:0;left:0;right:0;height:15px;background:#1a3b5c;"></div>
 
-<!-- HEADER -->
-<div style="display:flex;justify-content:space-between;margin-top:20px;">
-<div>
-<b>MSI COLDCHAIN TECHNOLOGIES</b><br>
-<span style="font-size:12px;">CR: 7051695406</span>
-</div>
-</div>
 
-<hr>
 
-<!-- TITLE -->
-<div style="text-align:center;margin-bottom:20px;">
-<div style="font-size:20px;">SALE QUOTATION</div>
-<div style="display:flex;justify-content:space-between;">
-<div style="color:red;font-weight:bold;">{{ quotation_number }}</div>
-<div style="font-size:12px;">DATE : {{ date }}</div>
-</div>
-</div>
+    <div
+        style="width:595px;height:842px;margin:20px auto;padding:20px;box-sizing:border-box;background-color:#fff;position:relative;display:flex;flex-direction:column;overflow:hidden;box-shadow:none;">
+        <div
+            style="display:flex;flex-direction:column;width:100%;height:100%;transform-origin:top left;transition:transform 120ms ease-out;">
 
-<!-- CUSTOMER INFO -->
-<div style="font-size:13px;margin-bottom:20px;">
-<div><b>Customer Name</b> : {{ customer_name }}</div>
-<div><b>Customer Number</b> : {{ customer_phone }}</div>
-<div><b>Vehicle Number</b> : {{ vehicle_number }}</div>
-<div><b>Vehicle Model</b> : {{ vehicle_model }}</div>
-</div>
+            <!-- Top Border -->
+            <div style="position:absolute;top:0;left:0;right:0;height:12px;background-color:#1a3b5c;"></div>
 
-<div style="text-align:center;font-weight:bold;">ESTIMATE</div>
+            <!-- Header -->
+            <div
+                style="display: flex; justify-content: space-between; align-items: center; margin-top: 0px; margin-bottom: 6px;">
+                <!-- Logo Section -->
+                <div style="display: flex; align-items: center;">
+                    <!-- Placeholder for Logo -->
+                    <div
+                        style="width: 120px; height: 60px; display: flex; align-items: center; justify-content: center; color: #999;">
+                        <svg style="max-width:160px;width:100%;height:auto;display:block;" viewBox="0 0 8947 1600"
+                            fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path
+                                d="M8282.05 140.083C8288.46 119.497 8389.9 122.703 8409.22 135.237L8675.17 501.028V127.039H8806.23V753.281H8683.91L8421.82 379.256V753.281H8282.05V140.083Z"
+                                fill="#1A2544" />
+                            <path
+                                d="M4653.45 295.314C4642.41 285.038 4603.27 262.447 4588.96 259.46C4301.76 199.521 4307.41 687.084 4587.06 627.619C4722.68 598.761 4748.04 383.382 4653.45 295.314ZM4497.1 120.598C4935.11 61.3883 4978.87 752.379 4555.62 770.78C4159.8 787.978 4120.3 171.501 4497.1 120.598Z"
+                                fill="#1A2544" />
+                            <path
+                                d="M5547.57 622.8H5691.72C5695.55 622.8 5750.2 590.772 5757.63 584.068C5827.56 520.996 5826.14 376.341 5761.9 309.406C5707.61 252.819 5619.76 255.844 5547.57 257.483V622.8ZM5407.8 753.281V140.083C5407.8 139.172 5419.97 127.039 5420.88 127.039H5674.27C5956.36 127.039 6063.63 584.396 5791.19 721.836C5778.11 728.431 5718.36 753.281 5709.21 753.281H5407.8Z"
+                                fill="#1A2544" />
+                            <path
+                                d="M6954.13 370.569H7181.28V127.024H7312.3V753.267H7181.28V509.722H6954.13V753.267H6814.36V140.069C6814.36 120.356 6954.13 120.356 6954.13 140.069V370.569Z"
+                                fill="#1A2544" />
+                            <path
+                                d="M7609.35 492.341H7749.12C7739.9 470.37 7692.57 320.614 7683.5 318.318C7666.26 313.946 7670.89 325.752 7666.48 335.699C7644.15 385.946 7629.75 441.293 7609.35 492.341ZM7985.02 753.267H7845.24C7835.44 723.352 7819.23 649.895 7802.47 628.178C7791.94 614.551 7592.95 626.357 7558.12 623.988L7513.27 753.267H7373.46C7409.97 683.526 7597.07 130.486 7630.85 126.405C7656.79 123.271 7734.22 121.158 7748.39 140.834L7985.02 753.267Z"
+                                fill="#1A2544" />
+                            <path
+                                d="M6415.5 593.676C6491.07 664.036 6607.05 633.976 6670.19 562.268C6750.35 639.733 6794.95 655.255 6677.37 725.615C6487.35 839.298 6252.55 720.295 6220.41 505.353C6172.35 184.016 6517.23 -15.5498 6751.63 218.266C6736.58 234.517 6684.33 314.897 6668.95 317.448C6654.49 319.816 6619.11 281.339 6602.02 273.177C6390.14 171.882 6280.35 467.896 6415.5 593.676Z"
+                                fill="#1A2544" />
+                            <path
+                                d="M3864.49 593.676C3940.06 664.036 4056.04 633.976 4119.18 562.268C4199.34 639.733 4243.94 655.255 4126.36 725.615C3936.34 839.298 3701.54 720.295 3669.4 505.353C3621.34 184.016 3966.22 -15.5498 4200.62 218.266C4185.57 234.517 4133.32 314.897 4117.94 317.448C4103.48 319.816 4068.1 281.339 4051.01 273.177C3839.13 171.882 3729.34 467.896 3864.49 593.676Z"
+                                fill="#1A2544" />
+                            <path
+                                d="M5058.34 622.8H5333.55C5355.92 622.8 5343.75 732.038 5346.63 753.281H4918.57V140.083C4918.57 120.335 5058.34 120.335 5058.34 140.083V622.8Z"
+                                fill="#1A2544" />
+                            <path d="M8046.17 126.601H8185.94V753.281H8046.17V126.601Z" fill="#1A2544" />
+                            <path
+                                d="M6252.16 1130.32C6361.94 1232.81 6246.07 1447.9 6098.68 1365.73C5930.2 1271.84 6097.96 986.316 6252.16 1130.32Z"
+                                fill="#1A2544" />
+                            <path
+                                d="M8404.36 1014.19H8072.38V1466.48H8404.36V1379.51H8168.46V1283.83H8369.41V1196.85H8168.46V1101.17H8404.36V1014.19ZM7871.43 1466.48H7958.81V1014.19H7871.43V1466.48ZM6578.46 1014.19H6482.38V1466.48H6796.87V1379.51H6578.46V1014.19ZM5757.25 1283.83C5679.64 1206.18 5622.21 1106.92 5556.26 1018.6L5460.21 1014.19V1466.48H5556.3V1188.14L5761 1458.4C5782.97 1474.28 5818.17 1463.93 5844.62 1466.48V1014.19H5757.25V1283.83ZM5075.8 1014.19H4979.72V1466.48H5075.8V1283.83H5250.56V1466.48H5346.64V1014.19H5250.56V1188.14H5075.8V1014.19ZM4438.05 1014.19H4106.07V1466.48H4438.05V1379.51H4202.19V1283.83H4403.1V1196.85H4202.19V1101.17H4438.05V1014.19ZM4027.44 1014.19H3669.26V1101.17H3800.29V1466.48H3896.41V1101.17H4027.44V1014.19ZM8594.27 1007.56C8472.35 1028.15 8435 1190.11 8537.97 1250.81C8571.02 1270.31 8787.27 1307.95 8692.21 1374.63C8627.9 1419.74 8533.13 1332.14 8515.13 1336.77C8506.09 1339.06 8464.48 1393.57 8465.9 1400.28C8571.46 1519.57 8852.46 1496.95 8802.43 1291.88C8776.45 1185.37 8600.75 1201.66 8576.52 1150.87C8548.1 1091.22 8642.73 1086.85 8686.45 1103.03C8751.38 1127 8742.53 1163.55 8787.6 1063.2C8742.93 1013.28 8659.42 996.557 8594.27 1007.56ZM7766.6 1401.23C7779.17 1356.44 7757.31 1257.15 7766.6 1205.52H7583.14L7583.1 1292.57L7679.26 1292.46C7693.22 1362.57 7650.51 1383.48 7587.55 1383.44C7398.92 1383.34 7420.05 1077.81 7595.2 1092.86C7630.18 1095.85 7687.93 1138.52 7700.47 1136.58C7704.84 1135.89 7749.8 1072.97 7747.91 1063.2C7743.72 1041.3 7667.27 1013.28 7644.76 1009.38C7276.49 945.545 7259.95 1487.22 7596.3 1475.74C7632.22 1474.5 7756.87 1435.84 7766.6 1401.23ZM7288.44 1238.9C7288.44 1109.77 7183.28 1005.05 7053.57 1005.05C6923.81 1005.05 6818.66 1109.77 6818.66 1238.9C6818.66 1368.07 6923.81 1472.79 7053.57 1472.79C7183.28 1472.79 7288.44 1368.07 7288.44 1238.9ZM6397.34 1238.9C6397.34 1109.77 6292.18 1005.05 6162.43 1005.05C6032.71 1005.05 5927.55 1109.77 5927.55 1238.9C5927.55 1368.07 6032.71 1472.79 6162.43 1472.79C6292.18 1472.79 6397.34 1368.07 6397.34 1238.9ZM4680.39 1007.56C4613.93 1018.71 4555.16 1075.37 4529.5 1135.67C4420.85 1390.73 4720.94 1596.67 4909.62 1392.55C4830.98 1290.97 4837.76 1363.99 4772.43 1377.47C4553.92 1422.5 4558.11 1075.99 4745.65 1094.35C4786.49 1098.36 4838.78 1143.14 4844.36 1143.14C4851.28 1143.14 4901.78 1079.96 4900.43 1071.94C4890.96 1014.7 4727.36 999.69 4680.39 1007.56ZM3529.49 883.711H8946.03V1596.93H3529.49V883.711Z"
+                                fill="#1A2544" />
+                            <path
+                                d="M7143.27 1130.32C7253.05 1232.81 7137.18 1447.9 6989.79 1365.73C6821.31 1271.84 6989.07 986.316 7143.27 1130.32Z"
+                                fill="#1A2544" />
+                            <path
+                                d="M1817.16 1596.92C1668.57 1584.79 1485.55 1518.47 1360.17 1438.71C1319.36 1412.77 1283.21 1375.17 1240.58 1353.2L1445.83 1102C1592.42 1222.86 1815.96 1330.39 2009.87 1279.96C2112.7 1253.21 2185.28 1134.94 2096.19 1053.83C2008.6 974.07 1745.23 936.175 1622.8 890.228C1429.69 817.755 1306.06 707.059 1301.29 488.401C1290.94 12.7529 1826.85 -78.5582 2188.67 57.2424C2275.14 89.7078 2354.93 139.408 2429.26 192.788L2249.74 455.899C2121.63 361.017 1835.67 235.055 1694.66 348.629C1644.89 388.746 1632.79 460.782 1668.57 514.126C1722.06 593.85 2034 651.129 2138.39 690.007C2382.22 780.844 2521.01 933.479 2471.31 1208.83C2429.19 1442.39 2218.73 1576.08 1991.87 1596.92C1944.83 1601.26 1864.56 1600.79 1817.16 1596.92Z"
+                                fill="#1A2544" />
+                            <path
+                                d="M0 22.6597L375.592 27.0685L773.265 666.392L1180.81 24.1537L1214.34 22.6597V574.971L781.755 1222.93L340.722 579.307V1570.83H0V22.6597Z"
+                                fill="#1A2544" />
+                            <path
+                                d="M3258.65 13.9659V1570.84H2909.19V361.866L2638.97 422.096L2570.07 148.455C2704.81 93.8721 2854.17 65.6699 2992.19 13.9659H3258.65Z"
+                                fill="#1A2544" />
+                        </svg>
 
-<table width="100%" border="0" cellspacing="0" style="font-size:12px;margin-top:10px;">
-<thead>
-<tr style="background:#dbe4f1;">
-<th>NO</th>
-<th>DESCRIPTION</th>
-<th>PRICE</th>
-<th>QTY</th>
-<th>AMOUNT</th>
-</tr>
-</thead>
-<tbody>
+                    </div>
+                </div>
 
-<!-- SPARES -->
-<tr><td colspan="5"><b>A. SPARE PARTS</b></td></tr>
+                <!-- Company Info (Right) -->
+                <div style="text-align: right; color: #1a3b5c;">
+                    <div style="font-weight: bold; font-size: 12px;">MSI COLDCHAIN TECHNOLOGIES</div>
+                    <div style="font-weight: bold; font-size: 12px; direction: rtl;">إم إس ون لتقنيات سلسلة التبريد
+                    </div>
+                    <div style="font-size: 12px; margin-top: 5px; color: #333;">CR: 7051695406</div>
+                </div>
+            </div>
 
-{% for row in spare_rows %}
-<tr>
-<td align="center">{{ row.no }}</td>
-<td align="center"><b>{{ row.name }}</b></td>
-<td align="center">{{ row.price }}</td>
-<td align="center">{{ row.qty }}</td>
-<td align="center"><b>{{ row.amount }}</b></td>
-</tr>
-{% endfor %}
+            <div style="border-bottom: 1px solid #1a3b5c; margin-bottom: 16px;"></div>
 
-<tr>
-<td colspan="4" align="right"><b>Total Spare Parts</b></td>
-<td align="center"><b>{{ spare_total }}</b></td>
-</tr>
+            <!-- Title -->
+            <div style="text-align: center; margin-bottom: 12px; position: relative;">
+                <div style="font-size: 14px; font-weight: bold; margin-bottom: 12px;">SALES QUOTATION</div>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div style="color: red; font-weight: bold; font-size: 12px;">{{ quotation_number }}</div>
+                    <div style="font-size: 10px; font-weight: bold;">DATE : {{ date }}</div>
+                </div>
+            </div>
 
-<!-- LABOUR -->
-<tr><td colspan="5"><b>B. LABOUR CHARGES</b></td></tr>
+            <!-- Customer Info -->
+            <div style="margin-bottom: 6px; font-size: 10px; line-height: 1.6;">
+                <div style="display: flex; margin-bottom: 5px;">
+                    <div style="width: 130px; font-weight: bold;">Customer Name</div>
+                    <div style="font-weight: bold;">: {{ customer_name }}</div>
+                </div>
+                <div style="display: flex; margin-bottom: 5px;">
+                    <div style="width: 130px; font-weight: bold;">Customer Number</div>
+                    <div style="font-weight: bold;">: {{ customer_phone }}</div>
+                </div>
+                <div style="display: flex; margin-bottom: 5px;">
+                    <div style="width: 130px; font-weight: bold;">Vehicle Number</div>
+                    <div style="font-weight: bold;">: {{ vehicle_number }}</div>
+                </div>
+                <div style="display: flex; margin-bottom: 5px;">
+                    <div style="width: 130px; font-weight: bold;">Vehicle Model</div>
+                    <div style="font-weight: bold;">: {{ vehicle_model }}</div>
+                </div>
+            </div>
 
-{% for row in labour_rows %}
-<tr>
-<td align="center">{{ row.no }}</td>
-<td align="center"><b>{{ row.description }}</b></td>
-<td align="center">{{ row.price }}</td>
-<td align="center">{{ row.qty }}</td>
-<td align="center"><b>{{ row.amount }}</b></td>
-</tr>
-{% endfor %}
+            
+            <div style="display:flex; flex-direction:row; align-items:flex-start; width:100%; gap: 12px;">
+                
+                 <!-- SPARES -->
+                <div style="flex:1; width:350px;">
+                    <table style="width:100%; border-collapse: collapse; font-size: 10px; table-layout: fixed;">
+                        <thead>
+                            <tr style="background-color: #dbe4f1;">
+                                <th style="padding: 8px; text-align: center; width: 40px;">NO.</th>
+                                <th style="padding: 8px; text-align: center;">DESCRIPTION</th>
+                                <th style="padding: 8px; text-align: center; width: 70px;">PRICE</th>
+                                <th style="padding: 8px; text-align: center; width: 50px;">QTY</th>
+                                <th style="padding: 8px; text-align: center; width: 70px;">AMOUNT</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr style="background-color: #f0f4f8;">
+                                <td colspan="5"
+                                    style="padding: 8px; font-weight: bold; border-bottom: 1px solid #1a3b5c; color: #1a3b5c;">
+                                    A. SPARE PARTS</td>
+                            </tr>
+                            {% for row in spare_rows %}
+                            <tr style="background-color: #f9f9f9;">
+                                <td style="padding: 8px; text-align: center; border-bottom: 1px solid #eee;">{{ row.no
+                                    }}</td>
+                                <td
+                                    style="padding: 8px; text-align: left; border-bottom: 1px solid #eee; font-weight: bold;">
+                                    {{ row.name }}</td>
+                                <td style="padding: 8px; text-align: center; border-bottom: 1px solid #eee;">{{
+                                    row.price }}</td>
+                                <td style="padding: 8px; text-align: center; border-bottom: 1px solid #eee;">{{ row.qty
+                                    }}</td>
+                                <td
+                                    style="padding: 8px; text-align: center; border-bottom: 1px solid #eee; font-weight: bold;">
+                                    {{ row.amount }}</td>
+                            </tr>
+                            {% endfor %}
 
-<tr>
-<td colspan="4" align="right"><b>Total Labour Charges</b></td>
-<td align="center"><b>{{ labour_total }}</b></td>
-</tr>
+                            <tr>
+                                <td colspan="4"
+                                    style="padding: 8px; text-align: right; border-bottom: 1px solid #eee; font-weight: bold; color: #666;">
+                                    Total Spare Parts</td>
+                                <td
+                                    style="padding: 8px; text-align: center; border-bottom: 1px solid #eee; font-weight: bold; background-color: #f0f4f8;">
+                                    {{ spare_total }}</td>
+                            </tr>
 
-</tbody>
-</table>
+                            <!-- Labour Charges -->
 
-<!-- TOTALS -->
-<div style="margin-top:20px;width:300px;float:right;font-size:12px;">
-<div style="display:flex;justify-content:space-between;"><b>TOTAL</b><b>{{ subtotal }}</b></div>
-<div style="display:flex;justify-content:space-between;"><b>DISCOUNT</b><b>{{ discount }}</b></div>
-<div style="display:flex;justify-content:space-between;"><b>VAT 15%</b><b>{{ vat }}</b></div>
-</div>
+                            <tr style="background-color: #f0f4f8;">
+                                <td colspan="5"
+                                    style="padding: 6px; font-weight: bold; border-bottom: 1px solid #1a3b5c; color: #1a3b5c;">
+                                    B. LABOUR CHARGES</td>
+                            </tr>
+                            {% for row in labour_rows %}
+                            <tr style="background-color: #f9f9f9; ">
+                                <td style="padding: 8px; text-align: center; border-bottom: 1px solid #eee;">{{ row.no
+                                    }}</td>
+                                <td
+                                    style="padding: 6px; text-align: left; border-bottom: 1px solid #eee; font-weight: normal; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                    {{ row.description }}</td>
+                                    <td
+                                    style="padding: 6px; text-align: left; border-bottom: 1px solid #eee; font-weight: normal; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                    </td>
+                                    <td
+                                    style="padding: 6px; text-align: left; border-bottom: 1px solid #eee; font-weight: normal; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                    </td>
+                                <td
+                                    style="padding: 6px; text-align: right; border-bottom: 1px solid #eee; font-weight: bold;">
+                                    {{ row.amount }}</td>
+                            </tr>
+                            {% endfor %}
+                            <tr>
+                                <td colspan="4"
+                                    style="padding: 6px; text-align: left; border-bottom: 1px solid #eee; font-weight: bold; color: #666;">
+                                    Total Labour Charges</td>
+                                <td
+                                    style="padding: 6px; text-align: right; border-bottom: 1px solid #eee; font-weight: bold; background-color: #f0f4f8;">
+                                    {{ labour_total }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
 
-<!-- GRAND TOTAL -->
-<div style="clear:both;margin-top:20px;background:#f2f2f2;padding:10px;display:flex;justify-content:space-between;">
-<div>Amount in Words : {{ amount_words }}</div>
-<div><b>GRAND TOTAL : {{ grand_total }}</b></div>
-</div>
+                
+        
+            </div>
 
-</div>
+            <!-- Totals & Notes -->
+            <div style="display: flex; margin-top: 20px;">
+                <!-- Notes Area -->
+                <div style="flex: 1; padding-right: 20px;">
+                    <div style="font-size: 13px;"></div>
+                </div>
+
+                <!-- Totals Area -->
+                <div style="display: flex; flex-direction: row; justify-content: space-between; width: 100%; font-size: 10px; align-items: center; ">
+                     <div
+                        style="display: flex; flex-direction: row; justify-content: space-between; align-items: center; gap: 6px;">
+                        <div style="font-weight: regular; font-size: 8px; color: #999;">Sub Total</div>
+                        <div style="font-weight: bold;">{{subtotal}}</div>
+                    </div>
+                    <div
+                        style="display: flex; flex-direction: row; justify-content: space-between; align-items: center; gap: 6px;">
+                        <div style="font-weight: regular; font-size: 8px; color: #999;">VAT</div>
+                        <div style="font-weight: bold;">15%</div>
+                    </div>
+                    <div
+                        style="display: flex; flex-direction: row; justify-content: space-between; align-items: center; gap: 6px;">
+                        <div style="font-weight: bold; text-align: center; font-size: 8px; color: #999;">GRAND TOTAL</div>
+                        <div style="font-weight: bold; font-size: 16px;">{{ grand_total }}</div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Grand Total & Amount in Words -->
+            <div
+                style="margin-top: 10px; background-color: #f2f2f2; padding: 10px 10px; display: flex; align-items: center; justify-content: space-between; font-size: 12px; font-weight: bold;">
+                <div style="display: flex; align-items: center;">
+                    <span style="font-size: 10px;">{{ amount_words }}</span>
+                </div>
+
+            </div>
+
+            <!-- Spacer to push footer to bottom -->
+            <div style="flex-grow: 1;"></div>
+
+            <!-- Footer -->
+            <div style="margin-top:40px;text-align:center;color:#666;font-size:10px;">
+                <div style="display:flex;justify-content:center;gap:40px;margin-bottom:10px;">
+                    <div style="display:flex;align-items:center;gap:5px;">
+                        <span
+                            style="display:inline-block;width:8px;height:8px;background-color:#444;border-radius:50%;"></span>
+                        <span>+966 570309983</span>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:5px;">
+                        <span
+                            style="display:inline-block;width:8px;height:8px;background-color:#444;border-radius:50%;"></span>
+                        <span>muhammedsaleef@ms1coldchain.com</span>
+                    </div>
+                </div>
+
+                <div style="border-top:1px solid #1a3b5c;margin-bottom:10px;"></div>
+
+                <div style="display:flex;justify-content:space-between;color:#1a3b5c;font-size:8px;">
+                    <div style="text-align:center;width:50%;">
+                        <div style="font-weight:bold;">JEDDAH</div>
+                        <div>Al Jawharah dist, Cars Haraj - Opposite the Jowhara Petrol Pump Station</div>
+                        <div>حراج السيارات مقابل محطة الجوهرة</div>
+                    </div>
+
+                    <div style="border-left:1px solid #ccc;"></div>
+
+                    <div style="text-align:center;width:50%;">
+                        <div style="font-weight:bold;">RIYADH</div>
+                        <div>Al Aziziyah dist , Luluo Industrial Area, Workshop Number 6 .5</div>
+                        <div>منطقة العزيزية الصناعية ورشة رقم ٥.٦</div>
+                    </div>
+                </div>
+                
+            </div>
+
+        </div> <!-- close sheet -->
+    </div> <!-- close page -->
+
 </body>
-</html>
