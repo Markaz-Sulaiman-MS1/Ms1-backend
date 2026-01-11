@@ -1742,3 +1742,9 @@ def jobcard_quotation_pdf(request, jobcard_id):
     )
 
     return response
+
+
+
+class UnitListAPIView(generics.ListAPIView):
+    queryset = Units.objects.all().order_by("name")
+    serializer_class = UnitSerializer

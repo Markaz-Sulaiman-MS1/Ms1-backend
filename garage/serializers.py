@@ -740,7 +740,7 @@ class CategorySerializer(serializers.ModelSerializer):
     account =  AccountSerializer(read_only=True)
     class Meta:
         model=Category
-        fields=["name","description","account",]
+        fields=["name","description","account","id"]
 
 
 
@@ -870,3 +870,9 @@ class BatchSerializer(serializers.ModelSerializer):
         ]
 
 
+
+
+class UnitSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Units
+        fields = ["id", "name", "created_at"]
