@@ -35,7 +35,7 @@ from django.templatetags.static import static
 import os
 from django.conf import settings
 from xhtml2pdf import pisa
-import io
+from io import BytesIO
 # pylint: disable=E1101,W0702
 
 
@@ -1799,6 +1799,12 @@ def jobcard_quotation_pdf(request, jobcard_id):
     }
 
     html = render_to_string("quotation/jobcard_quotation.html", context)
+
+    result = BytesIO()
+    pdf = pisa.CreatePDF(html, dest=result)
+
+    if pdf.err:
+        return HttpResponse("PDF ERROR — check template", status=500)   
 
     response = HttpResponse(content_type="application/pdf")
     response["Content-Disposition"] = f'attachment; filename="Quotation_{jobcard.id}.pdf"'
