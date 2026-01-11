@@ -1691,7 +1691,7 @@ def jobcard_quotation_pdf(request, jobcard_id):
     
 
     
-    logo_url = request.build_absolute_uri(static("image/logo-color.png"))
+    logo_url = "file://" + os.path.join(settings.STATIC_ROOT, "image/logo-color.png")
  
     context = {
         # Header
