@@ -23,7 +23,7 @@ from django.db.models import F, Sum, Value
 from django.db.models.functions import Coalesce
 from datetime import datetime, time
 from django.db.models import FloatField
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404,render
 from zoneinfo import ZoneInfo 
 from django.utils.timezone import make_aware
 from django.utils.dateparse import parse_datetime
@@ -1650,7 +1650,7 @@ def jobcard_quotation_pdf(request, jobcard_id):
     spare_parts = SpareParts.objects.filter(job_card=jobcard)
     labours = jobcard.labour.all()
 
-    # ---------- CALCULATIONS ----------
+  
     spare_rows = []
     spare_total = Decimal("0.00")
 
@@ -1689,17 +1689,10 @@ def jobcard_quotation_pdf(request, jobcard_id):
     vat = subtotal * Decimal("0.15")
     grand_total = subtotal + vat - discount
     
-    # logo_url = request.build_absolute_uri(
-    #     static("image/logo-color.png")
-    # )
 
-    logo_path = os.path.join(
-    settings.BASE_DIR,
-    "static",
-    "images",
-    "msi-logo.png"
-)
-
+    
+    logo_url = request.build_absolute_uri(static("image/logo-color.png"))
+ 
     context = {
         # Header
         "quotation_number": f"SO-{str(jobcard.id)[:6].upper()}",
@@ -1725,8 +1718,9 @@ def jobcard_quotation_pdf(request, jobcard_id):
 
         # Amount in words (simple)
         "amount_words": amount_to_words(grand_total),
+        "logo_url": logo_url,
     }
-    context["logo_url"] = request.build_absolute_uri(static("image/logo-color.png"))
+
 
     html_string = render_to_string(
         "quotation/jobcard_quotation.html",
@@ -1737,10 +1731,74 @@ def jobcard_quotation_pdf(request, jobcard_id):
 
     response = HttpResponse(pdf, content_type="application/pdf")
     response["Content-Disposition"] = (
-        f'attachment; filename="Quotation_{jobcard.id}.pdf"'
-    )
+        f'attachment; filename="Quotation_{jobcard.id}.pdf"')
 
     return response
+
+
+def jobcard_quotation_preview(request, jobcard_id):
+    jobcard = get_object_or_404(JobCard, id=jobcard_id)
+
+    spare_parts = SpareParts.objects.filter(job_card=jobcard)
+    labours = jobcard.labour.all()
+
+    # ---------- CALCULATIONS ----------
+    spare_rows = []
+    spare_total = Decimal("0.00")
+
+    for idx, sp in enumerate(spare_parts, start=1):
+        qty = sp.quantity or 1
+        cost = Decimal(sp.cost or 0)
+        amount = qty * cost
+        spare_total += amount
+
+        spare_rows.append({
+            "no": idx,
+            "name": sp.name,
+            "price": f"{cost:.2f}",
+            "qty": qty,
+            "amount": f"{amount:.2f}",
+        })
+
+    labour_rows = []
+    labour_total = Decimal("0.00")
+
+    for idx, lb in enumerate(labours, start=len(spare_rows) + 1):
+        rate = Decimal(lb.rate or 0)
+        labour_total += rate
+
+        labour_rows.append({
+            "no": idx,
+            "description": lb.description or lb.name,
+            "price": f"{rate:.2f}",
+            "qty": 1,
+            "amount": f"{rate:.2f}",
+        })
+
+    subtotal = spare_total + labour_total
+    vat = subtotal * Decimal("0.15")
+    grand_total = subtotal + vat
+
+    logo_url = request.build_absolute_uri(static("image/logo-color.png"))
+
+    context = {
+        "quotation_number": f"SO-{str(jobcard.id)[:6].upper()}",
+        "date": date.today().strftime("%d/%m/%Y"),
+        "customer_name": jobcard.customer.name if jobcard.customer else "",
+        "customer_phone": jobcard.customer.phn_nmbr or "",
+        "vehicle_number": jobcard.vehicle_nmbr or "",
+        "vehicle_model": jobcard.make_and_model or "",
+        "spare_rows": spare_rows,
+        "labour_rows": labour_rows,
+        "spare_total": f"{spare_total:.2f}",
+        "labour_total": f"{labour_total:.2f}",
+        "subtotal": f"{subtotal:.2f}",
+        "vat": f"{vat:.2f}",
+        "grand_total": f"{grand_total:.2f}",
+        "logo_url": logo_url,
+    }
+
+    return render(request, "quotation/jobcard_quotation.html", context)
 
 class UnitListAPIView(generics.ListAPIView):
     queryset = Units.objects.all().order_by("name")
