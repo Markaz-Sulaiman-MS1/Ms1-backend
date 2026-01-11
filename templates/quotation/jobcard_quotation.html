@@ -16,10 +16,14 @@ body {
 <div style="width:595; padding:20; background-color:#fff;">
 
 <!-- TOP BAR -->
-<div style="width:595; height:12; background-color:#1a3b5c;"></div>
+<table width="595" cellspacing="0" cellpadding="0">
+<tr>
+<td height="12" bgcolor="#1a3b5c"></td>
+</tr>
+</table>
 
 <!-- HEADER -->
-<table width="595">
+<table width="595" cellspacing="0" cellpadding="0">
 <tr>
 <td width="300">
 <img src="{% static 'image/logo-color.png' %}" width="160">
@@ -32,7 +36,14 @@ CR: 7051695406
 </tr>
 </table>
 
-<hr>
+<!-- Divider (instead of <hr>) -->
+<table width="595" cellspacing="0" cellpadding="0">
+<tr>
+<td height="2" bgcolor="#1a3b5c"></td>
+</tr>
+</table>
+
+<br>
 
 <center>
 <b>SALES QUOTATION</b><br>
@@ -42,7 +53,7 @@ CR: 7051695406
 <br>
 
 <!-- CUSTOMER -->
-<table width="595">
+<table width="595" cellspacing="0" cellpadding="4">
 <tr><td width="130"><b>Customer Name</b></td><td>{{ customer_name }}</td></tr>
 <tr><td><b>Customer Number</b></td><td>{{ customer_phone }}</td></tr>
 <tr><td><b>Vehicle Number</b></td><td>{{ vehicle_number }}</td></tr>
@@ -104,7 +115,7 @@ CR: 7051695406
 <br>
 
 <!-- TOTALS -->
-<table width="595">
+<table width="595" cellspacing="0" cellpadding="4">
 <tr>
 <td>Sub Total</td><td align="right">{{ subtotal }}</td>
 </tr>
@@ -118,7 +129,7 @@ CR: 7051695406
 
 <br>
 
-<table width="595">
+<table width="595" cellspacing="0" cellpadding="6">
 <tr>
 <td bgcolor="#f2f2f2"><b>{{ amount_words }}</b></td>
 </tr>
