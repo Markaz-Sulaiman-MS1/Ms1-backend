@@ -1,255 +1,135 @@
+{% load static %}
 <!DOCTYPE html>
-<html lang="en">
-
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sale Quotation</title>
-    <style>
-        /* Minimal print rules only; layout/styles are applied inline for backend usage */
-        @page {
-            size: 595px 842px;
-            margin: 0;
-        }
+<meta charset="utf-8">
 
-        @media print {
-
-            html,
-            body {
-                background: #fff;
-            }
-        }
-    </style>
-    
+<style>
+@page { size: 595 842; margin: 0; }
+body { font-family: Arial, Helvetica, sans-serif; background: #fff; }
+</style>
 </head>
 
-<body
-    style="margin:0;background:#f5f5f5;font-family:Arial,Helvetica,sans-serif;-webkit-print-color-adjust:exact;print-color-adjust:exact;">
+<body>
 
+<div style="width:595; height:842; padding:20; background-color:#fff;">
 
+<!-- TOP BAR -->
+<div style="width:595; height:12; background-color:#1a3b5c;"></div>
 
+<!-- HEADER -->
+<table width="595">
+<tr>
+<td width="300">
+<img src="{% static 'image/logo-color.png' %}" width="160">
+</td>
+<td width="295" align="right">
+<b>MSI COLDCHAIN TECHNOLOGIES</b><br>
+إم إس ون لتقنيات سلسلة التبريد<br>
+CR: 7051695406
+</td>
+</tr>
+</table>
 
-    <div
-        style="width:595px;height:842px;margin:0px;padding:20px;box-sizing:border-box;background-color:#fff;position:relative;display:flex;flex-direction:column;overflow:hidden;box-shadow:none;">
-        <div
-            style="display:flex;flex-direction:column;width:100%;height:100%;transform-origin:top left;transition:transform 120ms ease-out;">
+<hr>
 
-            <!-- Top Border -->
-            <div style="position:absolute;top:0;left:0;right:0;height:12px;background-color:#1a3b5c;"></div>
+<center>
+<b>SALES QUOTATION</b><br>
+<font color="red">{{ quotation_number }}</font> &nbsp;&nbsp; DATE : {{ date }}
+</center>
 
-            <!-- Header -->
-            <div
-                style="display: flex; justify-content: space-between; align-items: center; margin-top: 0px; margin-bottom: 6px;">
-                <!-- Logo Section -->
-                <div style="display: flex; align-items: center;">
-                    <!-- Placeholder for Logo -->
-                    <div
-                        style="width: 120px; height: 60px; display: flex; align-items: center; justify-content: center; color: #999;">
-                          <img src="{{ logo_url }}" style="max-width:160px;width:100%;height:auto;">
+<br>
 
-                    </div>
-                </div>
+<!-- CUSTOMER -->
+<table width="595">
+<tr><td width="130"><b>Customer Name</b></td><td>{{ customer_name }}</td></tr>
+<tr><td><b>Customer Number</b></td><td>{{ customer_phone }}</td></tr>
+<tr><td><b>Vehicle Number</b></td><td>{{ vehicle_number }}</td></tr>
+<tr><td><b>Vehicle Model</b></td><td>{{ vehicle_model }}</td></tr>
+</table>
 
-                <!-- Company Info (Right) -->
-                <div style="text-align: right; color: #1a3b5c;">
-                    <div style="font-weight: bold; font-size: 12px;">MSI COLDCHAIN TECHNOLOGIES</div>
-                    <div style="font-weight: bold; font-size: 12px; direction: rtl;">إم إس ون لتقنيات سلسلة التبريد
-                    </div>
-                    <div style="font-size: 12px; margin-top: 5px; color: #333;">CR: 7051695406</div>
-                </div>
-            </div>
+<br>
 
-            <div style="border-bottom: 1px solid #1a3b5c; margin-bottom: 16px;"></div>
+<!-- ITEMS -->
+<table width="595" border="1" cellspacing="0" cellpadding="4">
+<tr bgcolor="#dbe4f1">
+<th width="40">No</th>
+<th width="255">Description</th>
+<th width="70">Price</th>
+<th width="50">Qty</th>
+<th width="70">Amount</th>
+</tr>
 
-            <!-- Title -->
-            <div style="text-align: center; margin-bottom: 12px; position: relative;">
-                <div style="font-size: 14px; font-weight: bold; margin-bottom: 12px;">SALES QUOTATION</div>
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <div style="color: red; font-weight: bold; font-size: 12px;">{{ quotation_number }}</div>
-                    <div style="font-size: 10px; font-weight: bold;">DATE : {{ date }}</div>
-                </div>
-            </div>
+<tr bgcolor="#f0f4f8">
+<td colspan="5"><b>A. SPARE PARTS</b></td>
+</tr>
 
-            <!-- Customer Info -->
-            <div style="margin-bottom: 6px; font-size: 10px; line-height: 1.6;">
-                <div style="display: flex; margin-bottom: 5px;">
-                    <div style="width: 130px; font-weight: bold;">Customer Name</div>
-                    <div style="font-weight: bold;">: {{ customer_name }}</div>
-                </div>
-                <div style="display: flex; margin-bottom: 5px;">
-                    <div style="width: 130px; font-weight: bold;">Customer Number</div>
-                    <div style="font-weight: bold;">: {{ customer_phone }}</div>
-                </div>
-                <div style="display: flex; margin-bottom: 5px;">
-                    <div style="width: 130px; font-weight: bold;">Vehicle Number</div>
-                    <div style="font-weight: bold;">: {{ vehicle_number }}</div>
-                </div>
-                <div style="display: flex; margin-bottom: 5px;">
-                    <div style="width: 130px; font-weight: bold;">Vehicle Model</div>
-                    <div style="font-weight: bold;">: {{ vehicle_model }}</div>
-                </div>
-            </div>
+{% for row in spare_rows %}
+<tr>
+<td align="center">{{ row.no }}</td>
+<td>{{ row.name }}</td>
+<td align="center">{{ row.price }}</td>
+<td align="center">{{ row.qty }}</td>
+<td align="right">{{ row.amount }}</td>
+</tr>
+{% endfor %}
 
-            
-            <div style="display:flex; flex-direction:row; align-items:flex-start; width:100%; gap: 12px;">
-                
-                 <!-- SPARES -->
-                <div style="flex:1; width:350px;">
-                    <table style="width:100%; border-collapse: collapse; font-size: 10px; table-layout: fixed;">
-                        <thead>
-                            <tr style="background-color: #dbe4f1;">
-                                <th style="padding: 8px; text-align: center; width: 40px;">NO.</th>
-                                <th style="padding: 8px; text-align: center;">DESCRIPTION</th>
-                                <th style="padding: 8px; text-align: center; width: 70px;">PRICE</th>
-                                <th style="padding: 8px; text-align: center; width: 50px;">QTY</th>
-                                <th style="padding: 8px; text-align: center; width: 70px;">AMOUNT</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr style="background-color: #f0f4f8;">
-                                <td colspan="5"
-                                    style="padding: 8px; font-weight: bold; border-bottom: 1px solid #1a3b5c; color: #1a3b5c;">
-                                    A. SPARE PARTS</td>
-                            </tr>
-                            {% for row in spare_rows %}
-                            <tr style="background-color: #f9f9f9;">
-                                <td style="padding: 8px; text-align: center; border-bottom: 1px solid #eee;">{{ row.no}}</td>
-                                <td
-                                    style="padding: 8px; text-align: left; border-bottom: 1px solid #eee; font-weight: bold;">
-                                    {{ row.name }}</td>
-                                <td style="padding: 8px; text-align: center; border-bottom: 1px solid #eee;">{{row.price }}</td>
-                                <td style="padding: 8px; text-align: center; border-bottom: 1px solid #eee;">{{ row.qty}}</td>
-                                <td
-                                    style="padding: 8px; text-align: center; border-bottom: 1px solid #eee; font-weight: bold;">
-                                    {{ row.amount }}</td>
-                            </tr>
-                            {% endfor %}
+<tr>
+<td colspan="4" align="right"><b>Total Spare Parts</b></td>
+<td align="right"><b>{{ spare_total }}</b></td>
+</tr>
 
-                            <tr>
-                                <td colspan="4"
-                                    style="padding: 8px; text-align: right; border-bottom: 1px solid #eee; font-weight: bold; color: #666;">
-                                    Total Spare Parts</td>
-                                <td
-                                    style="padding: 8px; text-align: center; border-bottom: 1px solid #eee; font-weight: bold; background-color: #f0f4f8;">
-                                    {{ spare_total }}</td>
-                            </tr>
+<tr bgcolor="#f0f4f8">
+<td colspan="5"><b>B. LABOUR CHARGES</b></td>
+</tr>
 
-                            <!-- Labour Charges -->
+{% for row in labour_rows %}
+<tr>
+<td align="center">{{ row.no }}</td>
+<td>{{ row.description }}</td>
+<td></td>
+<td></td>
+<td align="right">{{ row.amount }}</td>
+</tr>
+{% endfor %}
 
-                            <tr style="background-color: #f0f4f8;">
-                                <td colspan="5"
-                                    style="padding: 6px; font-weight: bold; border-bottom: 1px solid #1a3b5c; color: #1a3b5c;">
-                                    B. LABOUR CHARGES</td>
-                            </tr>
-                            {% for row in labour_rows %}
-                            <tr style="background-color: #f9f9f9; ">
-                                <td style="padding: 8px; text-align: center; border-bottom: 1px solid #eee;">{{ row.no}}</td>
-                                <td
-                                    style="padding: 6px; text-align: left; border-bottom: 1px solid #eee; font-weight: normal; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                                    {{ row.description }}</td>
-                                    <td
-                                    style="padding: 6px; text-align: left; border-bottom: 1px solid #eee; font-weight: normal; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                                    </td>
-                                    <td
-                                    style="padding: 6px; text-align: left; border-bottom: 1px solid #eee; font-weight: normal; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                                    </td>
-                                <td
-                                    style="padding: 6px; text-align: right; border-bottom: 1px solid #eee; font-weight: bold;">
-                                    {{ row.amount }}</td>
-                            </tr>
-                            {% endfor %}
-                            <tr>
-                                <td colspan="4"
-                                    style="padding: 6px; text-align: left; border-bottom: 1px solid #eee; font-weight: bold; color: #666;">
-                                    Total Labour Charges</td>
-                                <td
-                                    style="padding: 6px; text-align: right; border-bottom: 1px solid #eee; font-weight: bold; background-color: #f0f4f8;">
-                                    {{ labour_total }}</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
+<tr>
+<td colspan="4"><b>Total Labour</b></td>
+<td align="right"><b>{{ labour_total }}</b></td>
+</tr>
 
-                
-        
-            </div>
+</table>
 
-            <!-- Totals & Notes -->
-            <div style="display: flex; margin-top: 20px;">
-                <!-- Notes Area -->
-                <div style="flex: 1; padding-right: 20px;">
-                    <div style="font-size: 13px;"></div>
-                </div>
+<br>
 
-                <!-- Totals Area -->
-                <div style="display: flex; flex-direction: row; justify-content: space-between; width: 100%; font-size: 10px; align-items: center; ">
-                     <div
-                        style="display: flex; flex-direction: row; justify-content: space-between; align-items: center; gap: 6px;">
-                        <div style="font-weight: regular; font-size: 8px; color: #999;">Sub Total</div>
-                        <div style="font-weight: bold;">{{subtotal}}</div>
-                    </div>
-                    <div
-                        style="display: flex; flex-direction: row; justify-content: space-between; align-items: center; gap: 6px;">
-                        <div style="font-weight: regular; font-size: 8px; color: #999;">VAT</div>
-                        <div style="font-weight: bold;">15%</div>
-                    </div>
-                    <div
-                        style="display: flex; flex-direction: row; justify-content: space-between; align-items: center; gap: 6px;">
-                        <div style="font-weight: bold; text-align: center; font-size: 8px; color: #999;">GRAND TOTAL</div>
-                        <div style="font-weight: bold; font-size: 16px;">{{ grand_total }}</div>
-                    </div>
+<!-- TOTALS -->
+<table width="595">
+<tr>
+<td>Sub Total</td><td align="right">{{ subtotal }}</td>
+</tr>
+<tr>
+<td>VAT (15%)</td><td align="right">{{ vat }}</td>
+</tr>
+<tr>
+<td><b>GRAND TOTAL</b></td><td align="right"><b>{{ grand_total }}</b></td>
+</tr>
+</table>
 
-                </div>
-            </div>
+<br>
 
-            <!-- Grand Total & Amount in Words -->
-            <div
-                style="margin-top: 10px; background-color: #f2f2f2; padding: 10px 10px; display: flex; align-items: center; justify-content: space-between; font-size: 12px; font-weight: bold;">
-                <div style="display: flex; align-items: center;">
-                    <span style="font-size: 10px;">{{ amount_words }}</span>
-                </div>
+<table width="595">
+<tr>
+<td bgcolor="#f2f2f2"><b>{{ amount_words }}</b></td>
+</tr>
+</table>
 
-            </div>
+<br><br>
 
-            <!-- Spacer to push footer to bottom -->
-            <div style="flex-grow: 1;"></div>
+<center>
++966 570309983 &nbsp; | &nbsp; muhammedsaleef@ms1coldchain.com
+</center>
 
-            <!-- Footer -->
-            <div style="margin-top:40px;text-align:center;color:#666;font-size:10px;">
-                <div style="display:flex;justify-content:center;gap:40px;margin-bottom:10px;">
-                    <div style="display:flex;align-items:center;gap:5px;">
-                        <span
-                            style="display:inline-block;width:8px;height:8px;background-color:#444;border-radius:50%;"></span>
-                        <span>+966 570309983</span>
-                    </div>
-                    <div style="display:flex;align-items:center;gap:5px;">
-                        <span
-                            style="display:inline-block;width:8px;height:8px;background-color:#444;border-radius:50%;"></span>
-                        <span>muhammedsaleef@ms1coldchain.com</span>
-                    </div>
-                </div>
-
-                <div style="border-top:1px solid #1a3b5c;margin-bottom:10px;"></div>
-
-                <div style="display:flex;justify-content:space-between;color:#1a3b5c;font-size:8px;">
-                    <div style="text-align:center;width:50%;">
-                        <div style="font-weight:bold;">JEDDAH</div>
-                        <div>Al Jawharah dist, Cars Haraj - Opposite the Jowhara Petrol Pump Station</div>
-                        <div>حراج السيارات مقابل محطة الجوهرة</div>
-                    </div>
-
-                    <div style="border-left:1px solid #ccc;"></div>
-
-                    <div style="text-align:center;width:50%;">
-                        <div style="font-weight:bold;">RIYADH</div>
-                        <div>Al Aziziyah dist , Luluo Industrial Area, Workshop Number 6 .5</div>
-                        <div>منطقة العزيزية الصناعية ورشة رقم ٥.٦</div>
-                    </div>
-                </div>
-                
-            </div>
-
-        </div> <!-- close sheet -->
-    </div> <!-- close page -->
+</div>
 
 </body>
+</html>
