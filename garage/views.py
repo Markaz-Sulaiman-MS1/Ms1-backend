@@ -1743,8 +1743,33 @@ def jobcard_quotation_pdf(request, jobcard_id):
 
     return response
 
-
-
 class UnitListAPIView(generics.ListAPIView):
     queryset = Units.objects.all().order_by("name")
     serializer_class = UnitSerializer
+
+
+
+class DeleteJobCard(generics.DestroyAPIView):
+    permission_classes = [IsAuthenticated]
+    queryset = JobCard.objects.all()
+    serializer_class = AddJobCardSerializer
+    lookup_field = "id"
+
+    def destroy(self, request, *args, **kwargs):
+        job_card = self.get_object()
+
+ 
+        if job_card.status != "Draft":
+            return Response(
+                {
+                    "error": "Only Job Cards in Draft status can be deleted."
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+
+        job_card.delete()
+        return Response(
+            {"message": "Job Card deleted successfully."},
+            status=status.HTTP_204_NO_CONTENT
+        )
