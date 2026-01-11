@@ -36,11 +36,9 @@ CR: 7051695406
 </tr>
 </table>
 
-<!-- Divider (instead of <hr>) -->
+<!-- Divider -->
 <table width="595" cellspacing="0" cellpadding="0">
-<tr>
-<td height="2" bgcolor="#1a3b5c"></td>
-</tr>
+<tr><td height="2" bgcolor="#1a3b5c"></td></tr>
 </table>
 
 <br>
@@ -72,8 +70,13 @@ CR: 7051695406
 <th width="70">Amount</th>
 </tr>
 
+<!-- Spare header -->
 <tr bgcolor="#f0f4f8">
-<td width="595" colspan="5"><b>A. SPARE PARTS</b></td>
+<td width="40"></td>
+<td width="255"><b>A. SPARE PARTS</b></td>
+<td width="70"></td>
+<td width="50"></td>
+<td width="70"></td>
 </tr>
 
 {% for row in spare_rows %}
@@ -91,8 +94,13 @@ CR: 7051695406
 <td align="right"><b>{{ spare_total }}</b></td>
 </tr>
 
+<!-- Labour header -->
 <tr bgcolor="#f0f4f8">
-<td width="595" colspan="5"><b>B. LABOUR CHARGES</b></td>
+<td width="40"></td>
+<td width="255"><b>B. LABOUR CHARGES</b></td>
+<td width="70"></td>
+<td width="50"></td>
+<td width="70"></td>
 </tr>
 
 {% for row in labour_rows %}
