@@ -1732,9 +1732,8 @@ def jobcard_quotation_pdf(request, jobcard_id):
         "quotation/jobcard_quotation.html",
         context
     )
-    print("html_string",html_string)
 
-    pdf = HTML(string=html_string).write_pdf()
+    pdf = HTML(string=html_string,base_url=request.build_absolute_uri("/")).write_pdf()
 
     response = HttpResponse(pdf, content_type="application/pdf")
     response["Content-Disposition"] = (
