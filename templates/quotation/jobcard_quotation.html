@@ -3,6 +3,7 @@
 <html>
 <head>
 <meta charset="utf-8">
+
 <style>
 body {
     font-family: Arial, Helvetica, sans-serif;
@@ -10,155 +11,188 @@ body {
     font-size: 10px;
 }
 
-.header {
+.page {
     width: 595;
+    padding: 20;
+}
+
+.topbar {
+    width: 595;
+    height: 12;
     background-color: #1a3b5c;
-    color: white;
-    padding: 12;
+}
+
+.header-table {
+    width: 595;
+}
+
+.company {
+    text-align: right;
+    color: #1a3b5c;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.hr {
+    width: 595;
+    height: 1;
+    background-color: #1a3b5c;
+    margin-top: 6;
+    margin-bottom: 6;
 }
 
 .title {
     text-align: center;
     font-size: 14px;
     font-weight: bold;
-    margin-top: 10;
-    margin-bottom: 10;
+    margin-bottom: 8;
 }
 
-.box {
-    border: 1 solid #ccc;
-    padding: 6;
-    margin-top: 6;
+.info-table {
+    width: 595;
 }
 
-table {
+.items {
     width: 595;
     border-collapse: collapse;
 }
 
-th {
-    background-color: #1a3b5c;
-    color: white;
-    padding: 6;
-    border: 1 solid #1a3b5c;
-    text-align: left;
-}
-
-td {
-    padding: 6;
+.items th {
+    background-color: #dbe4f1;
     border: 1 solid #ccc;
+    padding: 6;
+    text-align: center;
 }
 
-.right { text-align: right; }
-.center { text-align: center; }
-
-.total-table {
-    width: 250;
-    float: right;
-    margin-top: 10;
+.items td {
+    border: 1 solid #eee;
+    padding: 6;
 }
 
-.total-table td {
-    border: none;
-    padding: 4;
+.section {
+    background-color: #f0f4f8;
+    font-weight: bold;
+    color: #1a3b5c;
+}
+
+.totals {
+    width: 595;
+    margin-top: 12;
+}
+
+.amount-box {
+    width: 595;
+    background-color: #f2f2f2;
+    padding: 8;
+    font-weight: bold;
 }
 </style>
 </head>
 
 <body>
 
-<!-- HEADER -->
-<table class="header">
+<div class="page">
+
+<div class="topbar"></div>
+
+<table class="header-table">
 <tr>
 <td width="300">
-<img src="{% static 'image/logo-color.png' %}" width="140">
+<img src="{% static 'image/logo-color.png' %}" width="160">
 </td>
-<td width="295" align="right">
-<b>MSI COLDCHAIN TECHNOLOGIES</b><br>
+<td width="295" class="company">
+MSI COLDCHAIN TECHNOLOGIES<br>
 إم إس ون لتقنيات سلسلة التبريد<br>
 CR: 7051695406
 </td>
 </tr>
 </table>
 
+<div class="hr"></div>
+
 <div class="title">
 SALES QUOTATION
 </div>
 
-<table width="595">
+<table class="info-table">
 <tr>
-<td><b>Quotation No:</b> {{ quotation_number }}</td>
-<td align="right"><b>Date:</b> {{ date }}</td>
+<td><font color="red"><b>{{ quotation_number }}</b></font></td>
+<td align="right"><b>DATE :</b> {{ date }}</td>
 </tr>
 </table>
-
-<div class="box">
-<table width="595">
-<tr>
-<td width="200"><b>Customer Name</b><br>{{ customer_name }}</td>
-<td width="200"><b>Phone</b><br>{{ customer_phone }}</td>
-<td width="195"><b>Vehicle</b><br>{{ vehicle_number }} – {{ vehicle_model }}</td>
-</tr>
-</table>
-</div>
 
 <br>
 
-<!-- ITEMS -->
-<table>
+<table class="info-table">
+<tr><td width="130"><b>Customer Name</b></td><td>{{ customer_name }}</td></tr>
+<tr><td><b>Customer Number</b></td><td>{{ customer_phone }}</td></tr>
+<tr><td><b>Vehicle Number</b></td><td>{{ vehicle_number }}</td></tr>
+<tr><td><b>Vehicle Model</b></td><td>{{ vehicle_model }}</td></tr>
+</table>
+
+<br>
+
+<table class="items">
 <tr>
-<th width="40">No</th>
-<th width="255">Description</th>
-<th width="70">Price</th>
-<th width="60">Qty</th>
-<th width="70">Amount</th>
+<th width="40">NO</th>
+<th width="255">DESCRIPTION</th>
+<th width="70">PRICE</th>
+<th width="50">QTY</th>
+<th width="70">AMOUNT</th>
 </tr>
 
-<tr>
-<td></td>
-<td><b>Spare Parts</b></td>
-<td></td><td></td><td></td>
+<tr class="section">
+<td></td><td>A. SPARE PARTS</td><td></td><td></td><td></td>
 </tr>
 
 {% for row in spare_rows %}
 <tr>
-<td class="center">{{ row.no }}</td>
-<td>{{ row.name }}</td>
-<td class="right">{{ row.price }}</td>
-<td class="center">{{ row.qty }}</td>
-<td class="right">{{ row.amount }}</td>
+<td align="center">{{ row.no }}</td>
+<td><b>{{ row.name }}</b></td>
+<td align="center">{{ row.price }}</td>
+<td align="center">{{ row.qty }}</td>
+<td align="right"><b>{{ row.amount }}</b></td>
 </tr>
 {% endfor %}
 
 <tr>
-<td></td>
-<td><b>Labour Charges</b></td>
-<td></td><td></td><td></td>
+<td></td><td colspan="3" align="right"><b>Total Spare Parts</b></td><td align="right"><b>{{ spare_total }}</b></td>
+</tr>
+
+<tr class="section">
+<td></td><td>B. LABOUR CHARGES</td><td></td><td></td><td></td>
 </tr>
 
 {% for row in labour_rows %}
 <tr>
-<td class="center">{{ row.no }}</td>
+<td align="center">{{ row.no }}</td>
 <td>{{ row.description }}</td>
-<td></td>
-<td></td>
-<td class="right">{{ row.amount }}</td>
+<td></td><td></td>
+<td align="right"><b>{{ row.amount }}</b></td>
 </tr>
 {% endfor %}
 
+<tr>
+<td></td><td colspan="3"><b>Total Labour</b></td><td align="right"><b>{{ labour_total }}</b></td>
+</tr>
+
 </table>
 
-<!-- TOTALS -->
-<table class="total-table">
-<tr><td>Subtotal</td><td class="right">{{ subtotal }}</td></tr>
-<tr><td>VAT (15%)</td><td class="right">{{ vat }}</td></tr>
-<tr><td><b>Grand Total</b></td><td class="right"><b>{{ grand_total }}</b></td></tr>
+<table class="totals">
+<tr>
+<td align="right"><b>Sub Total</b></td><td align="right">{{ subtotal }}</td>
+</tr>
+<tr>
+<td align="right"><b>VAT (15%)</b></td><td align="right">{{ vat }}</td>
+</tr>
+<tr>
+<td align="right"><b>GRAND TOTAL</b></td><td align="right"><b>{{ grand_total }}</b></td>
+</tr>
 </table>
 
-<br><br><br>
+<br>
 
-<div class="box">
-<b>Amount in Words</b><br>
+<div class="amount-box">
 {{ amount_words }}
 </div>
 
@@ -167,6 +201,8 @@ SALES QUOTATION
 <center>
 +966 570309983 &nbsp; | &nbsp; muhammedsaleef@ms1coldchain.com
 </center>
+
+</div>
 
 </body>
 </html>
