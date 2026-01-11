@@ -748,7 +748,7 @@ class VendorSerializer(serializers.ModelSerializer):
     account =  AccountSerializer(read_only=True)
     class Meta:
         model=Vendor
-        fields=["name","description","account","address"]
+        fields=["name","description","account","address","id"]
 
 
 
