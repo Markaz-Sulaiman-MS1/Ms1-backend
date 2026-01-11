@@ -1320,9 +1320,9 @@ class AddPurchaseAPIView(generics.CreateAPIView):
 
 class ListPurchase(APIView):
     def get(self, request):
-        branch_id =  getattr(self.request.user, 'branch_id', None)
-        account_id = getattr(self.request.user, 'account_id', None) 
-        status_filter = request.query_params.get("status", None)
+        branch_id =  getattr(self.request.user, 'branch_id')
+        account_id = getattr(self.request.user, 'account_id') 
+        status_filter = request.query_params.get("status")
 
         if status_filter and account_id :
             purchases = Purchase.objects.filter(purchase_type=status_filter,is_deleted = False,account_id=account_id)
