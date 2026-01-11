@@ -5,101 +5,40 @@
 <meta charset="utf-8">
 
 <style>
-body {
-    font-family: Arial, Helvetica, sans-serif;
-    background: #ffffff;
-    font-size: 10px;
-}
+body { font-family: Arial, Helvetica, sans-serif; font-size: 10px; background:#fff; }
 
-.page {
-    width: 595;
-    padding: 20;
-}
+.page { width:595; padding:20; }
 
-.topbar {
-    width: 595;
-    height: 12;
-    background-color: #1a3b5c;
-}
+.topbar { width:595; height:12; background:#1a3b5c; }
 
-.header-table {
-    width: 595;
-}
+.header { width:595; }
 
-.company {
-    text-align: right;
-    color: #1a3b5c;
-    font-size: 12px;
-    font-weight: bold;
-}
+.company { text-align:right; font-size:12px; font-weight:bold; color:#1a3b5c; }
 
-.hr {
-    width: 595;
-    height: 1;
-    background-color: #1a3b5c;
-    margin-top: 6;
-    margin-bottom: 6;
-}
+.line { width:595; height:1; background:#1a3b5c; margin-top:6; margin-bottom:6; }
 
-.title {
-    text-align: center;
-    font-size: 14px;
-    font-weight: bold;
-    margin-bottom: 8;
-}
+.title { text-align:center; font-size:14px; font-weight:bold; }
 
-.info-table {
-    width: 595;
-}
+.table { width:595; border-collapse:collapse; }
 
-.items {
-    width: 595;
-    border-collapse: collapse;
-}
+.table th { background:#dbe4f1; border:1 solid #ccc; padding:6; text-align:center; }
 
-.items th {
-    background-color: #dbe4f1;
-    border: 1 solid #ccc;
-    padding: 6;
-    text-align: center;
-}
+.table td { border:1 solid #eee; padding:6; }
 
-.items td {
-    border: 1 solid #eee;
-    padding: 6;
-}
+.section { background:#f0f4f8; font-weight:bold; color:#1a3b5c; }
 
-.section {
-    background-color: #f0f4f8;
-    font-weight: bold;
-    color: #1a3b5c;
-}
-
-.totals {
-    width: 595;
-    margin-top: 12;
-}
-
-.amount-box {
-    width: 595;
-    background-color: #f2f2f2;
-    padding: 8;
-    font-weight: bold;
-}
+.amount { background:#f2f2f2; padding:8; font-weight:bold; }
 </style>
 </head>
 
 <body>
-
 <div class="page">
 
 <div class="topbar"></div>
 
-<table class="header-table">
+<table class="header">
 <tr>
-<td width="300">
-
-</td>
+<td width="300"><img src="{% static 'image/logo-color.png' %}" width="160"></td>
 <td width="295" class="company">
 MSI COLDCHAIN TECHNOLOGIES<br>
 إم إس ون لتقنيات سلسلة التبريد<br>
@@ -108,22 +47,20 @@ CR: 7051695406
 </tr>
 </table>
 
-<div class="hr"></div>
+<div class="line"></div>
 
-<div class="title">
-SALES QUOTATION
-</div>
+<div class="title">SALES QUOTATION</div>
 
-<table class="info-table">
+<table class="table">
 <tr>
 <td><font color="red"><b>{{ quotation_number }}</b></font></td>
-<td align="right"><b>DATE :</b> {{ date }}</td>
+<td align="right"><b>Date:</b> {{ date }}</td>
 </tr>
 </table>
 
 <br>
 
-<table class="info-table">
+<table class="table">
 <tr><td width="130"><b>Customer Name</b></td><td>{{ customer_name }}</td></tr>
 <tr><td><b>Customer Number</b></td><td>{{ customer_phone }}</td></tr>
 <tr><td><b>Vehicle Number</b></td><td>{{ vehicle_number }}</td></tr>
@@ -132,7 +69,7 @@ SALES QUOTATION
 
 <br>
 
-<table class="items">
+<table class="table">
 <tr>
 <th width="40">NO</th>
 <th width="255">DESCRIPTION</th>
@@ -156,7 +93,8 @@ SALES QUOTATION
 {% endfor %}
 
 <tr>
-<td></td><td colspan="3" align="right"><b>Total Spare Parts</b></td><td align="right"><b>{{ spare_total }}</b></td>
+<td></td><td></td><td></td><td align="right"><b>Total</b></td>
+<td align="right"><b>{{ spare_total }}</b></td>
 </tr>
 
 <tr class="section">
@@ -173,36 +111,28 @@ SALES QUOTATION
 {% endfor %}
 
 <tr>
-<td></td><td colspan="3"><b>Total Labour</b></td><td align="right"><b>{{ labour_total }}</b></td>
+<td></td><td></td><td></td><td align="right"><b>Total</b></td>
+<td align="right"><b>{{ labour_total }}</b></td>
 </tr>
 
-</table>
-
-<table class="totals">
-<tr>
-<td align="right"><b>Sub Total</b></td><td align="right">{{ subtotal }}</td>
-</tr>
-<tr>
-<td align="right"><b>VAT (15%)</b></td><td align="right">{{ vat }}</td>
-</tr>
-<tr>
-<td align="right"><b>GRAND TOTAL</b></td><td align="right"><b>{{ grand_total }}</b></td>
-</tr>
 </table>
 
 <br>
 
-<div class="amount-box">
-{{ amount_words }}
-</div>
+<table class="table">
+<tr><td align="right"><b>Sub Total</b></td><td align="right">{{ subtotal }}</td></tr>
+<tr><td align="right"><b>VAT (15%)</b></td><td align="right">{{ vat }}</td></tr>
+<tr><td align="right"><b>GRAND TOTAL</b></td><td align="right"><b>{{ grand_total }}</b></td></tr>
+</table>
+
+<br>
+
+<div class="amount">{{ amount_words }}</div>
 
 <br><br>
 
-<center>
-+966 570309983 &nbsp; | &nbsp; muhammedsaleef@ms1coldchain.com
-</center>
+<center>+966 570309983 &nbsp; | &nbsp; muhammedsaleef@ms1coldchain.com</center>
 
 </div>
-
 </body>
 </html>
