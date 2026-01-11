@@ -6,27 +6,72 @@
 <style>
 body {
     font-family: Arial, Helvetica, sans-serif;
-    background: #fff;
+    background: #ffffff;
+    font-size: 10px;
+}
+
+.header {
+    width: 595;
+    background-color: #1a3b5c;
+    color: white;
+    padding: 12;
+}
+
+.title {
+    text-align: center;
+    font-size: 14px;
+    font-weight: bold;
+    margin-top: 10;
+    margin-bottom: 10;
+}
+
+.box {
+    border: 1 solid #ccc;
+    padding: 6;
+    margin-top: 6;
+}
+
+table {
+    width: 595;
+    border-collapse: collapse;
+}
+
+th {
+    background-color: #1a3b5c;
+    color: white;
+    padding: 6;
+    border: 1 solid #1a3b5c;
+    text-align: left;
+}
+
+td {
+    padding: 6;
+    border: 1 solid #ccc;
+}
+
+.right { text-align: right; }
+.center { text-align: center; }
+
+.total-table {
+    width: 250;
+    float: right;
+    margin-top: 10;
+}
+
+.total-table td {
+    border: none;
+    padding: 4;
 }
 </style>
 </head>
 
 <body>
 
-<div style="width:595; padding:20; background-color:#fff;">
-
-<!-- TOP BAR -->
-<table width="595" cellspacing="0" cellpadding="0">
-<tr>
-<td height="12" bgcolor="#1a3b5c"></td>
-</tr>
-</table>
-
 <!-- HEADER -->
-<table width="595" cellspacing="0" cellpadding="0">
+<table class="header">
 <tr>
 <td width="300">
-<img src="{% static 'image/logo-color.png' %}" width="160">
+<img src="{% static 'image/logo-color.png' %}" width="140">
 </td>
 <td width="295" align="right">
 <b>MSI COLDCHAIN TECHNOLOGIES</b><br>
@@ -36,120 +81,92 @@ CR: 7051695406
 </tr>
 </table>
 
-<!-- Divider -->
-<table width="595" cellspacing="0" cellpadding="0">
-<tr><td height="2" bgcolor="#1a3b5c"></td></tr>
+<div class="title">
+SALES QUOTATION
+</div>
+
+<table width="595">
+<tr>
+<td><b>Quotation No:</b> {{ quotation_number }}</td>
+<td align="right"><b>Date:</b> {{ date }}</td>
+</tr>
 </table>
 
-<br>
-
-<center>
-<b>SALES QUOTATION</b><br>
-<font color="red">{{ quotation_number }}</font> &nbsp;&nbsp; DATE : {{ date }}
-</center>
-
-<br>
-
-<!-- CUSTOMER -->
-<table width="595" cellspacing="0" cellpadding="4">
-<tr><td width="130"><b>Customer Name</b></td><td>{{ customer_name }}</td></tr>
-<tr><td><b>Customer Number</b></td><td>{{ customer_phone }}</td></tr>
-<tr><td><b>Vehicle Number</b></td><td>{{ vehicle_number }}</td></tr>
-<tr><td><b>Vehicle Model</b></td><td>{{ vehicle_model }}</td></tr>
+<div class="box">
+<table width="595">
+<tr>
+<td width="200"><b>Customer Name</b><br>{{ customer_name }}</td>
+<td width="200"><b>Phone</b><br>{{ customer_phone }}</td>
+<td width="195"><b>Vehicle</b><br>{{ vehicle_number }} – {{ vehicle_model }}</td>
+</tr>
 </table>
+</div>
 
 <br>
 
 <!-- ITEMS -->
-<table width="595" border="1" cellspacing="0" cellpadding="4">
-<tr bgcolor="#dbe4f1">
+<table>
+<tr>
 <th width="40">No</th>
 <th width="255">Description</th>
 <th width="70">Price</th>
-<th width="50">Qty</th>
+<th width="60">Qty</th>
 <th width="70">Amount</th>
 </tr>
 
-<!-- Spare header -->
-<tr bgcolor="#f0f4f8">
-<td width="40"></td>
-<td width="255"><b>A. SPARE PARTS</b></td>
-<td width="70"></td>
-<td width="50"></td>
-<td width="70"></td>
+<tr>
+<td></td>
+<td><b>Spare Parts</b></td>
+<td></td><td></td><td></td>
 </tr>
 
 {% for row in spare_rows %}
 <tr>
-<td align="center">{{ row.no }}</td>
+<td class="center">{{ row.no }}</td>
 <td>{{ row.name }}</td>
-<td align="center">{{ row.price }}</td>
-<td align="center">{{ row.qty }}</td>
-<td align="right">{{ row.amount }}</td>
+<td class="right">{{ row.price }}</td>
+<td class="center">{{ row.qty }}</td>
+<td class="right">{{ row.amount }}</td>
 </tr>
 {% endfor %}
 
 <tr>
-<td colspan="4" align="right"><b>Total Spare Parts</b></td>
-<td align="right"><b>{{ spare_total }}</b></td>
-</tr>
-
-<!-- Labour header -->
-<tr bgcolor="#f0f4f8">
-<td width="40"></td>
-<td width="255"><b>B. LABOUR CHARGES</b></td>
-<td width="70"></td>
-<td width="50"></td>
-<td width="70"></td>
+<td></td>
+<td><b>Labour Charges</b></td>
+<td></td><td></td><td></td>
 </tr>
 
 {% for row in labour_rows %}
 <tr>
-<td align="center">{{ row.no }}</td>
+<td class="center">{{ row.no }}</td>
 <td>{{ row.description }}</td>
 <td></td>
 <td></td>
-<td align="right">{{ row.amount }}</td>
+<td class="right">{{ row.amount }}</td>
 </tr>
 {% endfor %}
 
-<tr>
-<td colspan="4"><b>Total Labour</b></td>
-<td align="right"><b>{{ labour_total }}</b></td>
-</tr>
-
 </table>
-
-<br>
 
 <!-- TOTALS -->
-<table width="595" cellspacing="0" cellpadding="4">
-<tr>
-<td>Sub Total</td><td align="right">{{ subtotal }}</td>
-</tr>
-<tr>
-<td>VAT (15%)</td><td align="right">{{ vat }}</td>
-</tr>
-<tr>
-<td><b>GRAND TOTAL</b></td><td align="right"><b>{{ grand_total }}</b></td>
-</tr>
+<table class="total-table">
+<tr><td>Subtotal</td><td class="right">{{ subtotal }}</td></tr>
+<tr><td>VAT (15%)</td><td class="right">{{ vat }}</td></tr>
+<tr><td><b>Grand Total</b></td><td class="right"><b>{{ grand_total }}</b></td></tr>
 </table>
 
-<br>
+<br><br><br>
 
-<table width="595" cellspacing="0" cellpadding="6">
-<tr>
-<td bgcolor="#f2f2f2"><b>{{ amount_words }}</b></td>
-</tr>
-</table>
+<div class="box">
+<b>Amount in Words</b><br>
+{{ amount_words }}
+</div>
 
 <br><br>
 
 <center>
 +966 570309983 &nbsp; | &nbsp; muhammedsaleef@ms1coldchain.com
 </center>
-
-</div>
 
 </body>
 </html>
