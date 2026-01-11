@@ -1726,7 +1726,7 @@ def jobcard_quotation_pdf(request, jobcard_id):
         # Amount in words (simple)
         "amount_words": amount_to_words(grand_total),
     }
-    context["logo_url"] = f"file:///{logo_path.replace(os.sep, '/')}"
+    context["logo_url"] = request.build_absolute_uri(static("image/logo-color.png"))
 
     html_string = render_to_string(
         "quotation/jobcard_quotation.html",
