@@ -1646,6 +1646,102 @@ def amount_to_words(amount):
     return words + " ONLY"
 
 
+def jobcard_quotation_pdf(request, jobcard_id):
+    jobcard = get_object_or_404(JobCard, id=jobcard_id)
+
+    spare_parts = SpareParts.objects.filter(job_card=jobcard)
+    labours = jobcard.labour.all()
+
+  
+    spare_rows = []
+    spare_total = Decimal("0.00")
+
+    for idx, sp in enumerate(spare_parts, start=1):
+        qty = sp.quantity or 1
+        cost = Decimal(sp.cost or 0)
+        amount = qty * cost
+
+        spare_total += amount
+
+        spare_rows.append({
+            "no": idx,
+            "name": sp.name,
+            "price": f"{cost:.2f}",
+            "qty": qty,
+            "amount": f"{amount:.2f}",
+        })
+
+    labour_rows = []
+    labour_total = Decimal("0.00")
+
+    for idx, lb in enumerate(labours, start=len(spare_rows) + 1):
+        rate = Decimal(lb.rate or 0)
+        labour_total += rate
+
+        labour_rows.append({
+            "no": idx,
+            "description": lb.description or lb.name,
+            "price": f"{rate:.2f}",
+            "qty": 1,
+            "amount": f"{rate:.2f}",
+        })
+
+    subtotal = spare_total + labour_total
+    discount = Decimal("0.00")
+    vat = subtotal * Decimal("0.15")
+    grand_total = subtotal + vat - discount
+    
+
+    
+    logo_url = "file://" + os.path.join(settings.STATIC_ROOT, "image/logo-color.png")
+ 
+    context = {
+        # Header
+        "quotation_number": f"SO-{str(jobcard.id)[:6].upper()}",
+        "date": date.today().strftime("%d/%m/%Y"),
+
+        # Customer & Vehicle
+        "customer_name": jobcard.customer.name if jobcard.customer else "",
+        "customer_phone": jobcard.customer.phn_nmbr or "",
+        "vehicle_number": jobcard.vehicle_nmbr or "",
+        "vehicle_model": jobcard.make_and_model or "",
+
+        # Tables
+        "spare_rows": spare_rows,
+        "labour_rows": labour_rows,
+
+        # Totals
+        "spare_total": f"{spare_total:.2f}",
+        "labour_total": f"{labour_total:.2f}",
+        "subtotal": f"{subtotal:.2f}",
+        "discount": f"{discount:.2f}",
+        "vat": f"{vat:.2f}",
+        "grand_total": f"{grand_total:.2f}",
+
+        # Amount in words (simple)
+        "amount_words": amount_to_words(grand_total),
+        "logo_url": logo_url,
+    }
+
+
+    html_string = render_to_string(
+        "quotation/jobcard_quotation.html",
+        context
+    )
+
+    pdf = HTML(string=html_string,base_url=request.build_absolute_uri("/")).write_pdf()
+
+    response = HttpResponse(pdf, content_type="application/pdf")
+    response["Content-Disposition"] = (
+        f'attachment; filename="Quotation_{jobcard.id}.pdf"')
+
+    return response
+
+
+
+
+
+
 # def jobcard_quotation_pdf(request, jobcard_id):
 #     jobcard = get_object_or_404(JobCard, id=jobcard_id)
 
@@ -1693,7 +1789,6 @@ def amount_to_words(amount):
     
 
     
-#     logo_url = "file://" + os.path.join(settings.STATIC_ROOT, "image/logo-color.png")
  
 #     context = {
 #         # Header
@@ -1720,98 +1815,22 @@ def amount_to_words(amount):
 
 #         # Amount in words (simple)
 #         "amount_words": amount_to_words(grand_total),
-#         "logo_url": logo_url,
 #     }
 
+#     html = render_to_string("quotation/jobcard_quotation.html", context)
 
-#     html_string = render_to_string(
-#         "quotation/jobcard_quotation.html",
-#         context
-#     )
+#     result = BytesIO()
+#     pdf = pisa.CreatePDF(html, dest=result)
 
-#     pdf = HTML(string=html_string,base_url=request.build_absolute_uri("/")).write_pdf()
+#     if pdf.err:
+#         return HttpResponse("PDF ERROR — check template", status=500)   
 
-#     response = HttpResponse(pdf, content_type="application/pdf")
-#     response["Content-Disposition"] = (
-#         f'attachment; filename="Quotation_{jobcard.id}.pdf"')
+#     response = HttpResponse(content_type="application/pdf")
+#     response["Content-Disposition"] = f'attachment; filename="Quotation_{jobcard.id}.pdf"'
+
+#     pisa.CreatePDF(html, dest=response)
 
 #     return response
-
-
-
-
-
-def jobcard_quotation_pdf(request, jobcard_id):
-    jobcard = get_object_or_404(JobCard, id=jobcard_id)
-
-    spare_parts = SpareParts.objects.filter(job_card=jobcard)
-    labours = jobcard.labour.all()
-
-    spare_rows = []
-    spare_total = Decimal("0.00")
-
-    for idx, sp in enumerate(spare_parts, start=1):
-        qty = sp.quantity or 1
-        cost = Decimal(sp.cost or 0)
-        amount = qty * cost
-        spare_total += amount
-
-        spare_rows.append({
-            "no": idx,
-            "name": sp.name,
-            "price": f"{cost:.2f}",
-            "qty": qty,
-            "amount": f"{amount:.2f}",
-        })
-
-    labour_rows = []
-    labour_total = Decimal("0.00")
-
-    for idx, lb in enumerate(labours, start=len(spare_rows) + 1):
-        rate = Decimal(lb.rate or 0)
-        labour_total += rate
-
-        labour_rows.append({
-            "no": idx,
-            "description": lb.description or lb.name,
-            "price": f"{rate:.2f}",
-            "qty": 1,
-            "amount": f"{rate:.2f}",
-        })
-
-    subtotal = spare_total + labour_total
-    vat = subtotal * Decimal("0.15")
-    grand_total = subtotal + vat
-
-    context = {
-        "quotation_number": f"SO-{str(jobcard.id)[:6].upper()}",
-        "date": date.today().strftime("%d/%m/%Y"),
-        "customer_name": jobcard.customer.name if jobcard.customer else "",
-        "customer_phone": jobcard.customer.phn_nmbr or "",
-        "vehicle_number": jobcard.vehicle_nmbr or "",
-        "vehicle_model": jobcard.make_and_model or "",
-        "spare_rows": spare_rows,
-        "labour_rows": labour_rows,
-        "subtotal": f"{subtotal:.2f}",
-        "vat": f"{vat:.2f}",
-        "grand_total": f"{grand_total:.2f}",
-        "amount_words": amount_to_words(grand_total),
-    }
-
-    html = render_to_string("quotation/jobcard_quotation.html", context)
-
-    result = BytesIO()
-    pdf = pisa.CreatePDF(html, dest=result)
-
-    if pdf.err:
-        return HttpResponse("PDF ERROR — check template", status=500)   
-
-    response = HttpResponse(content_type="application/pdf")
-    response["Content-Disposition"] = f'attachment; filename="Quotation_{jobcard.id}.pdf"'
-
-    pisa.CreatePDF(html, dest=response)
-
-    return response
 
 
 def jobcard_quotation_preview(request, jobcard_id):
