@@ -1548,16 +1548,16 @@ class UpdatePurchaseStatus(APIView):
                  )
 
 
-class CreateBatch(APIView):
-    def post(self, request):
-        serializer = BatchSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(
-                {"message": "Batch created successfully", "data": serializer.data},
-                status=status.HTTP_201_CREATED 
-            )
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+# class CreateBatch(APIView):
+#     def post(self, request):
+#         serializer = BatchSerializer(data=request.data)
+#         if serializer.is_valid():
+#             serializer.save()
+#             return Response(
+#                 {"message": "Batch created successfully", "data": serializer.data},
+#                 status=status.HTTP_201_CREATED 
+#             )
+#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 
@@ -2180,5 +2180,129 @@ class CompletePurchase(APIView):
             },
             status=status.HTTP_200_OK
         )
+
+
+class ProductBatchDetails(APIView):
+    """
+    API to get product batch details with nested batch sell pack details.
+    GET /api/product-batch-details/<product_id>/
+    """
+    # permission_classes = [IsAuthenticated]
+
+    def get(self, request, product_id):
+        try:
+            product = Product.objects.get(id=product_id)
+        except Product.DoesNotExist:
+            return Response(
+                {"error": "Product not found"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        
+        serializer = ProductBatchDetailSerializer(product)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class CreateBatch(generics.CreateAPIView):
+    """
+    API to create a new Batch with optional nested BatchSellPack records.
+    POST /api/create-batch/
+    
+    Request body example:
+    {
+        "batch_code": "BATCH001",
+        "product_code": "PROD001",
+        "manufacture_date": "2026-01-01",
+        "expiry_date": "2027-01-01",
+        "cost_price": 100.00,
+        "sell_price": 150.00,
+        "product": "<product_uuid>",
+        "purchase": "<purchase_uuid>",
+        "batch_sell_packs": [
+            {"sell_pack": "<sell_pack_uuid>", "sell_price": 140.00, "cost_price": 95.00},
+            {"sell_pack": "<sell_pack_uuid>", "sell_price": 280.00, "cost_price": 190.00}
+        ]
+    }
+    """
+    permission_classes = [IsAuthenticated]
+    queryset = Batch.objects.all()
+    serializer_class = CreateBatchSerializer
+
+
+class UpdateBatch(generics.UpdateAPIView):
+    """
+    API to update an existing Batch with optional nested BatchSellPack records.
+    PUT/PATCH /api/update-batch/<batch_id>/
+    """
+    permission_classes = [IsAuthenticated]
+    queryset = Batch.objects.all()
+    serializer_class = CreateBatchSerializer
+    lookup_field = "id"
+
+
+class CreateStockAdjustment(generics.CreateAPIView):
+    """
+    API to create a StockAdjustment with nested StockAdjustmentItems.
+    
+    This API handles:
+    1. Creating StockAdjustment with auto-generated adjustment_number
+    2. Creating multiple StockAdjustmentItem records
+    3. Updating Stock quantities based on adjust_quantity (+/-)
+    4. Creating Income/Expense records based on adjustment_impact
+    5. Updating Balance and creating RecentTransaction records
+    
+    POST /api/create-stock-adjustment/
+    
+    Request body example:
+    {
+        "adjusted_by": "<user_uuid>",
+        "reason_for_adjustment": "Inventory count correction",
+        "payment_type": "Cash",
+        "branch": "<branch_uuid>",
+        "adjustment_impact": "Income",  // "Income", "Expense", or "Ignore"
+        "items": [
+            {
+                "product": "<product_uuid>",
+                "current_quantity": 100,
+                "adjust_quantity": -5,
+                "rate": 10.00,
+                "rate_adjustment": 0,
+                "amount": 50.00
+            },
+            {
+                "product": "<product_uuid>",
+                "current_quantity": 50,
+                "adjust_quantity": 10,
+                "rate": 20.00,
+                "rate_adjustment": 0,
+                "amount": 200.00
+            }
+        ]
+    }
+    """
+    # permission_classes = [IsAuthenticated]
+    queryset = StockAdjustment.objects.all()
+    serializer_class = CreateStockAdjustmentSerializer
+
+
+class ListStockAdjustment(generics.ListAPIView):
+    """
+    API to list all StockAdjustments with their items.
+    GET /api/list-stock-adjustments/
+    """
+    # permission_classes = [IsAuthenticated]
+    serializer_class = CreateStockAdjustmentSerializer
+    
+    def get_queryset(self):
+        branch_id = self.request.query_params.get("branch")
+        account_id = getattr(self.request.user, 'account_id', None)
+        
+        if branch_id:
+            return StockAdjustment.objects.filter(branch_id=branch_id).order_by('-created_at')
+        elif account_id:
+            branches = Branch.objects.filter(account_id=account_id).values_list('id', flat=True)
+            return StockAdjustment.objects.filter(branch_id__in=branches).order_by('-created_at')
+        else:
+            return StockAdjustment.objects.none()
+
 
 

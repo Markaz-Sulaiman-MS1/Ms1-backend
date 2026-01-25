@@ -258,6 +258,61 @@ class PurchaseLogAdmin(admin.ModelAdmin):
      )
 
 
+class BatchAdmin(admin.ModelAdmin):
+    list_display = (
+        'id',
+        'batch_code',
+        'product',
+        'purchase',
+        'created_at',
+    )
+
+
+class StockAdmin(admin.ModelAdmin):
+    list_display = (
+        'id',
+        'product',
+        'purchase',
+        'quantity',
+        'created_at',
+    )
+
+
+class StockAdjustmentAdmin(admin.ModelAdmin):
+    list_display = (
+        'id',
+        'adjustment_number',
+        'adjusted_by',
+        'branch',
+        'payment_type',
+        'adjustment_impact',
+        'created_at',
+    )
+
+
+class StockAdjustmentItemAdmin(admin.ModelAdmin):
+    list_display = (
+        'id',
+        'stock_adjustment',
+        'product',
+        'current_quantity',
+        'adjust_quantity',
+        'amount',
+        'created_at',
+    )
+
+
+class BatchSellPackAdmin(admin.ModelAdmin):
+    list_display = (
+        'id',
+        'batch',
+        'sell_pack',
+        'sell_price',
+        'cost_price',
+        'created_at',
+    )
+
+
 admin.site.register(User, MyUserAdmin)
 admin.site.register(Employee, EmployeeAdmin)
 admin.site.register(Remarks, RemarksAdmin)
@@ -289,6 +344,12 @@ admin.site.register(Purchase, PurchaseAdmin)
 admin.site.register(ProductItem, ProductItemAdmin)
 admin.site.register(Labour, LabourAdmin)
 admin.site.register(PurchaseLog, PurchaseLogAdmin)
+admin.site.register(Batch, BatchAdmin)
+admin.site.register(Stock, StockAdmin)
+admin.site.register(StockAdjustment, StockAdjustmentAdmin)
+admin.site.register(StockAdjustmentItem, StockAdjustmentItemAdmin)
+admin.site.register(BatchSellPack, BatchSellPackAdmin)
+
 
 
 

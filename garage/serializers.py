@@ -870,9 +870,318 @@ class BatchSerializer(serializers.ModelSerializer):
         ]
 
 
+class BatchSellPackCreateSerializer(serializers.ModelSerializer):
+    """Serializer for creating BatchSellPack without batch reference (will be set in parent)"""
+    class Meta:
+        model = BatchSellPack
+        fields = ["sell_pack", "sell_price", "cost_price"]
+
+
+class CreateBatchSerializer(serializers.ModelSerializer):
+    """Serializer for creating Batch with nested BatchSellPack records"""
+    batch_sell_packs = BatchSellPackCreateSerializer(many=True, required=False, write_only=True)
+
+    class Meta:
+        model = Batch
+        fields = [
+            "id", "batch_code", "product_code", "manufacture_date",
+            "expiry_date", "cost_price", "sell_price", "product", "purchase",
+            "batch_sell_packs"
+        ]
+        read_only_fields = ["id"]
+
+    def create(self, validated_data):
+        # Extract batch_sell_packs data
+        batch_sell_packs_data = validated_data.pop('batch_sell_packs', [])
+        
+        # Create the batch
+        batch = Batch.objects.create(**validated_data)
+        
+        # Create associated BatchSellPack records
+        for sell_pack_data in batch_sell_packs_data:
+            BatchSellPack.objects.create(batch=batch, **sell_pack_data)
+        
+        return batch
+
+    def update(self, instance, validated_data):
+        # Extract batch_sell_packs data
+        batch_sell_packs_data = validated_data.pop('batch_sell_packs', None)
+        
+        # Update batch fields
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+        
+        # If batch_sell_packs data provided, update them
+        if batch_sell_packs_data is not None:
+            # Delete existing batch sell packs and create new ones
+            BatchSellPack.objects.filter(batch=instance).delete()
+            for sell_pack_data in batch_sell_packs_data:
+                BatchSellPack.objects.create(batch=instance, **sell_pack_data)
+        
+        return instance
+
+
+class StockAdjustmentItemCreateSerializer(serializers.ModelSerializer):
+    """Serializer for creating StockAdjustmentItem without stock_adjustment reference"""
+    class Meta:
+        model = StockAdjustmentItem
+        fields = ["product", "current_quantity", "adjust_quantity", "rate", "rate_adjustment", "amount"]
+
+
+class CreateStockAdjustmentSerializer(serializers.ModelSerializer):
+    """
+    Serializer for creating StockAdjustment with nested StockAdjustmentItems.
+    Handles:
+    1. Creating StockAdjustment and nested items
+    2. Updating stock quantities based on adjust_quantity
+    3. Creating Income/Expense records based on adjustment_impact
+    4. Updating Balance and creating RecentTransaction records
+    """
+    items = StockAdjustmentItemCreateSerializer(many=True, required=False, write_only=True)
+
+    class Meta:
+        model = StockAdjustment
+        fields = [
+            "id", "adjustment_number", "adjusted_by", "reason_for_adjustment",
+            "payment_type", "branch", "adjustment_impact", "items"
+        ]
+        read_only_fields = ["id", "adjustment_number"]
+
+    def create(self, validated_data):
+        # Extract items data
+        items_data = validated_data.pop('items', [])
+        
+        # Create the StockAdjustment
+        stock_adjustment = StockAdjustment.objects.create(**validated_data)
+        
+        total_amount = 0
+        
+        # Create StockAdjustmentItems and update stock
+        for item_data in items_data:
+            # Create the adjustment item
+            adjustment_item = StockAdjustmentItem.objects.create(
+                stock_adjustment=stock_adjustment,
+                **item_data
+            )
+            
+            # Calculate total amount for financial transactions
+            if adjustment_item.amount:
+                total_amount += float(adjustment_item.amount)
+            
+            # Update stock quantity for the product
+            product = item_data.get('product')
+            adjust_quantity = item_data.get('adjust_quantity', 0) or 0
+            
+            if product and adjust_quantity != 0:
+                # Get or create stock for this product
+                stock = Stock.objects.filter(product=product).first()
+                if stock:
+                    # Update existing stock quantity
+                    stock.quantity = (stock.quantity or 0) + adjust_quantity
+                    stock.save()
+                else:
+                    # Create new stock record if doesn't exist
+                    Stock.objects.create(
+                        product=product,
+                        quantity=adjust_quantity
+                    )
+        
+        # Handle financial transactions based on adjustment_impact
+        branch = stock_adjustment.branch
+        payment_type = stock_adjustment.payment_type
+        adjustment_impact = stock_adjustment.adjustment_impact
+        
+        if branch and payment_type and adjustment_impact and adjustment_impact != StockAdjustment.IGNORE and total_amount > 0:
+            branch_id = branch.id
+            
+            if adjustment_impact == StockAdjustment.INCOME:
+                # Create Income record
+                Income.objects.create(
+                    type="Other",
+                    name=f"Stock Adjustment - {stock_adjustment.adjustment_number}",
+                    description=stock_adjustment.reason_for_adjustment,
+                    total_income=total_amount,
+                    date=stock_adjustment.created_at,
+                    branch=branch,
+                    payment_type=payment_type
+                )
+                
+                # Update Balance - increase
+                if payment_type == "Cash":
+                    balance, created = Balance.objects.get_or_create(
+                        branch_id=branch_id,
+                        defaults={'cash_balance': total_amount}
+                    )
+                    if not created:
+                        balance.cash_balance = (balance.cash_balance or 0) + total_amount
+                        balance.save()
+                    
+                    RecentTransaction.objects.create(
+                        transaction_type=RecentTransaction.INCOME,
+                        description=f"Stock adjustment income - {stock_adjustment.adjustment_number}",
+                        payment_type=payment_type,
+                        amount=total_amount,
+                        balance_cash=balance.cash_balance,
+                        balance_bank=balance.bank_balance,
+                        branch=branch
+                    )
+                else:  # Bank
+                    balance, created = Balance.objects.get_or_create(
+                        branch_id=branch_id,
+                        defaults={'bank_balance': total_amount}
+                    )
+                    if not created:
+                        balance.bank_balance = (balance.bank_balance or 0) + total_amount
+                        balance.save()
+                    
+                    RecentTransaction.objects.create(
+                        transaction_type=RecentTransaction.INCOME,
+                        description=f"Stock adjustment income - {stock_adjustment.adjustment_number}",
+                        payment_type=payment_type,
+                        amount=total_amount,
+                        balance_cash=balance.cash_balance,
+                        balance_bank=balance.bank_balance,
+                        branch=branch
+                    )
+            
+            elif adjustment_impact == StockAdjustment.EXPENSE:
+                # Create Expense record
+                Expense.objects.create(
+                    type="Other",
+                    name=f"Stock Adjustment - {stock_adjustment.adjustment_number}",
+                    description=stock_adjustment.reason_for_adjustment,
+                    total_cost=total_amount,
+                    date=stock_adjustment.created_at,
+                    branch=branch,
+                    payment_type=payment_type
+                )
+                
+                # Update Balance - decrease
+                if payment_type == "Cash":
+                    balance, created = Balance.objects.get_or_create(
+                        branch_id=branch_id,
+                        defaults={'cash_balance': 0}
+                    )
+                    if not created:
+                        balance.cash_balance = (balance.cash_balance or 0) - total_amount
+                        balance.save()
+                    
+                    RecentTransaction.objects.create(
+                        transaction_type=RecentTransaction.EXPENSE,
+                        description=f"Stock adjustment expense - {stock_adjustment.adjustment_number}",
+                        payment_type=payment_type,
+                        amount=total_amount,
+                        balance_cash=balance.cash_balance,
+                        balance_bank=balance.bank_balance,
+                        branch=branch
+                    )
+                else:  # Bank
+                    balance, created = Balance.objects.get_or_create(
+                        branch_id=branch_id,
+                        defaults={'bank_balance': 0}
+                    )
+                    if not created:
+                        balance.bank_balance = (balance.bank_balance or 0) - total_amount
+                        balance.save()
+                    
+                    RecentTransaction.objects.create(
+                        transaction_type=RecentTransaction.EXPENSE,
+                        description=f"Stock adjustment expense - {stock_adjustment.adjustment_number}",
+                        payment_type=payment_type,
+                        amount=total_amount,
+                        balance_cash=balance.cash_balance,
+                        balance_bank=balance.bank_balance,
+                        branch=branch
+                    )
+        
+        return stock_adjustment
 
 
 class UnitSerializer(serializers.ModelSerializer):
     class Meta:
         model = Units
         fields = ["id", "name", "created_at"]
+
+
+class BatchSellPackSerializer(serializers.ModelSerializer):
+    sell_pack_name = serializers.CharField(source='sell_pack.name', read_only=True)
+    sell_pack_code = serializers.CharField(source='sell_pack.product_code', read_only=True)
+    no_of_pieces = serializers.IntegerField(source='sell_pack.no_of_pieces', read_only=True)
+    stock_quantity = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = BatchSellPack
+        fields = [
+            "id", "batch", "sell_pack", "sell_pack_name", "sell_pack_code",
+            "sell_price", "cost_price", "no_of_pieces", "stock_quantity", "created_at"
+        ]
+
+    def get_stock_quantity(self, obj):
+        """
+        Calculate stock quantity for this sell pack by dividing batch stock by sell pack quantity.
+        Example: if batch stock is 100L and sell pack is 2L, stock_quantity = 100/2 = 50 packs.
+        batch_stock is passed through context from parent serializer.
+        """
+        batch_stock = self.context.get('batch_stock', 0) or 0
+        sell_pack_quantity = obj.sell_pack.quantity if obj.sell_pack and obj.sell_pack.quantity else 1
+        
+        if sell_pack_quantity > 0:
+            return int(batch_stock // sell_pack_quantity)
+        return 0
+
+
+class BatchDetailSerializer(serializers.ModelSerializer):
+    """Batch serializer with nested BatchSellPack details"""
+    product_name = serializers.CharField(source='product.product_name', read_only=True)
+    batch_sell_packs = serializers.SerializerMethodField()
+    stock_quantity = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Batch
+        fields = [
+            "id", "batch_code", "product_code", "manufacture_date",
+            "expiry_date", "cost_price", "sell_price", "product", "product_name", 
+            "stock_quantity", "created_at", "batch_sell_packs"
+        ]
+
+    def get_stock_quantity(self, obj):
+        """
+        Get stock quantity from Stock model based on the purchase linked to this batch.
+        """
+        if obj.purchase:
+            stock = Stock.objects.filter(purchase=obj.purchase, product=obj.product).first()
+            if stock:
+                return stock.quantity or 0
+        return 0
+
+    def get_batch_sell_packs(self, obj):
+        """
+        Get batch sell packs and pass batch stock quantity to child serializer context.
+        """
+        batch_stock = self.get_stock_quantity(obj)
+        batch_sell_packs = BatchSellPack.objects.filter(batch=obj)
+        return BatchSellPackSerializer(
+            batch_sell_packs, 
+            many=True, 
+            context={'batch_stock': batch_stock}
+        ).data
+
+
+class ProductBatchDetailSerializer(serializers.ModelSerializer):
+    """Product serializer with nested Batch and BatchSellPack details"""
+    # brand = BrandSerializer(read_only=True)
+    # category = CategorySerializer(read_only=True)
+    batches = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Product
+        fields = [
+            "id", "product_img", "product_code", "product_name", "condition_type",
+            "brand", "cost_price", "category", "selling_price",
+            "stock_reorder_level", "description", "batches"
+        ]
+
+    def get_batches(self, obj):
+        batches = Batch.objects.filter(product=obj, is_deleted=False)
+        return BatchDetailSerializer(batches, many=True).data

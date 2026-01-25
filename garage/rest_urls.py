@@ -113,8 +113,16 @@ urlpatterns = [
     path("purchase/<uuid:purchase_id>/approve/",ApprovePurchase.as_view(),name="approve-purchase"),
     path("purchase/<uuid:purchase_id>/recieve/",RecievedPurchase.as_view(),name="recieve-purchase"),
     path("purchase/<uuid:purchase_id>/complete/",CompletePurchase.as_view(),name="recieve-purchase"),
+    
+    # Product Batch Details API
+    path("product-batch-details/<uuid:product_id>/", ProductBatchDetails.as_view(), name="product-batch-details"),
+    
+    # Batch CRUD with nested BatchSellPack
+    path("create-batch/", CreateBatch.as_view(), name="create-batch"),
+    path("update-batch/<uuid:id>/", UpdateBatch.as_view(), name="update-batch"),
 
-
-
+    # Stock Adjustment API
+    path("create-stock-adjustment/", CreateStockAdjustment.as_view(), name="create-stock-adjustment"),
+    path("list-stock-adjustments/", ListStockAdjustment.as_view(), name="list-stock-adjustments"),
 
 ]

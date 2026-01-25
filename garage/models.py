@@ -431,6 +431,7 @@ class Batch(TimestampedUUIDModel):
     manufacture_date = models.DateField(null=True, blank=True)
     expiry_date = models.DateField(null=True, blank=True)
     cost_price = models.FloatField(null=True,blank=True)
+    sell_price = models.FloatField(null=True,blank=True)
     product = models.ForeignKey(Product,on_delete=models.CASCADE,null=True)
     is_deleted = models.BooleanField(default=False, null=True, blank=True)
     purchase = models.ForeignKey(Purchase,on_delete=models.CASCADE,null=True)
@@ -456,4 +457,60 @@ class Stock(TimestampedUUIDModel):
     quantity = models.FloatField(null=True,blank=True)
 
 
+class StockAdjustment(TimestampedUUIDModel):
+    CASH = "Cash"
+    BANK = "Bank"
+    payment_choice = ((CASH, CASH), (BANK, BANK))
+    
+    IGNORE = "Ignore"
+    INCOME = "Income"
+    EXPENSE = "Expense"
+    adjustment_choice = ((IGNORE, IGNORE), (INCOME, INCOME), (EXPENSE, EXPENSE))
+    
+    adjustment_number = models.CharField(max_length=200, unique=True, blank=True)
+    adjusted_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    reason_for_adjustment = models.TextField(null=True, blank=True)
+    payment_type = models.CharField(max_length=200, choices=payment_choice, null=True, blank=True)
+    branch = models.ForeignKey(Branch, on_delete=models.SET_NULL, null=True, blank=True)
+    adjustment_impact = models.CharField(max_length=200, choices=adjustment_choice, null=True, blank=True)
 
+    def save(self, *args, **kwargs):
+        if not self.adjustment_number:
+            last_adjustment = StockAdjustment.objects.aggregate(max_adj=Max('adjustment_number'))['max_adj']
+            
+            if last_adjustment:
+                # Extract number from SA001 → 1, SA245 → 245
+                last_number = int(last_adjustment.replace("SA", ""))
+                new_number = last_number + 1
+            else:
+                new_number = 1
+
+            self.adjustment_number = f"SA{new_number:03d}"   # Formats like SA001, SA002
+
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return self.adjustment_number
+
+
+class StockAdjustmentItem(TimestampedUUIDModel):
+    """Child table to store multiple product adjustments per StockAdjustment"""
+    stock_adjustment = models.ForeignKey(StockAdjustment, on_delete=models.CASCADE, related_name='items')
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, null=True, blank=True)
+    current_quantity = models.FloatField(null=True, blank=True)
+    adjust_quantity = models.FloatField(null=True, blank=True)
+    rate = models.FloatField(null=True, blank=True)
+    rate_adjustment = models.FloatField(null=True, blank=True)
+    amount = models.FloatField(null=True, blank=True)
+
+    def __str__(self):
+        return f"{self.stock_adjustment.adjustment_number} - {self.product.product_name if self.product else 'No Product'}"
+
+
+
+class  BatchSellPack(TimestampedUUIDModel):
+    batch = models.ForeignKey(Batch,on_delete=models.CASCADE,null=True)
+    sell_pack = models.ForeignKey(SellPack,on_delete=models.CASCADE,null=True)
+    sell_price = models.FloatField(null=True,blank=True)
+    cost_price = models.FloatField(null=True,blank=True)
+    
