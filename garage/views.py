@@ -2020,12 +2020,12 @@ class RecievedPurchase(APIView):
                         product=item.product,
                         purchase=purchase,
                         defaults={
-                            "quantity": item.quantity or 0
+                            "quantity": item.quantity 
                         }
                     )
 
                     if not created:
-                        stock.quantity += item.quantity or 0
+                        stock.quantity += item.quantity 
                         stock.save()
                 else:
                    
@@ -2033,12 +2033,12 @@ class RecievedPurchase(APIView):
                         product=item.product,
                         purchase__isnull=True,
                         defaults={
-                            "quantity": item.quantity or 0
+                            "quantity": item.quantity 
                         }
                     )
 
                     if not created:
-                        stock.quantity += item.quantity or 0
+                        stock.quantity += item.quantity 
                         stock.save()
          
 
