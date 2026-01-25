@@ -251,6 +251,13 @@ class LabourAdmin(admin.ModelAdmin):
      
 
 
+class PurchaseLogAdmin(admin.ModelAdmin):
+          list_display = (
+         'id',
+         'purchase'
+     )
+
+
 admin.site.register(User, MyUserAdmin)
 admin.site.register(Employee, EmployeeAdmin)
 admin.site.register(Remarks, RemarksAdmin)
@@ -281,6 +288,8 @@ admin.site.register(SellPart, SellPartAdmin)
 admin.site.register(Purchase, PurchaseAdmin)
 admin.site.register(ProductItem, ProductItemAdmin)
 admin.site.register(Labour, LabourAdmin)
+admin.site.register(PurchaseLog, PurchaseLogAdmin)
+
 
 
 

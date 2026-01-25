@@ -28,14 +28,15 @@ from zoneinfo import ZoneInfo
 from django.utils.timezone import make_aware
 from django.utils.dateparse import parse_datetime
 from django.template.loader import render_to_string
-from weasyprint import HTML
+# from weasyprint import HTML
 from datetime import date
 from num2words import num2words
 from django.templatetags.static import static
 import os
 from django.conf import settings
-from xhtml2pdf import pisa
+# from xhtml2pdf import pisa
 from io import BytesIO
+from django.db import transaction
 # pylint: disable=E1101,W0702
 
 
@@ -1340,6 +1341,7 @@ class ListPurchase(APIView):
 
 class EditPurchase(APIView):
     def patch(self, request, purchase_id):
+        user = request.user
         try:
             purchase = Purchase.objects.get(id=purchase_id)
         except Purchase.DoesNotExist:
@@ -1349,6 +1351,12 @@ class EditPurchase(APIView):
 
         if serializer.is_valid():
             serializer.save()
+            PurchaseLog.objects.create(
+                purchase=purchase,
+                created_by=user.first_name if user.is_authenticated else "System",
+                status=PurchaseLog.DRAFT
+            )
+  
             return Response({"message": "Purchase updated successfully", "data": serializer.data},
                             status=status.HTTP_200_OK)
 
@@ -1927,3 +1935,250 @@ class DeleteJobCard(generics.DestroyAPIView):
             {"message": "Job Card deleted successfully."},
             status=status.HTTP_204_NO_CONTENT
         )
+
+    
+
+class ApprovePurchase(APIView):
+    def patch(self, request, purchase_id):
+        user = request.user
+
+        purchase = get_object_or_404(
+            Purchase,
+            id=purchase_id,
+            is_deleted=False
+        )
+
+        # Optional: prevent re-approval
+        if purchase.purchase_type == Purchase.APPROVED:
+            return Response(
+                {"message": "Purchase already approved"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        with transaction.atomic():
+            # Update purchase status
+            purchase.purchase_type = Purchase.APPROVED
+            purchase.save()
+
+            # Create purchase log
+            PurchaseLog.objects.create(
+                purchase=purchase,
+                created_by=user.first_name if user.is_authenticated else "System",
+                status=PurchaseLog.APPROVED
+            )
+
+        return Response(
+            {
+                "message": "Purchase approved successfully",
+                "purchase_id": purchase.id,
+                "status": purchase.purchase_type
+            },
+            status=status.HTTP_200_OK
+        )
+
+
+    
+class RecievedPurchase(APIView):
+
+    def patch(self, request, purchase_id):
+        user = request.user
+
+        purchase = get_object_or_404(
+            Purchase,
+            id=purchase_id,
+            is_deleted=False
+        )
+
+        if purchase.purchase_type == Purchase.RECEIVED:
+            return Response(
+                {"message": "Purchase already Recieved"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        
+        product_items = ProductItem.objects.filter(
+            purchase=purchase,
+            is_deleted=False
+        )
+        
+        with transaction.atomic():
+            purchase.purchase_type = Purchase.RECEIVED
+            purchase.save()
+
+
+            for item in product_items:
+
+                has_batches = Batch.objects.filter(
+                    purchase=purchase,
+                    product=item.product,
+                    is_deleted=False
+                ).exists()
+
+                if has_batches:
+                    
+                    stock, created = Stock.objects.get_or_create(
+                        product=item.product,
+                        purchase=purchase,
+                        defaults={
+                            "quantity": item.quantity or 0
+                        }
+                    )
+
+                    if not created:
+                        stock.quantity += item.quantity or 0
+                        stock.save()
+                else:
+                   
+                    stock, created = Stock.objects.get_or_create(
+                        product=item.product,
+                        purchase__isnull=True,
+                        defaults={
+                            "quantity": item.quantity or 0
+                        }
+                    )
+
+                    if not created:
+                        stock.quantity += item.quantity or 0
+                        stock.save()
+         
+
+            
+                PurchaseLog.objects.create(
+                    purchase=purchase,
+                    created_by=user.first_name if user.is_authenticated else "System",
+                    status=PurchaseLog.RECEIVED
+                )
+
+            return Response(
+            {"message": "Purchase received and stock updated successfully"},
+            status=status.HTTP_200_OK
+        )
+
+
+
+class CompletePurchase(APIView):
+
+    def patch(self, request, purchase_id):
+        user = request.user
+        data = request.data
+
+        purchase = get_object_or_404(
+            Purchase,
+            id=purchase_id,
+            is_deleted=False
+        )
+
+       
+        if purchase.purchase_type == Purchase.COMPLETED:
+            return Response(
+                {"message": "Purchase already completed"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        if purchase.purchase_type != Purchase.RECEIVED:
+            return Response(
+                {"message": "Only received purchases can be completed"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        discount = float(data.get("discount"))
+        tax = float(data.get("tax"))
+        total_amount = float(data.get("total_amount"))
+        payment_type = data.get("payment_type")  # Cash / Bank
+        txn_date =  date.today()
+        description = "Purchase expense"
+
+        if payment_type not in ["Cash", "Bank"]:
+            return Response(
+                {"message": "Invalid payment type"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        with transaction.atomic():
+
+            purchase.purchase_type = Purchase.COMPLETED
+            purchase.discount = discount
+            purchase.tax = tax
+            purchase.total_amount = total_amount
+            purchase.save()
+
+    
+            expense = Expense.objects.create(
+                name=f"Purchase - {purchase.po_nmbr}",
+                description=description,
+                total_cost=total_amount,
+                date=txn_date,
+                type=Expense.PURCHASE,
+                branch=purchase.branch,
+                payment_type=payment_type
+            )
+
+
+            if payment_type == JobCard.CASH:
+                                    
+                balance, created = Balance.objects.get_or_create(
+                branch=purchase.branch,
+                defaults={
+                    'cash_balance': total_amount,
+                }
+                )
+                if not created:
+                    
+                    balance.cash_balance -= total_amount
+                    balance.save()
+
+
+
+                RecentTransaction.objects.create(
+                        transaction_type=RecentTransaction.EXPENSE,
+                        date=txn_date,
+                        description=f"Purchase completed ({purchase.po_nmbr})",
+                        payment_type = payment_type,
+                        amount = total_amount,
+                        balance_cash = balance.cash_balance,
+                        balance_bank = balance.bank_balance,
+                        branch=purchase.branch
+                )
+
+            elif payment_type == JobCard.BANK:
+                balance, created = Balance.objects.get_or_create(
+                branch=purchase.branch,
+                defaults={
+                    'bank_balance': total_amount,
+                }
+                )
+                        
+                if not created:
+                    balance.bank_balance -= total_amount
+                    balance.save()
+
+                RecentTransaction.objects.create(
+                        transaction_type=RecentTransaction.EXPENSE,
+                        date=txn_date,
+                        description=f"Purchase completed ({purchase.po_nmbr})",
+                        payment_type = payment_type,
+                        amount = total_amount,
+                        balance_cash = balance.cash_balance,
+                        balance_bank = balance.bank_balance,
+                        branch=purchase.branch
+                        
+                 )
+
+
+      
+            PurchaseLog.objects.create(
+                purchase=purchase,
+                created_by=user.first_name if user.is_authenticated else "System",
+                status=PurchaseLog.COMPLETED
+            )
+
+        return Response(
+            {
+                "message": "Purchase completed successfully",
+                "purchase_id": purchase.id,
+                "total_amount": total_amount
+            },
+            status=status.HTTP_200_OK
+        )
+
+

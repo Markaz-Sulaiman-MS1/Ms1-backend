@@ -385,10 +385,11 @@ class SellPart(TimestampedUUIDModel):
 class Purchase(TimestampedUUIDModel):
     DRAFT = "Draft"
     INPROGRESS = "In Progress"
+    APPROVED = "Approved"
     RECEIVED = "Received"
     COMPLETED = "Completed"
     CANCELLED = "Cancelled"
-    type_choice = ((DRAFT,DRAFT),(INPROGRESS,INPROGRESS),(RECEIVED,RECEIVED),(COMPLETED,COMPLETED),(CANCELLED,CANCELLED))
+    type_choice = ((DRAFT,DRAFT),(INPROGRESS,INPROGRESS),(RECEIVED,RECEIVED),(COMPLETED,COMPLETED),(CANCELLED,CANCELLED),(APPROVED,APPROVED))
     po_nmbr = models.CharField(max_length=200, unique=True, blank=True)
     vendor = models.ForeignKey(Vendor,on_delete=models.SET_NULL,null=True,blank=True)
     exp_date_delivery = models.DateField(null=True, blank=True)
@@ -397,6 +398,9 @@ class Purchase(TimestampedUUIDModel):
     purchase_type = models.CharField(max_length=200,choices=type_choice,default=DRAFT,null=True,blank=True)
     is_deleted = models.BooleanField(default=False, null=True, blank=True)
     account = models.ForeignKey(Account,on_delete=models.CASCADE,null=True)
+    discount = models.FloatField(null=True,blank=True)
+    tax = models.FloatField(null=True,blank=True)
+    total_amount = models.FloatField(null=True,blank=True)
 
     def save(self, *args, **kwargs):
         if not self.po_nmbr:
@@ -429,5 +433,27 @@ class Batch(TimestampedUUIDModel):
     cost_price = models.FloatField(null=True,blank=True)
     product = models.ForeignKey(Product,on_delete=models.CASCADE,null=True)
     is_deleted = models.BooleanField(default=False, null=True, blank=True)
+    purchase = models.ForeignKey(Purchase,on_delete=models.CASCADE,null=True)
+
+
+class PurchaseLog(TimestampedUUIDModel):
+    DRAFT = "Draft"
+    INPROGRESS = "In Progress"
+    APPROVED = "Approved"
+    RECEIVED = "Received"
+    COMPLETED = "Completed"
+    CANCELLED = "Cancelled"
+    type_choice = ((DRAFT,DRAFT),(INPROGRESS,INPROGRESS),(RECEIVED,RECEIVED),(COMPLETED,COMPLETED),(CANCELLED,CANCELLED),(APPROVED,APPROVED))
+    purchase = models.ForeignKey(Purchase,on_delete=models.CASCADE,null=True)
+    created_by = models.CharField(max_length=200, null=True, blank=True)
+    status=models.CharField(max_length=200,choices=type_choice,default=DRAFT,null=True,blank=True)
+
+
+class Stock(TimestampedUUIDModel):
+
+    product = models.ForeignKey(Product,on_delete=models.CASCADE,null=True)
+    purchase = models.ForeignKey(Purchase,on_delete=models.CASCADE, null=True, blank=True)
+    quantity = models.FloatField(null=True,blank=True)
+
 
 

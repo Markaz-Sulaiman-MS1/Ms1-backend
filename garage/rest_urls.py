@@ -110,6 +110,7 @@ urlpatterns = [
     path("units/", UnitListAPIView.as_view(), name="unit-list"),
     path("delete-jobcards/<uuid:id>/", DeleteJobCard.as_view(), name="delete-jobcards"),
     path("jobcards-render/<uuid:jobcard_id>/quotation-pdf/",jobcard_quotation_preview, name='jobcard_quotation_preview'),
+    path("purchase/<uuid:purchase_id>/approve/",ApprovePurchase.as_view(),name="approve-purchase"),
 
 
 ]
