@@ -28,7 +28,7 @@ from zoneinfo import ZoneInfo
 from django.utils.timezone import make_aware
 from django.utils.dateparse import parse_datetime
 from django.template.loader import render_to_string
-# from weasyprint import HTML
+from weasyprint import HTML
 from datetime import date
 from num2words import num2words
 from django.templatetags.static import static
