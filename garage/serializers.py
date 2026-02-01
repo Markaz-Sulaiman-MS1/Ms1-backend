@@ -796,7 +796,7 @@ class SellPackSerializer(serializers.ModelSerializer):
 
 class SellPartSerializer(serializers.ModelSerializer):
     class Meta:
-        model = SellPart
+        model = SellPart    
         fields = "__all__"
 
 
@@ -830,6 +830,49 @@ class ProductItemSerializer(serializers.ModelSerializer):
         fields = ["id", "product", "product_name", "quantity", "amount", "purchase", "created_at", "updated_at"]
 
 
+class PurchaseDetailWithBatchesSerializer(serializers.ModelSerializer):
+    """
+    Purchase serializer with nested batch details and batch sell packs.
+    Used by ListPurchaseItems API to return comprehensive purchase information.
+    """
+    vendor_name = serializers.CharField(source='vendor.name', read_only=True)
+    branch_name = serializers.CharField(source='branch.name', read_only=True)
+    batches = serializers.SerializerMethodField()
+    items = serializers.SerializerMethodField()
+    items_no = serializers.SerializerMethodField()
+    total_bill = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Purchase
+        fields = [
+            "id", "po_nmbr", "vendor", "vendor_name", "branch", "branch_name",
+            "exp_date_delivery", "description", "purchase_type", "discount",
+            "tax", "total_amount", "created_at", "updated_at", "items_no",
+            "total_bill", "items", "batches"
+        ]
+
+    def get_items_no(self, obj):
+        return ProductItem.objects.filter(purchase=obj, is_deleted=False).count()
+
+    def get_total_bill(self, obj):
+        total = ProductItem.objects.filter(purchase=obj, is_deleted=False).aggregate(
+            total_amount=Sum('amount')
+        )['total_amount']
+        return total or 0
+
+    def get_items(self, obj):
+        """Get purchase items for this purchase."""
+        items = ProductItem.objects.filter(purchase=obj, is_deleted=False)
+        return ProductItemSerializer(items, many=True).data
+
+    def get_batches(self, obj):
+        """
+        Get batches for this purchase with nested batch sell packs.
+        Uses BatchDetailSerializer which includes batch_sell_packs.
+        """
+        from .serializers import BatchDetailSerializer
+        batches = Batch.objects.filter(purchase=obj, is_deleted=False)
+        return BatchDetailSerializer(batches, many=True).data
 
 
 class PurchaseListSerializer(serializers.ModelSerializer):
@@ -1123,7 +1166,7 @@ class BatchSellPackSerializer(serializers.ModelSerializer):
         Example: if batch stock is 100L and sell pack is 2L, stock_quantity = 100/2 = 50 packs.
         batch_stock is passed through context from parent serializer.
         """
-        batch_stock = self.context.get('batch_stock', 0) or 0
+        batch_stock = self.context.get('batch_stock') 
         sell_pack_quantity = obj.sell_pack.quantity if obj.sell_pack and obj.sell_pack.quantity else 1
         
         if sell_pack_quantity > 0:
@@ -1185,3 +1228,41 @@ class ProductBatchDetailSerializer(serializers.ModelSerializer):
     def get_batches(self, obj):
         batches = Batch.objects.filter(product=obj, is_deleted=False)
         return BatchDetailSerializer(batches, many=True).data
+
+
+class PurchaseLogSerializer(serializers.ModelSerializer):
+    """Serializer for PurchaseLog with purchase details"""
+    purchase_number = serializers.CharField(source='purchase.po_nmbr', read_only=True)
+    
+    class Meta:
+        model = PurchaseLog
+        fields = [
+            "id", "purchase", "purchase_number", "created_by", 
+            "status", "created_at", "updated_at"
+        ]
+
+
+class SellPackSerializer(serializers.ModelSerializer):
+    """Serializer for SellPack CRUD operations"""
+    product_name = serializers.CharField(source='product.product_name', read_only=True)
+    
+    class Meta:
+        model = SellPack
+        fields = [
+            "id", "name", "product_code", "quantity", "no_of_pieces",
+            "cost_price", "selling_price", "product", "product_name",
+            "created_at", "updated_at"
+        ]
+
+
+class SellPartSerializer(serializers.ModelSerializer):
+    """Serializer for SellPart CRUD operations"""
+    product_name = serializers.CharField(source='product.product_name', read_only=True)
+    
+    class Meta:
+        model = SellPart
+        fields = [
+            "id", "name", "product_code", "no_of_pieces",
+            "cost_price", "selling_price", "product", "product_name",
+            "created_at", "updated_at"
+        ]

@@ -1447,16 +1447,23 @@ class EditPurchaseItems(APIView):
 
 
 class ListPurchaseItems(APIView):
+    """
+    List purchase items with complete purchase details, batches, and batch sell packs.
+    Query params:
+    - purchase_id: UUID of the purchase to get details for
+    """
     def get(self, request):
         purchase_id = request.query_params.get("purchase_id", None)
 
         if purchase_id:
-            items = ProductItem.objects.filter(purchase__id=purchase_id,is_deleted=False)
+            try:
+                purchase = Purchase.objects.get(id=purchase_id)
+                serializer = PurchaseDetailWithBatchesSerializer(purchase)
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            except Purchase.DoesNotExist:
+                return Response({"error": "Purchase not found"}, status=status.HTTP_404_NOT_FOUND)
         else:
-            items = ProductItem.objects.none
-
-        serializer = ProductItemSerializer(items, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+            return Response({"error": "purchase_id is required"}, status=status.HTTP_400_BAD_REQUEST)
     
 
 
@@ -2305,4 +2312,98 @@ class ListStockAdjustment(generics.ListAPIView):
             return StockAdjustment.objects.none()
 
 
+class ListPurchaseLog(generics.ListAPIView):
+    """
+    API to list PurchaseLog entries.
+    GET /api/list-purchase-logs/?purchase_id=<uuid>
+    
+    Query params:
+    - purchase_id: Filter logs by purchase ID (optional)
+    """
+    # permission_classes = [IsAuthenticated]
+    serializer_class = PurchaseLogSerializer
+    
+    def get_queryset(self):
+        purchase_id = self.request.query_params.get("purchase_id")
+        
+        if purchase_id:
+            return PurchaseLog.objects.filter(purchase_id=purchase_id).order_by('-created_at')
+        else:
+            return PurchaseLog.objects.all().order_by('-created_at')
 
+
+# SellPack APIs
+class UpdateSellPack(generics.UpdateAPIView):
+    """
+    API to update a SellPack.
+    PUT/PATCH /api/update-sell-pack/<uuid:id>/
+    """
+    # permission_classes = [IsAuthenticated]
+    queryset = SellPack.objects.all()
+    serializer_class = SellPackSerializer
+    lookup_field = 'id'
+
+
+class DeleteSellPack(APIView):
+    """
+    API to delete a SellPack.
+    DELETE /api/delete-sell-pack/<uuid:id>/
+    """
+    # permission_classes = [IsAuthenticated]
+    
+    def delete(self, request, id):
+        try:
+            sell_pack = SellPack.objects.get(id=id)
+        except SellPack.DoesNotExist:
+            return Response({"error": "SellPack not found"}, status=status.HTTP_404_NOT_FOUND)
+        
+        sell_pack.delete()
+        return Response({"message": "SellPack deleted successfully"}, status=status.HTTP_200_OK)
+
+
+# SellPart APIs
+class UpdateSellPart(generics.UpdateAPIView):
+    """
+    API to update a SellPart.
+    PUT/PATCH /api/update-sell-part/<uuid:id>/
+    """
+    # permission_classes = [IsAuthenticated]
+    queryset = SellPart.objects.all()
+    serializer_class = SellPartSerializer
+    lookup_field = 'id'
+
+
+class DeleteSellPart(APIView):
+    """
+    API to delete a SellPart.
+    DELETE /api/delete-sell-part/<uuid:id>/
+    """
+    # permission_classes = [IsAuthenticated]
+    
+    def delete(self, request, id):
+        try:
+            sell_part = SellPart.objects.get(id=id)
+        except SellPart.DoesNotExist:
+            return Response({"error": "SellPart not found"}, status=status.HTTP_404_NOT_FOUND)
+        
+        sell_part.delete()
+        return Response({"message": "SellPart deleted successfully"}, status=status.HTTP_200_OK)
+
+
+class DeletePurchase(APIView):
+    """
+    API to delete a Purchase (soft delete).
+    DELETE /api/delete-purchase/<uuid:id>/
+    """
+    # permission_classes = [IsAuthenticated]
+    
+    def delete(self, request, id):
+        try:
+            purchase = Purchase.objects.get(id=id)
+        except Purchase.DoesNotExist:
+            return Response({"error": "Purchase not found"}, status=status.HTTP_404_NOT_FOUND)
+        
+        # Soft delete
+        purchase.is_deleted = True
+        purchase.save()
+        return Response({"message": "Purchase deleted successfully"}, status=status.HTTP_200_OK)

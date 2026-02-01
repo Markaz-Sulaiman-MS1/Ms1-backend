@@ -125,4 +125,18 @@ urlpatterns = [
     path("create-stock-adjustment/", CreateStockAdjustment.as_view(), name="create-stock-adjustment"),
     path("list-stock-adjustments/", ListStockAdjustment.as_view(), name="list-stock-adjustments"),
 
+    # Purchase Log API
+    path("list-purchase-logs/", ListPurchaseLog.as_view(), name="list-purchase-logs"),
+
+    # SellPack APIs
+    path("update-sell-pack/<uuid:id>/", UpdateSellPack.as_view(), name="update-sell-pack"),
+    path("delete-sell-pack/<uuid:id>/", DeleteSellPack.as_view(), name="delete-sell-pack"),
+
+    # SellPart APIs
+    path("update-sell-part/<uuid:id>/", UpdateSellPart.as_view(), name="update-sell-part"),
+    path("delete-sell-part/<uuid:id>/", DeleteSellPart.as_view(), name="delete-sell-part"),
+
+    # Purchase Delete API
+    path("delete-purchase/<uuid:id>/", DeletePurchase.as_view(), name="delete-purchase"),
+
 ]
