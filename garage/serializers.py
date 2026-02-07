@@ -768,7 +768,7 @@ class ProductSerializer(serializers.ModelSerializer):
         model = Product
         fields = [
             "id", "product_img", "product_code", "product_name", "condition_type",
-            "brand", "cost_price", "base_quantity", "category", "selling_price",
+            "brand", "cost_price", "base_quantity", "base_quantity_value", "category", "selling_price",
             "stock_reorder_level", "description","account"
         ]
 
@@ -783,7 +783,7 @@ class ProductListSerializer(serializers.ModelSerializer):
         model = Product
         fields = [
             "id", "product_img", "product_code", "product_name", "condition_type",
-            "brand", "cost_price", "base_quantity", "category", "selling_price",
+            "brand", "cost_price", "base_quantity", "base_quantity_value", "category", "selling_price",
             "stock_reorder_level", "description","account"
         ]
 
@@ -1170,7 +1170,7 @@ class BatchSellPackSerializer(serializers.ModelSerializer):
         sell_pack_quantity = obj.sell_pack.quantity if obj.sell_pack and obj.sell_pack.quantity else 1
         
         if sell_pack_quantity > 0:
-            return int(batch_stock // sell_pack_quantity)
+            return int(batch_stock * obj.sell_pack.product.base_quantity_value // sell_pack_quantity)
         return 0
 
 
@@ -1195,7 +1195,7 @@ class BatchDetailSerializer(serializers.ModelSerializer):
         if obj.purchase:
             stock = Stock.objects.filter(purchase=obj.purchase, product=obj.product).first()
             if stock:
-                return stock.quantity or 0
+                return stock.quantity
         return 0
 
     def get_batch_sell_packs(self, obj):
@@ -1221,7 +1221,7 @@ class ProductBatchDetailSerializer(serializers.ModelSerializer):
         model = Product
         fields = [
             "id", "product_img", "product_code", "product_name", "condition_type",
-            "brand", "cost_price", "category", "selling_price",
+            "brand", "cost_price", "base_quantity", "base_quantity_value", "category", "selling_price",
             "stock_reorder_level", "description", "batches"
         ]
 

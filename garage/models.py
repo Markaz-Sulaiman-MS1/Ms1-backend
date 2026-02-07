@@ -356,6 +356,7 @@ class Product(TimestampedUUIDModel):
     brand = models.ForeignKey(Brand,on_delete=models.CASCADE,null=True)
     cost_price = models.FloatField(null=True,blank=True)
     base_quantity = models.ForeignKey(Units,on_delete=models.SET_NULL,null=True,blank=True)
+    base_quantity_value = models.FloatField(null=True, blank=True)
     category = models.ForeignKey(Category,on_delete=models.SET_NULL,null=True,blank=True)
     selling_price = models.FloatField(null=True,blank=True)
     stock_reorder_level  = models.IntegerField(null=True,blank=True)
