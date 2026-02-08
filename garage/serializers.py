@@ -1041,7 +1041,8 @@ class CreateStockAdjustmentSerializer(serializers.ModelSerializer):
                         # Create new stock record if doesn't exist
                         Stock.objects.create(
                             product=product,
-                            quantity=actual_stock_adjustment
+                            quantity=actual_stock_adjustment,
+                            branch=stock_adjustment.branch
                         )
             elif item_data.get('product') and adjust_quantity != 0:
                 # Fallback: if no batch_sell_pack, use product directly (legacy behavior)
@@ -1053,7 +1054,8 @@ class CreateStockAdjustmentSerializer(serializers.ModelSerializer):
                 else:
                     Stock.objects.create(
                         product=product,
-                        quantity=adjust_quantity
+                        quantity=adjust_quantity,
+                        branch=stock_adjustment.branch
                     )
         
         
@@ -1293,3 +1295,119 @@ class SellPartSerializer(serializers.ModelSerializer):
             "cost_price", "selling_price", "product", "product_name",
             "created_at", "updated_at"
         ]
+class ProductStockSerializer(serializers.ModelSerializer):
+    """Serializer for Stock with batch and batch sell pack details"""
+    batch_details = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = Stock
+        fields = ["id", "quantity", "product", "purchase", "branch", "created_at", "batch_details"]
+    
+    def get_batch_details(self, obj):
+        """Get batch details with nested batch sell packs for this stock's purchase"""
+        if obj.purchase:
+            batches = Batch.objects.filter(
+                purchase=obj.purchase, 
+                product=obj.product, 
+                is_deleted=False
+            )
+            return BatchDetailSerializer(
+                batches, 
+                many=True, 
+                context={'stock_quantity': obj.quantity}
+            ).data
+        return []
+
+
+class ProductWithStockSerializer(serializers.ModelSerializer):
+    """
+    Product serializer with stock details and batch sell pack information.
+    Used for listing products with stock for a specific branch.
+    Includes:
+    - sell_packs: SellPack details for products (shown when no batches exist)
+    - unbatched_quantity: total stock - sum of batch quantities
+    """
+    brand_name = serializers.CharField(source='brand.name', read_only=True)
+    category_name = serializers.CharField(source='category.name', read_only=True)
+    base_quantity_name = serializers.CharField(source='base_quantity.name', read_only=True)
+    stocks = serializers.SerializerMethodField()
+    total_stock_quantity = serializers.SerializerMethodField()
+    sell_packs = serializers.SerializerMethodField()
+    unbatched_quantity = serializers.SerializerMethodField()
+    has_batches = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = Product
+        fields = [
+            "id", "product_img", "product_code", "product_name", "condition_type",
+            "brand", "brand_name", "cost_price", "base_quantity", "base_quantity_name",
+            "base_quantity_value", "category", "category_name", "selling_price",
+            "stock_reorder_level", "description", "total_stock_quantity", 
+            "unbatched_quantity", "has_batches", "sell_packs", "stocks"
+        ]
+    
+    def get_stocks(self, obj):
+        """Get stocks for this product filtered by branch from context"""
+        branch_id = self.context.get('branch_id')
+        if branch_id:
+            stocks = Stock.objects.filter(product=obj, branch_id=branch_id)
+        else:
+            stocks = Stock.objects.filter(product=obj)
+        return ProductStockSerializer(stocks, many=True).data
+    
+    def get_total_stock_quantity(self, obj):
+        """Get total stock quantity for this product in the branch"""
+        branch_id = self.context.get('branch_id')
+        if branch_id:
+            total = Stock.objects.filter(product=obj, branch_id=branch_id).aggregate(
+                total=Sum('quantity')
+            )['total']
+        else:
+            total = Stock.objects.filter(product=obj).aggregate(
+                total=Sum('quantity')
+            )['total']
+        return total or 0
+    
+    def get_has_batches(self, obj):
+        """Check if product has any batches"""
+        return Batch.objects.filter(product=obj, is_deleted=False).exists()
+    
+    def get_sell_packs(self, obj):
+        """Get SellPack details for this product (useful when no batches exist)"""
+        sell_packs = SellPack.objects.filter(product=obj)
+        return SellPackSerializer(sell_packs, many=True).data
+    
+    def get_unbatched_quantity(self, obj):
+        """
+        Calculate unbatched quantity = total stock - sum of batched stock quantities.
+        This represents stock that is not associated with any batch.
+        """
+        branch_id = self.context.get('branch_id')
+        
+        # Get total stock for this product in the branch
+        if branch_id:
+            total_stock = Stock.objects.filter(product=obj, branch_id=branch_id).aggregate(
+                total=Sum('quantity')
+            )['total'] or 0
+            
+            # Get sum of stock that has purchases with batches
+            batched_stock = Stock.objects.filter(
+                product=obj, 
+                branch_id=branch_id,
+                purchase__isnull=False
+            ).filter(
+                purchase__in=Batch.objects.filter(product=obj, is_deleted=False).values('purchase')
+            ).aggregate(total=Sum('quantity'))['total'] or 0
+        else:
+            total_stock = Stock.objects.filter(product=obj).aggregate(
+                total=Sum('quantity')
+            )['total'] or 0
+            
+            batched_stock = Stock.objects.filter(
+                product=obj,
+                purchase__isnull=False
+            ).filter(
+                purchase__in=Batch.objects.filter(product=obj, is_deleted=False).values('purchase')
+            ).aggregate(total=Sum('quantity'))['total'] or 0
+        
+        return total_stock - batched_stock

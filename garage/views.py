@@ -28,7 +28,7 @@ from zoneinfo import ZoneInfo
 from django.utils.timezone import make_aware
 from django.utils.dateparse import parse_datetime
 from django.template.loader import render_to_string
-from weasyprint import HTML
+# from weasyprint import HTML
 from datetime import date
 from num2words import num2words
 from django.templatetags.static import static
@@ -2026,6 +2026,7 @@ class RecievedPurchase(APIView):
                     stock, created = Stock.objects.get_or_create(
                         product=item.product,
                         purchase=purchase,
+                        branch=purchase.branch,
                         defaults={
                             "quantity": item.quantity 
                         }
@@ -2039,6 +2040,7 @@ class RecievedPurchase(APIView):
                     stock, created = Stock.objects.get_or_create(
                         product=item.product,
                         purchase__isnull=True,
+                        branch=purchase.branch,
                         defaults={
                             "quantity": item.quantity 
                         }
@@ -2407,3 +2409,45 @@ class DeletePurchase(APIView):
         purchase.is_deleted = True
         purchase.save()
         return Response({"message": "Purchase deleted successfully"}, status=status.HTTP_200_OK)
+
+
+class ListProductsWithStock(generics.ListAPIView):
+    """
+    API to list products with stock details and batch sell pack information.
+    GET /api/list-products-with-stock/?account_id=<uuid>&branch_id=<uuid>
+    
+    Query params:
+    - account_id (required): Filter products by account
+    - branch_id (optional): Filter stocks by branch, also returns batch sell pack details
+    
+    Response includes:
+    - Product details
+    - Total stock quantity for the branch
+    - Stock records with batch details and batch sell packs
+    """
+    # permission_classes = [IsAuthenticated]
+    serializer_class = ProductWithStockSerializer
+    
+    def get_queryset(self):
+        account_id = self.request.query_params.get("account_id")
+        branch_id = self.request.query_params.get("branch_id")
+        
+        if account_id:
+            # Get products for this account
+            products = Product.objects.filter(account_id=account_id)
+            
+            if branch_id:
+                # Filter to only products that have stock in this branch
+                products_with_stock = Stock.objects.filter(
+                    branch_id=branch_id
+                ).values_list('product_id', flat=True).distinct()
+                products = products.filter(id__in=products_with_stock)
+            
+            return products.order_by('-created_at')
+        else:
+            return Product.objects.none()
+    
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context['branch_id'] = self.request.query_params.get("branch_id")
+        return context

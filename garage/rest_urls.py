@@ -139,4 +139,7 @@ urlpatterns = [
     # Purchase Delete API
     path("delete-purchase/<uuid:id>/", DeletePurchase.as_view(), name="delete-purchase"),
 
+    # Products with Stock API
+    path("list-products-with-stock/", ListProductsWithStock.as_view(), name="list-products-with-stock"),
+
 ]
