@@ -931,7 +931,7 @@ class CreateBatchSerializer(serializers.ModelSerializer):
             "expiry_date", "cost_price", "sell_price", "product", "purchase",
             "batch_sell_packs"
         ]
-        read_only_fields = ["id"]
+        read_only_fields = ["id", "batch_code"]
 
     def create(self, validated_data):
         # Extract batch_sell_packs data
@@ -966,10 +966,10 @@ class CreateBatchSerializer(serializers.ModelSerializer):
 
 
 class StockAdjustmentItemCreateSerializer(serializers.ModelSerializer):
-    """Serializer for creating StockAdjustmentItem without stock_adjustment reference"""
+    """Serializer for creating StockAdjustmentItem with batch_sell_pack reference"""
     class Meta:
         model = StockAdjustmentItem
-        fields = ["product", "current_quantity", "adjust_quantity", "rate", "rate_adjustment", "amount"]
+        fields = ["product", "batch_sell_pack", "current_quantity", "adjust_quantity", "rate", "rate_adjustment", "amount"]
 
 
 class CreateStockAdjustmentSerializer(serializers.ModelSerializer):
@@ -977,7 +977,8 @@ class CreateStockAdjustmentSerializer(serializers.ModelSerializer):
     Serializer for creating StockAdjustment with nested StockAdjustmentItems.
     Handles:
     1. Creating StockAdjustment and nested items
-    2. Updating stock quantities based on adjust_quantity
+    2. Updating stock quantities based on batch_sell_pack and adjust_quantity
+       - Formula: actual_stock_adjustment = adjust_quantity * sell_pack.quantity / product.base_quantity_value
     3. Creating Income/Expense records based on adjustment_impact
     4. Updating Balance and creating RecentTransaction records
     """
@@ -1012,23 +1013,49 @@ class CreateStockAdjustmentSerializer(serializers.ModelSerializer):
             if adjustment_item.amount:
                 total_amount += float(adjustment_item.amount)
             
-            # Update stock quantity for the product
-            product = item_data.get('product')
+            # Get batch_sell_pack and adjust_quantity
+            batch_sell_pack = item_data.get('batch_sell_pack')
             adjust_quantity = item_data.get('adjust_quantity', 0) or 0
             
-            if product and adjust_quantity != 0:
-                # Get or create stock for this product
+            if batch_sell_pack and adjust_quantity != 0:
+                # Get the sell pack quantity (e.g., 5L for a 5L pack)
+                sell_pack = batch_sell_pack.sell_pack
+                sell_pack_quantity = sell_pack.quantity if sell_pack and sell_pack.quantity else 1
+                
+                # Get the product and its base_quantity_value
+                product = sell_pack.product if sell_pack else item_data.get('product')
+                base_quantity_value = product.base_quantity_value if product and product.base_quantity_value else 1
+                
+                # Calculate actual stock adjustment
+                # Example: 2 packs of 5L each = 10L, divided by base_quantity_value 100L = 0.1 stock reduction
+                actual_stock_adjustment = (adjust_quantity * sell_pack_quantity) / base_quantity_value
+                
+                if product:
+                    # Get or create stock for this product
+                    stock = Stock.objects.filter(product=product).first()
+                    if stock:
+                        # Update existing stock quantity
+                        stock.quantity = (stock.quantity or 0) + actual_stock_adjustment
+                        stock.save()
+                    else:
+                        # Create new stock record if doesn't exist
+                        Stock.objects.create(
+                            product=product,
+                            quantity=actual_stock_adjustment
+                        )
+            elif item_data.get('product') and adjust_quantity != 0:
+                # Fallback: if no batch_sell_pack, use product directly (legacy behavior)
+                product = item_data.get('product')
                 stock = Stock.objects.filter(product=product).first()
                 if stock:
-                    # Update existing stock quantity
                     stock.quantity = (stock.quantity or 0) + adjust_quantity
                     stock.save()
                 else:
-                    # Create new stock record if doesn't exist
                     Stock.objects.create(
                         product=product,
                         quantity=adjust_quantity
                     )
+        
         
         # Handle financial transactions based on adjustment_impact
         branch = stock_adjustment.branch
