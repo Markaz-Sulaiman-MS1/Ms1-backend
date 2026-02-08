@@ -437,6 +437,21 @@ class Batch(TimestampedUUIDModel):
     is_deleted = models.BooleanField(default=False, null=True, blank=True)
     purchase = models.ForeignKey(Purchase,on_delete=models.CASCADE,null=True)
 
+    # def save(self, *args, **kwargs):
+    #     if not self.batch_code:
+    #         last_batch = Batch.objects.aggregate(max_code=Max('batch_code'))['max_code']
+            
+    #         if last_batch:
+    #             # Extract number from BATCH001 → 1, BATCH245 → 245
+    #             last_number = int(last_batch.replace("BATCH", ""))
+    #             new_number = last_number + 1
+    #         else:
+    #             new_number = 1
+
+    #         self.batch_code = f"BATCH{new_number:03d}"   # Formats like BATCH001, BATCH002
+
+    #     super().save(*args, **kwargs)
+
 
 class PurchaseLog(TimestampedUUIDModel):
     DRAFT = "Draft"
@@ -456,6 +471,8 @@ class Stock(TimestampedUUIDModel):
     product = models.ForeignKey(Product,on_delete=models.CASCADE,null=True)
     purchase = models.ForeignKey(Purchase,on_delete=models.CASCADE, null=True, blank=True)
     quantity = models.FloatField(null=True,blank=True)
+    branch = models.ForeignKey(Branch,on_delete=models.SET_NULL,null=True)
+
 
 
 class StockAdjustment(TimestampedUUIDModel):
@@ -498,6 +515,7 @@ class StockAdjustmentItem(TimestampedUUIDModel):
     """Child table to store multiple product adjustments per StockAdjustment"""
     stock_adjustment = models.ForeignKey(StockAdjustment, on_delete=models.CASCADE, related_name='items')
     product = models.ForeignKey(Product, on_delete=models.CASCADE, null=True, blank=True)
+    batch_sell_pack = models.ForeignKey('BatchSellPack', on_delete=models.SET_NULL, null=True, blank=True)
     current_quantity = models.FloatField(null=True, blank=True)
     adjust_quantity = models.FloatField(null=True, blank=True)
     rate = models.FloatField(null=True, blank=True)
