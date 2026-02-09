@@ -142,4 +142,7 @@ urlpatterns = [
     # Products with Stock API
     path("list-products-with-stock/", ListProductsWithStock.as_view(), name="list-products-with-stock"),
 
+    # Stock Value Summary API
+    path("stock-value-summary/", StockSummary.as_view(), name="stock-value-summary"),
+
 ]
