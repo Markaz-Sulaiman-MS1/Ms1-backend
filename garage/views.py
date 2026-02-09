@@ -2451,3 +2451,16 @@ class ListProductsWithStock(generics.ListAPIView):
         context = super().get_serializer_context()
         context['branch_id'] = self.request.query_params.get("branch_id")
         return context
+
+
+class StockSummary(APIView):
+    """
+    API to get the total value of current stock.
+    Formula: Sum(stock_quantity * product_selling_price)
+    GET /api/garage/stock-value-summary/
+    """
+    def get(self, request):
+        total_value = Stock.objects.aggregate(
+            total=Sum(F('quantity') * F('product__selling_price'), output_field=FloatField())
+        )['total']
+        return Response({"total_stock_value": total_value or 0}, status=status.HTTP_200_OK)
