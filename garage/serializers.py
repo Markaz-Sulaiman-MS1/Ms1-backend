@@ -967,9 +967,13 @@ class CreateBatchSerializer(serializers.ModelSerializer):
 
 class StockAdjustmentItemCreateSerializer(serializers.ModelSerializer):
     """Serializer for creating StockAdjustmentItem with batch_sell_pack reference"""
+    whole_sell_pack = serializers.UUIDField(write_only=True, required=False)
+    unbatched_whole_pack = serializers.UUIDField(write_only=True, required=False)
+    unbatched_sell_pack = serializers.UUIDField(write_only=True, required=False)
+
     class Meta:
         model = StockAdjustmentItem
-        fields = ["product", "batch_sell_pack", "current_quantity", "adjust_quantity", "rate", "rate_adjustment", "amount"]
+        fields = ["product", "batch_sell_pack", "whole_sell_pack", "unbatched_whole_pack", "unbatched_sell_pack", "current_quantity", "adjust_quantity", "rate", "rate_adjustment", "amount"]
 
 
 class CreateStockAdjustmentSerializer(serializers.ModelSerializer):
@@ -977,8 +981,11 @@ class CreateStockAdjustmentSerializer(serializers.ModelSerializer):
     Serializer for creating StockAdjustment with nested StockAdjustmentItems.
     Handles:
     1. Creating StockAdjustment and nested items
-    2. Updating stock quantities based on batch_sell_pack and adjust_quantity
-       - Formula: actual_stock_adjustment = adjust_quantity * sell_pack.quantity / product.base_quantity_value
+    2. Updating stock quantities based on batch_sell_pack, whole_sell_pack, unbatched_whole_pack, unbatched_sell_pack and adjust_quantity
+       - batch_sell_pack: actual_stock_adjustment = adjust_quantity * sell_pack.quantity / product.base_quantity_value
+       - whole_sell_pack: actual_stock_adjustment = adjust_quantity
+       - unbatched_whole_pack: actual_stock_adjustment = adjust_quantity (Product directly)
+       - unbatched_sell_pack: actual_stock_adjustment = adjust_quantity * sell_pack.quantity / product.base_quantity_value
     3. Creating Income/Expense records based on adjustment_impact
     4. Updating Balance and creating RecentTransaction records
     """
@@ -1003,6 +1010,46 @@ class CreateStockAdjustmentSerializer(serializers.ModelSerializer):
         
         # Create StockAdjustmentItems and update stock
         for item_data in items_data:
+            # Extract special keys
+            whole_sell_pack_id = item_data.pop('whole_sell_pack', None)
+            unbatched_whole_pack_id = item_data.pop('unbatched_whole_pack', None)
+            unbatched_sell_pack_id = item_data.pop('unbatched_sell_pack', None)
+            
+            # Resolve Product if not explicitly provided but special keys are present
+            resolved_product = item_data.get('product')
+            
+            # Resolve objects
+            whole_sell_pack = None
+            if whole_sell_pack_id:
+                try:
+                    whole_sell_pack = Batch.objects.get(id=whole_sell_pack_id)
+                    if not resolved_product:
+                        resolved_product = whole_sell_pack.product
+                except Batch.DoesNotExist:
+                    pass
+
+            unbatched_whole_pack_product = None
+            if unbatched_whole_pack_id:
+                try:
+                    unbatched_whole_pack_product = Product.objects.get(id=unbatched_whole_pack_id)
+                    if not resolved_product:
+                        resolved_product = unbatched_whole_pack_product
+                except Product.DoesNotExist:
+                    pass
+
+            unbatched_sell_pack_obj = None
+            if unbatched_sell_pack_id:
+                try:
+                    unbatched_sell_pack_obj = SellPack.objects.get(id=unbatched_sell_pack_id)
+                    if not resolved_product:
+                        resolved_product = unbatched_sell_pack_obj.product
+                except SellPack.DoesNotExist:
+                    pass
+            
+            # Before creating item, ensure product is set if resolved
+            if resolved_product and not item_data.get('product'):
+                item_data['product'] = resolved_product
+
             # Create the adjustment item
             adjustment_item = StockAdjustmentItem.objects.create(
                 stock_adjustment=stock_adjustment,
@@ -1013,49 +1060,79 @@ class CreateStockAdjustmentSerializer(serializers.ModelSerializer):
             if adjustment_item.amount:
                 total_amount += float(adjustment_item.amount)
             
-            # Get batch_sell_pack and adjust_quantity
+            # Get adjustment params
             batch_sell_pack = item_data.get('batch_sell_pack')
             adjust_quantity = item_data.get('adjust_quantity', 0) or 0
             
-            if batch_sell_pack and adjust_quantity != 0:
-                # Get the sell pack quantity (e.g., 5L for a 5L pack)
+            actual_stock_adjustment = 0
+            product = resolved_product # Use resolved product
+            
+            if whole_sell_pack and adjust_quantity != 0:
+                # Logic for Batched Whole Sell Pack
+                # User request: "just have to reduce the adjust quantity from that stock connected to that whole_sell_pack_id"
+                actual_stock_adjustment = adjust_quantity
+                
+            elif batch_sell_pack and adjust_quantity != 0:
+                # Logic for Batched Sell Pack
                 sell_pack = batch_sell_pack.sell_pack
                 sell_pack_quantity = sell_pack.quantity if sell_pack and sell_pack.quantity else 1
                 
-                # Get the product and its base_quantity_value
-                product = sell_pack.product if sell_pack else item_data.get('product')
+                # Product already resolved likely via batch_sell_pack -> sell_pack -> product relation in serializer validation?
+                # Or handled by item_data['product'] if provided.
+                # If not provided, we rely on sell_pack.product
+                if not product:
+                    product = sell_pack.product
                 base_quantity_value = product.base_quantity_value if product and product.base_quantity_value else 1
                 
-                # Calculate actual stock adjustment
-                # Example: 2 packs of 5L each = 10L, divided by base_quantity_value 100L = 0.1 stock reduction
                 actual_stock_adjustment = (adjust_quantity * sell_pack_quantity) / base_quantity_value
+            
+            elif unbatched_whole_pack_product and adjust_quantity != 0:
+                # Logic for Unbatched Whole Pack
+                # User request: "take whole pack unbatched... updated on that particular stock of that product which is not having any batches"
+                # This implies direct adjustment (1 product unit = 1 stock unit)
+                product = unbatched_whole_pack_product
+                actual_stock_adjustment = adjust_quantity
                 
-                if product:
-                    # Get or create stock for this product
-                    stock = Stock.objects.filter(product=product).first()
-                    if stock:
-                        # Update existing stock quantity
-                        stock.quantity = (stock.quantity or 0) + actual_stock_adjustment
-                        stock.save()
-                    else:
-                        # Create new stock record if doesn't exist
-                        Stock.objects.create(
-                            product=product,
-                            quantity=actual_stock_adjustment,
-                            branch=stock_adjustment.branch
-                        )
+            elif unbatched_sell_pack_obj and adjust_quantity != 0:
+                # Logic for Unbatched Sell Pack
+                product = unbatched_sell_pack_obj.product
+                base_quantity_value = product.base_quantity_value if product and product.base_quantity_value else 1
+                
+                actual_stock_adjustment = (adjust_quantity * unbatched_sell_pack_obj.quantity) / base_quantity_value
+
             elif item_data.get('product') and adjust_quantity != 0:
-                # Fallback: if no batch_sell_pack, use product directly (legacy behavior)
+                # Fallback Logic (General Product Adjustment via direct product ID)
                 product = item_data.get('product')
-                stock = Stock.objects.filter(product=product).first()
+                actual_stock_adjustment = adjust_quantity
+
+            # Update Stock
+            if product and actual_stock_adjustment != 0:
+                stock = None
+                purchase = None
+                
+                # Determine purchase from batch info
+                if whole_sell_pack:
+                    purchase = whole_sell_pack.purchase
+                elif batch_sell_pack and batch_sell_pack.batch:
+                    purchase = batch_sell_pack.batch.purchase
+                
+                # Try to find stock specific to this purchase
+                if purchase:
+                    stock = Stock.objects.filter(product=product, purchase=purchase).first()
+                
+                # Fallback: Use general stock if no specific stock found
+                if not stock:
+                    stock = Stock.objects.filter(product=product).order_by('created_at').first()
+
                 if stock:
-                    stock.quantity = (stock.quantity or 0) + adjust_quantity
+                    stock.quantity = (stock.quantity or 0) + actual_stock_adjustment
                     stock.save()
                 else:
                     Stock.objects.create(
                         product=product,
-                        quantity=adjust_quantity,
-                        branch=stock_adjustment.branch
+                        quantity=actual_stock_adjustment,
+                        branch=stock_adjustment.branch, 
+                        purchase=purchase
                     )
         
         
