@@ -547,6 +547,64 @@ class AddAdvance_amount(generics.CreateAPIView):
     queryset = Advance_amount.objects.all()
     serializer_class = AddAdvance_amountSerializer
 
+    def perform_create(self, serializer):
+        amount_instance = serializer.save()
+        job_card = amount_instance.job_card
+        payment_type = job_card.payment_type
+        
+        # Create Income
+        Income.objects.create(
+            total_income=amount_instance.amount,
+            job_card=job_card,
+            date=timezone.now().date(),
+            type=Income.JOB,
+            branch=job_card.branch,
+            payment_type=payment_type
+        )
+        
+        # Update Balance
+        balance_cash = 0
+        balance_bank = 0
+        
+        balance_obj = None
+        if payment_type == JobCard.CASH:
+             balance_obj, created = Balance.objects.get_or_create(
+                branch=job_card.branch,
+                defaults={'cash_balance': amount_instance.amount}
+             )
+             if not created:
+                 balance_obj.cash_balance = (balance_obj.cash_balance or 0) + amount_instance.amount
+                 balance_obj.save()
+        elif payment_type == JobCard.BANK:
+             balance_obj, created = Balance.objects.get_or_create(
+                branch=job_card.branch,
+                defaults={'bank_balance': amount_instance.amount}
+             )
+             if not created:
+                 balance_obj.bank_balance = (balance_obj.bank_balance or 0) + amount_instance.amount
+                 balance_obj.save()
+        
+        if balance_obj:
+             balance_cash = balance_obj.cash_balance
+             balance_bank = balance_obj.bank_balance
+        else:
+             balance_check = Balance.objects.filter(branch=job_card.branch).first()
+             if balance_check:
+                 balance_cash = balance_check.cash_balance
+                 balance_bank = balance_check.bank_balance
+
+        # Create RecentTransaction
+        RecentTransaction.objects.create(
+            transaction_type=RecentTransaction.INCOME,
+            date=timezone.now().date(),
+            description=f"Advance Payment for JobCard {job_card.vehicle_nmbr}",
+            payment_type=payment_type,
+            amount=amount_instance.amount,
+            balance_cash=balance_cash,
+            balance_bank=balance_bank,
+            branch=job_card.branch
+        )
+
 
 class ListAdvance_amount(generics.ListAPIView):
     permission_classes = [IsAuthenticated]

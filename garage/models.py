@@ -168,7 +168,8 @@ class JobCard(TimestampedUUIDModel):
     CLOSED = "Closed"
     CREDIT = "Credit"
     DRAFT = "Draft"
-    status_choices = ((CLOSED, CLOSED), (CREDIT, CREDIT), (IN_PROGRESS, IN_PROGRESS),(DRAFT,DRAFT))
+    COMPLETED = "Completed"
+    status_choices = ((CLOSED, CLOSED), (CREDIT, CREDIT), (IN_PROGRESS, IN_PROGRESS),(DRAFT,DRAFT),(COMPLETED,COMPLETED))
     CASH = "Cash"
     CREDIT = "Credit"
     BANK = "Bank"
@@ -284,7 +285,7 @@ class Income(TimestampedUUIDModel):
     description = models.TextField(null=True, blank=True)
     total_income = models.FloatField(null=True,blank=True)
     date = models.DateField(null=True, blank=True)
-    job_card = models.OneToOneField(JobCard, on_delete=models.CASCADE,null=True,blank=True)
+    job_card = models.ForeignKey(JobCard, on_delete=models.CASCADE,null=True,blank=True)
     type = models.CharField(max_length=200,choices=type_choices,null=True, blank=True)
     branch = models.ForeignKey(Branch,on_delete=models.SET_NULL,null=True)
     payment_type = models.CharField(max_length=200,choices=payment_choice,null=True)
