@@ -207,13 +207,20 @@ class JobcardSerializer(serializers.ModelSerializer):
 
         total_amount = BillAmount.objects.filter(job_card_id=instance.id).aggregate(
             Sum("amount")
-        )["amount__sum"]
+        )["amount__sum"] or 0
+        
+        # Calculate final amount (Total - Advance from Advance_amount table)
+        advance_payment = Advance_amount.objects.filter(job_card=instance).aggregate(
+            Sum("amount")
+        )["amount__sum"] or 0
+        
+        final_amount = total_amount - advance_payment
         
         if status == "Closed":
 
             Income.objects.create(
                 type="Job",
-                total_income=total_amount,
+                total_income=final_amount,
                 job_card_id=instance.id,
                 date=instance.created_at,
                 name = instance.customer.name,
@@ -225,19 +232,19 @@ class JobcardSerializer(serializers.ModelSerializer):
                 balance, created = Balance.objects.get_or_create(
                 branch_id=instance.branch.id,
                 defaults={
-                    'cash_balance': total_amount,
+                    'cash_balance': final_amount,
                 }
                 )
             
                 if not created:
-                    balance.cash_balance += total_amount
+                    balance.cash_balance += final_amount
                     balance.save()
                 if instance.bill_type == JobCard.CASH:
                     RecentTransaction.objects.create(
                             transaction_type=RecentTransaction.INCOME,
                             description = "Job card income transferred as cash",
                             payment_type = instance.payment_type,
-                            amount = total_amount,
+                            amount = final_amount,
                             balance_cash = balance.cash_balance,
                             balance_bank = balance.bank_balance,
                             branch_id=instance.branch.id
@@ -247,7 +254,7 @@ class JobcardSerializer(serializers.ModelSerializer):
                             transaction_type=RecentTransaction.INCOME,
                             description = "Job card income closed as cashed credit",
                             payment_type = instance.payment_type,
-                            amount = total_amount,
+                            amount = final_amount,
                             balance_cash = balance.cash_balance,
                             balance_bank = balance.bank_balance,
                             branch_id=instance.branch.id
@@ -258,12 +265,12 @@ class JobcardSerializer(serializers.ModelSerializer):
                 balance, created = Balance.objects.get_or_create(
                 branch_id=instance.branch.id,
                 defaults={
-                    'bank_balance': total_amount,
+                    'bank_balance': final_amount,
                 }
                 )
             
                 if not created:
-                    balance.bank_balance += total_amount
+                    balance.bank_balance += final_amount
                     balance.save()
 
                 if instance.bill_type == JobCard.CASH:
@@ -271,7 +278,7 @@ class JobcardSerializer(serializers.ModelSerializer):
                             transaction_type=RecentTransaction.INCOME,
                             description = "Job card income transferred to bank",
                             payment_type = instance.payment_type,
-                            amount = total_amount,
+                            amount = final_amount,
                             balance_cash = balance.cash_balance,
                             balance_bank = balance.bank_balance,
                             branch_id=instance.branch.id
@@ -281,7 +288,7 @@ class JobcardSerializer(serializers.ModelSerializer):
                             transaction_type=RecentTransaction.INCOME,
                             description = "Job card income closed as banked credit",
                             payment_type = instance.payment_type,
-                            amount = total_amount,
+                            amount = final_amount,
                             balance_cash = balance.cash_balance,
                             balance_bank = balance.bank_balance,
                             branch_id=instance.branch.id

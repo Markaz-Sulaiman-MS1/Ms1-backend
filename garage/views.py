@@ -548,9 +548,12 @@ class AddAdvance_amount(generics.CreateAPIView):
     serializer_class = AddAdvance_amountSerializer
 
     def perform_create(self, serializer):
+        payment_type = serializer.validated_data.pop('payment_type', None)
         amount_instance = serializer.save()
         job_card = amount_instance.job_card
-        payment_type = job_card.payment_type
+        
+        if not payment_type:
+            payment_type = job_card.payment_type
         
         # Create Income
         Income.objects.create(
@@ -559,7 +562,8 @@ class AddAdvance_amount(generics.CreateAPIView):
             date=timezone.now().date(),
             type=Income.JOB,
             branch=job_card.branch,
-            payment_type=payment_type
+            payment_type=payment_type,
+            name=job_card.customer.name
         )
         
         # Update Balance
