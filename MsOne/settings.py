@@ -27,7 +27,7 @@ load_dotenv(f"{BASE_DIR}/.env", verbose=True)
 SECRET_KEY = "django-insecure-_t45^bwtm$@(7hf3=nvqd7r4#x$18-8uwx_v6$bw(@7jfut3rk"
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 
 ALLOWED_HOSTS = ["api.ms1admin.live", "ms1admin.live", "www.ms1admin.live","127.0.0.1"]
