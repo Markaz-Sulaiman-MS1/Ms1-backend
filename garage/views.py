@@ -543,17 +543,17 @@ class DeleteIncome(generics.DestroyAPIView):
 
 
 class AddAdvance_amount(generics.CreateAPIView):
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
     queryset = Advance_amount.objects.all()
     serializer_class = AddAdvance_amountSerializer
 
     def perform_create(self, serializer):
-        payment_type = serializer.validated_data.pop('payment_type', None)
         amount_instance = serializer.save()
         job_card = amount_instance.job_card
+        payment_type = amount_instance.payment_type
         
         if not payment_type:
-            payment_type = job_card.payment_type
+             payment_type = job_card.payment_type
         
         # Create Income
         Income.objects.create(

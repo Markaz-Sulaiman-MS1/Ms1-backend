@@ -294,7 +294,8 @@ class Income(TimestampedUUIDModel):
 
 class Advance_amount(TimestampedUUIDModel):
     amount = models.FloatField(null=True,blank=True)                          
-    job_card = models.ForeignKey(JobCard, on_delete=models.CASCADE)                  
+    job_card = models.ForeignKey(JobCard, on_delete=models.CASCADE)
+    payment_type = models.CharField(max_length=100, choices=JobCard.payment_choice, null=True, blank=True)                  
 
 
 class Balance(TimestampedUUIDModel):
