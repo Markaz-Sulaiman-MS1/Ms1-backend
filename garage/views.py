@@ -2526,3 +2526,8 @@ class StockSummary(APIView):
             total=Sum(F('quantity') * F('product__selling_price'), output_field=FloatField())
         )['total']
         return Response({"total_stock_value": total_value or 0}, status=status.HTTP_200_OK)
+
+
+class CreateInventoryStock(generics.CreateAPIView):
+    # permission_classes = [IsAuthenticated]
+    serializer_class = CreateInventoryStockSerializer

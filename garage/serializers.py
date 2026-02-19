@@ -1498,3 +1498,148 @@ class ProductWithStockSerializer(serializers.ModelSerializer):
             ).aggregate(total=Sum('quantity'))['total'] or 0
         
         return total_stock - batched_stock
+
+
+
+class InventoryStockItemCreateSerializer(serializers.ModelSerializer):
+    whole_sell_pack = serializers.UUIDField(required=False, write_only=True)
+    unbatched_whole_pack = serializers.UUIDField(required=False, write_only=True)
+    unbatched_sell_pack = serializers.UUIDField(required=False, write_only=True)
+
+    class Meta:
+        model = InventoryStockItem
+        fields = [
+            "id", "product", "batch_sell_pack", "whole_sell_pack", 
+            "unbatched_whole_pack", "unbatched_sell_pack",
+            "current_quantity", "adjust_quantity", "rate", 
+            "rate_adjustment", "amount"
+        ]
+
+class CreateInventoryStockSerializer(serializers.Serializer):
+    job_card = serializers.PrimaryKeyRelatedField(queryset=JobCard.objects.all())
+    items = InventoryStockItemCreateSerializer(many=True)
+
+    def create(self, validated_data):
+        job_card = validated_data.get('job_card')
+        items_data = validated_data.get('items', [])
+        
+        created_items = []
+        
+        for item_data in items_data:
+            # Extract special keys
+            whole_sell_pack_id = item_data.pop('whole_sell_pack', None)
+            unbatched_whole_pack_id = item_data.pop('unbatched_whole_pack', None)
+            unbatched_sell_pack_id = item_data.pop('unbatched_sell_pack', None)
+            
+            # Resolve Product if not explicitly provided but special keys are present
+            resolved_product = item_data.get('product')
+            
+            # Resolve objects (Same logic as StockAdjustment)
+            whole_sell_pack = None
+            if whole_sell_pack_id:
+                try:
+                    whole_sell_pack = Batch.objects.get(id=whole_sell_pack_id)
+                    if not resolved_product:
+                        resolved_product = whole_sell_pack.product
+                except Batch.DoesNotExist:
+                    pass
+
+            unbatched_whole_pack_product = None
+            if unbatched_whole_pack_id:
+                try:
+                    unbatched_whole_pack_product = Product.objects.get(id=unbatched_whole_pack_id)
+                    if not resolved_product:
+                        resolved_product = unbatched_whole_pack_product
+                except Product.DoesNotExist:
+                    pass
+
+            unbatched_sell_pack_obj = None
+            if unbatched_sell_pack_id:
+                try:
+                    unbatched_sell_pack_obj = SellPack.objects.get(id=unbatched_sell_pack_id)
+                    if not resolved_product:
+                        resolved_product = unbatched_sell_pack_obj.product
+                except SellPack.DoesNotExist:
+                    pass
+            
+            # Ensure product is set
+            if resolved_product and not item_data.get('product'):
+                item_data['product'] = resolved_product
+
+            # Create InventoryStockItem
+            inventory_item = InventoryStockItem.objects.create(
+                job_card=job_card,
+                **item_data
+            )
+            created_items.append(inventory_item)
+            
+            # Stock Update Logic
+            batch_sell_pack = item_data.get('batch_sell_pack')
+            # Assuming adjust_quantity is POSITIVE (quantity to take) from frontend
+            # So we subtract it from stock.
+            adjust_quantity = item_data.get('adjust_quantity', 0) or 0
+            
+            # Calculate stock reduction amount
+            actual_stock_reduction = 0
+            product = resolved_product 
+            
+            if whole_sell_pack and adjust_quantity != 0:
+                actual_stock_reduction = adjust_quantity
+                
+            elif batch_sell_pack and adjust_quantity != 0:
+                sell_pack = batch_sell_pack.sell_pack
+                sell_pack_quantity = sell_pack.quantity if sell_pack and sell_pack.quantity else 1
+                if not product:
+                    product = sell_pack.product
+                base_quantity_value = product.base_quantity_value if product and product.base_quantity_value else 1
+                
+                actual_stock_reduction = (adjust_quantity * sell_pack_quantity) / base_quantity_value
+            
+            elif unbatched_whole_pack_product and adjust_quantity != 0:
+                product = unbatched_whole_pack_product
+                actual_stock_reduction = adjust_quantity
+                
+            elif unbatched_sell_pack_obj and adjust_quantity != 0:
+                product = unbatched_sell_pack_obj.product
+                base_quantity_value = product.base_quantity_value if product and product.base_quantity_value else 1
+                
+                actual_stock_reduction = (adjust_quantity * unbatched_sell_pack_obj.quantity) / base_quantity_value
+
+            elif item_data.get('product') and adjust_quantity != 0:
+                product = item_data.get('product')
+                actual_stock_reduction = adjust_quantity
+
+            # Update Stock (Reduce)
+            if product and actual_stock_reduction != 0:
+                stock = None
+                purchase = None
+                
+                # Determine purchase from batch info
+                if whole_sell_pack:
+                    purchase = whole_sell_pack.purchase
+                elif batch_sell_pack and batch_sell_pack.batch:
+                    purchase = batch_sell_pack.batch.purchase
+                
+                # Try to find stock specific to this purchase
+                if purchase:
+                    stock = Stock.objects.filter(product=product, purchase=purchase).first()
+                
+                # Fallback: Use general stock (FIFO or any available logic, here using oldest created)
+                if not stock:
+                    stock = Stock.objects.filter(product=product).order_by('created_at').first()
+
+                if stock:
+                    # Subtract from stock!
+                    stock.quantity = (stock.quantity or 0) - actual_stock_reduction
+                    stock.save()
+                else:
+                    # If stock doesn't exist, Create negative stock? Or error?
+                    # Generally creating negative stock is allowed if we track it.
+                    Stock.objects.create(
+                        product=product,
+                        quantity= -actual_stock_reduction,
+                        branch=job_card.branch, 
+                        purchase=purchase
+                    )
+        
+        return job_card

@@ -528,6 +528,21 @@ class StockAdjustmentItem(TimestampedUUIDModel):
         return f"{self.stock_adjustment.adjustment_number} - {self.product.product_name if self.product else 'No Product'}"
 
 
+class InventoryStockItem(TimestampedUUIDModel):
+    """Table to store stock items consumed for a JobCard"""
+    job_card = models.ForeignKey(JobCard, on_delete=models.CASCADE, related_name='inventory_items')
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, null=True, blank=True)
+    batch_sell_pack = models.ForeignKey('BatchSellPack', on_delete=models.SET_NULL, null=True, blank=True)
+    current_quantity = models.FloatField(null=True, blank=True)
+    adjust_quantity = models.FloatField(null=True, blank=True)
+    rate = models.FloatField(null=True, blank=True)
+    rate_adjustment = models.FloatField(null=True, blank=True)
+    amount = models.FloatField(null=True, blank=True)
+    
+    def __str__(self):
+        return f"{self.job_card} - {self.product.product_name if self.product else 'No Product'}"
+
+
 
 class  BatchSellPack(TimestampedUUIDModel):
     batch = models.ForeignKey(Batch,on_delete=models.CASCADE,null=True)
