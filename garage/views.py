@@ -2543,6 +2543,12 @@ class CreateInventoryStock(generics.CreateAPIView):
     # permission_classes = [IsAuthenticated]
     serializer_class = CreateInventoryStockSerializer
 
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response({"message": "Inventory stock items created successfully."}, status=status.HTTP_201_CREATED)
+
 
 class ListInventoryStock(generics.ListAPIView):
     # permission_classes = [IsAuthenticated]
