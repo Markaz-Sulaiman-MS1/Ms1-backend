@@ -1502,7 +1502,9 @@ class ProductWithStockSerializer(serializers.ModelSerializer):
 
 
 class InventoryStockItemSerializer(serializers.ModelSerializer):
-    """Read serializer for listing InventoryStockItem records"""
+    """Read serializer for listing InventoryStockItem records with full product details"""
+    product = ProductWithStockSerializer(read_only=True)
+
     class Meta:
         model = InventoryStockItem
         fields = "__all__"
