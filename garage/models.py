@@ -530,9 +530,21 @@ class StockAdjustmentItem(TimestampedUUIDModel):
 
 class InventoryStockItem(TimestampedUUIDModel):
     """Table to store stock items consumed for a JobCard"""
+    BATCH_SELL_PACK = "batch_sell_pack"
+    WHOLE_SELL_PACK = "whole_sell_pack"
+    UNBATCHED_WHOLE_PACK = "unbatched_whole_pack"
+    UNBATCHED_SELL_PACK = "unbatched_sell_pack"
+    ITEM_TYPE_CHOICES = (
+        (BATCH_SELL_PACK, "Batch Sell Pack"),
+        (WHOLE_SELL_PACK, "Whole Sell Pack"),
+        (UNBATCHED_WHOLE_PACK, "Unbatched Whole Pack"),
+        (UNBATCHED_SELL_PACK, "Unbatched Sell Pack"),
+    )
+
     job_card = models.ForeignKey(JobCard, on_delete=models.CASCADE, related_name='inventory_items')
     product = models.ForeignKey(Product, on_delete=models.CASCADE, null=True, blank=True)
     batch_sell_pack = models.ForeignKey('BatchSellPack', on_delete=models.SET_NULL, null=True, blank=True)
+    item_type = models.CharField(max_length=50, choices=ITEM_TYPE_CHOICES, null=True, blank=True)
     current_quantity = models.FloatField(null=True, blank=True)
     adjust_quantity = models.FloatField(null=True, blank=True)
     rate = models.FloatField(null=True, blank=True)

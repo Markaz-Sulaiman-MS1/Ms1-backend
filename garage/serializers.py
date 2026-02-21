@@ -1518,7 +1518,7 @@ class InventoryStockItemCreateSerializer(serializers.ModelSerializer):
         fields = [
             "id", "product", "batch_sell_pack", "whole_sell_pack", 
             "unbatched_whole_pack", "unbatched_sell_pack",
-            "current_quantity", "adjust_quantity", "rate", 
+            "item_type", "current_quantity", "adjust_quantity", "rate", 
             "rate_adjustment", "amount"
         ]
 
@@ -1537,6 +1537,7 @@ class CreateInventoryStockSerializer(serializers.Serializer):
             whole_sell_pack_id = item_data.pop('whole_sell_pack', None)
             unbatched_whole_pack_id = item_data.pop('unbatched_whole_pack', None)
             unbatched_sell_pack_id = item_data.pop('unbatched_sell_pack', None)
+            item_data.pop('item_type', None)  # Auto-set below; ignore any frontend value
             
             # Resolve Product if not explicitly provided but special keys are present
             resolved_product = item_data.get('product')
@@ -1573,9 +1574,22 @@ class CreateInventoryStockSerializer(serializers.Serializer):
             if resolved_product and not item_data.get('product'):
                 item_data['product'] = resolved_product
 
+            # Auto-detect item_type based on which key was provided
+            if whole_sell_pack_id:
+                detected_item_type = InventoryStockItem.WHOLE_SELL_PACK
+            elif unbatched_whole_pack_id:
+                detected_item_type = InventoryStockItem.UNBATCHED_WHOLE_PACK
+            elif unbatched_sell_pack_id:
+                detected_item_type = InventoryStockItem.UNBATCHED_SELL_PACK
+            elif item_data.get('batch_sell_pack'):
+                detected_item_type = InventoryStockItem.BATCH_SELL_PACK
+            else:
+                detected_item_type = None
+
             # Create InventoryStockItem
             inventory_item = InventoryStockItem.objects.create(
                 job_card=job_card,
+                item_type=detected_item_type,
                 **item_data
             )
             created_items.append(inventory_item)
