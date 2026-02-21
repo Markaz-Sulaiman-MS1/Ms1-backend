@@ -2517,12 +2517,23 @@ class ListProductsWithStock(generics.ListAPIView):
 
 class StockSummary(APIView):
     """
-    API to get the total value of current stock.
+    API to get the total value of current stock, filtered by branch.
     Formula: Sum(stock_quantity * product_selling_price)
-    GET /api/garage/stock-value-summary/
+    GET /api/garage/stock-value-summary/?branch=BRANCH_UUID
     """
     def get(self, request):
-        total_value = Stock.objects.aggregate(
+        branch_id = request.query_params.get("branch")
+        account_id = getattr(request.user, 'account_id', None)
+
+        queryset = Stock.objects.all()
+
+        if branch_id:
+            queryset = queryset.filter(branch_id=branch_id)
+        elif account_id:
+            branch_ids = Branch.objects.filter(account_id=account_id).values_list('id', flat=True)
+            queryset = queryset.filter(branch_id__in=branch_ids)
+
+        total_value = queryset.aggregate(
             total=Sum(F('quantity') * F('product__selling_price'), output_field=FloatField())
         )['total']
         return Response({"total_stock_value": total_value or 0}, status=status.HTTP_200_OK)
