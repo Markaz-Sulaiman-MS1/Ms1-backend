@@ -1501,6 +1501,13 @@ class ProductWithStockSerializer(serializers.ModelSerializer):
 
 
 
+class InventoryStockItemSerializer(serializers.ModelSerializer):
+    """Read serializer for listing InventoryStockItem records"""
+    class Meta:
+        model = InventoryStockItem
+        fields = "__all__"
+
+
 class InventoryStockItemCreateSerializer(serializers.ModelSerializer):
     whole_sell_pack = serializers.UUIDField(required=False, write_only=True)
     unbatched_whole_pack = serializers.UUIDField(required=False, write_only=True)

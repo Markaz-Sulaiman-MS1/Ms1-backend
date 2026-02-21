@@ -2531,3 +2531,14 @@ class StockSummary(APIView):
 class CreateInventoryStock(generics.CreateAPIView):
     # permission_classes = [IsAuthenticated]
     serializer_class = CreateInventoryStockSerializer
+
+
+class ListInventoryStock(generics.ListAPIView):
+    # permission_classes = [IsAuthenticated]
+    serializer_class = InventoryStockItemSerializer
+
+    def get_queryset(self):
+        job_card_id = self.request.query_params.get("job_card")
+        if job_card_id:
+            return InventoryStockItem.objects.filter(job_card_id=job_card_id)
+        return InventoryStockItem.objects.none()
