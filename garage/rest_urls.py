@@ -54,6 +54,10 @@ urlpatterns = [
     path("list-inventory-spare/", ListInventoryStock.as_view(), name="list-inventory-spare"),
     path("delete-advance-payment/<uuid:id>/", DeleteAdvance_amount.as_view(), name="delete-advance-payment"),
     path("dashboard-data/", DashboardDatas.as_view(), name="dashboard-datas"),
+    path("job-status-count/", JobStatusCount.as_view(), name="job-status-count"),
+    path("exceeded-summary/", DueDatesExceededSummary.as_view(), name="exceeded-summary"),
+    path("payment-exceeded-list/", PaymentExceededList.as_view(), name="payment-exceeded-list"),
+    path("delivery-exceeded-list/", DeliveryExceededList.as_view(), name="delivery-exceeded-list"),
     path("add-branch/", CreateBranch.as_view(), name="add-branch"),
     path("edit-branch/<uuid:id>/", UpdateBranch.as_view(), name="edit-branch"),
 
@@ -143,6 +147,7 @@ urlpatterns = [
 
     # Products with Stock API
     path("list-products-with-stock/", ListProductsWithStock.as_view(), name="list-products-with-stock"),
+    path("list-all-products-with-stock/", ListAllProductsWithStock.as_view(), name="list-all-products-with-stock"),
 
     # Stock Value Summary API
     path("stock-value-summary/", StockSummary.as_view(), name="stock-value-summary"),
