@@ -630,34 +630,143 @@ class DashboardDatas(APIView):
 
     def get(self, request):
         filter = self.request.query_params.get("filter")
+        account_id = getattr(self.request.user, 'account_id', None)
+        
+        if not account_id:
+            return Response({"error": "No account context found."}, status=status.HTTP_400_BAD_REQUEST)
+
+        branches = Branch.objects.filter(account_id=account_id).values_list('id', flat=True)
         now = timezone.now()
+
         if filter == "all":
-            total_jobs = JobCard.objects.all().count()
-            total_purchase = Expense.objects.filter(type=Expense.JOB).aggregate(total=Sum('total_cost'))['total'] or 0
-            total_expense_other =  Expense.objects.filter(type=Expense.OTHER).aggregate(total=Sum('total_cost'))['total'] or 0
-            expense_salary =   Expense.objects.filter(type=Expense.SALARY).aggregate(salary_total=Sum('salary'),other_total=Sum('other_expense'))
+            total_jobs = JobCard.objects.filter(branch_id__in=branches).count()
+            total_purchase = Expense.objects.filter(branch_id__in=branches, type=Expense.JOB).aggregate(total=Sum('total_cost'))['total'] or 0
+            total_expense_other =  Expense.objects.filter(branch_id__in=branches, type=Expense.OTHER).aggregate(total=Sum('total_cost'))['total'] or 0
+            expense_salary =   Expense.objects.filter(branch_id__in=branches, type=Expense.SALARY).aggregate(salary_total=Sum('salary'),other_total=Sum('other_expense'))
             total_expense_salary = (expense_salary['salary_total'] or 0) + (expense_salary['other_total'] or 0)
             total_expense = total_purchase + total_expense_other + total_expense_salary 
-            income_job = Income.objects.filter(type=Income.JOB,date__year=now.year,date__month=now.month).aggregate(total=Sum('total_income'))['total'] or 0
-            income_other = Income.objects.filter(type=Income.OTHER,date__year=now.year,date__month=now.month).aggregate(total=Sum('total_income'))['total'] or 0
+            income_job = Income.objects.filter(branch_id__in=branches, type=Income.JOB,date__year=now.year,date__month=now.month).aggregate(total=Sum('total_income'))['total'] or 0
+            income_other = Income.objects.filter(branch_id__in=branches, type=Income.OTHER,date__year=now.year,date__month=now.month).aggregate(total=Sum('total_income'))['total'] or 0
             total_income = income_job + income_other
 
 
-            total_purchase_month = Expense.objects.filter(type=Expense.JOB,date__year=now.year,date__month=now.month).aggregate(total=Sum('total_cost'))['total'] or 0
-            total_expense_other_month =  Expense.objects.filter(type=Expense.OTHER,date__year=now.year,date__month=now.month).aggregate(total=Sum('total_cost'))['total'] or 0
-            expense_salary_month =   Expense.objects.filter(type=Expense.SALARY,date__year=now.year,date__month=now.month).aggregate(salary_total=Sum('salary'),other_total=Sum('other_expense'))
+            total_purchase_month = Expense.objects.filter(branch_id__in=branches, type=Expense.JOB,date__year=now.year,date__month=now.month).aggregate(total=Sum('total_cost'))['total'] or 0
+            total_expense_other_month =  Expense.objects.filter(branch_id__in=branches, type=Expense.OTHER,date__year=now.year,date__month=now.month).aggregate(total=Sum('total_cost'))['total'] or 0
+            expense_salary_month =   Expense.objects.filter(branch_id__in=branches, type=Expense.SALARY,date__year=now.year,date__month=now.month).aggregate(salary_total=Sum('salary'),other_total=Sum('other_expense'))
             total_expense_salary_month = (expense_salary_month['salary_total'] or 0) + (expense_salary_month['other_total'] or 0)
             total_expense_month = total_purchase_month + total_expense_other_month + total_expense_salary_month
 
             total_balance = total_income - total_expense_month   
             total_values = {
-            "total_jobs": total_jobs,
-            "total_purchase":total_purchase,
-            "total_expense":total_expense,
-            "total_income":total_income,
-            "total_balance":total_balance
+                "total_jobs": total_jobs,
+                "total_purchase": total_purchase,
+                "total_expense": total_expense,
+                "total_income": total_income,
+                "total_balance": total_balance
+            }
+            return Response(total_values)
+        
+        return Response({"error": "Invalid filter"}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class JobStatusCount(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        account_id = getattr(self.request.user, 'account_id', None)
+        branch_id = request.query_params.get("branch")
+        from_date = self.request.query_params.get("from_date")
+        to_date = self.request.query_params.get("to_date")
+
+        if branch_id:
+            if from_date and to_date:
+                from_dt = parse_datetime(from_date)
+                to_dt = parse_datetime(to_date)
+                jobcards = JobCard.objects.filter(branch_id=branch_id, created_at__date__gte=from_dt, created_at__date__lte=to_dt)
+            else:
+                jobcards = JobCard.objects.filter(branch_id=branch_id)
+
+            status_counts = {
+                "draft": jobcards.filter(status=JobCard.DRAFT).count(),
+                "in_progress": jobcards.filter(status=JobCard.IN_PROGRESS).count(),
+                "closed": jobcards.filter(status=JobCard.CLOSED).count(),
+                "credit": jobcards.filter(status=JobCard.CREDIT).count(),
+                "completed": jobcards.filter(status=JobCard.COMPLETED).count(),
+            }
+            return Response(status_counts)
+
+        elif account_id:
+            branches = Branch.objects.filter(account_id=account_id).values_list('id', flat=True)
+
+            if from_date and to_date:
+                from_dt = parse_datetime(from_date)
+                to_dt = parse_datetime(to_date)
+                jobcards = JobCard.objects.filter(branch_id__in=branches, created_at__date__gte=from_dt, created_at__date__lte=to_dt)
+            else:
+                jobcards = JobCard.objects.filter(branch_id__in=branches)
+
+            status_counts = {
+                "draft": jobcards.filter(status=JobCard.DRAFT).count(),
+                "in_progress": jobcards.filter(status=JobCard.IN_PROGRESS).count(),
+                "closed": jobcards.filter(status=JobCard.CLOSED).count(),
+                "credit": jobcards.filter(status=JobCard.CREDIT).count(),
+                "completed": jobcards.filter(status=JobCard.COMPLETED).count(),
+            }
+            return Response(status_counts)
+
+        else:
+            return Response({"error": "No branch or account context found."}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class DueDatesExceededSummary(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        account_id = getattr(request.user, 'account_id', None)
+        branch_id = request.query_params.get("branch")
+        today = timezone.now().date()
+
+        if branch_id:
+            queryset = JobCard.objects.filter(branch_id=branch_id)
+        elif account_id:
+            branches = Branch.objects.filter(account_id=account_id).values_list('id', flat=True)
+            queryset = JobCard.objects.filter(branch_id__in=branches)
+        else:
+            return Response({"payment_exceeded": 0, "delivery_exceeded": 0})
+
+        data = {
+            "payment_exceeded": queryset.exclude(status=JobCard.CLOSED).filter(payment_due_date__lt=today).count(),
+            "delivery_exceeded": queryset.exclude(status__in=[JobCard.CLOSED, JobCard.CREDIT]).filter(delivery_due_date__lt=today).count(),
         }
-        return Response(total_values)
+        return Response(data)
+
+
+class PaymentExceededList(generics.ListAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = RetrieveJobSerializer
+
+    def get_queryset(self):
+        account_id = getattr(self.request.user, 'account_id', None)
+        branch_id = self.request.query_params.get("branch")
+        today = timezone.now().date()
+
+        queryset = JobCard.objects.filter(branch_id=branch_id) if branch_id else JobCard.objects.filter(branch_id__in=Branch.objects.filter(account_id=account_id).values_list('id', flat=True)) if account_id else JobCard.objects.none()
+
+        return queryset.exclude(status=JobCard.CLOSED).filter(payment_due_date__lt=today)
+
+
+class DeliveryExceededList(generics.ListAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = RetrieveJobSerializer
+
+    def get_queryset(self):
+        account_id = getattr(self.request.user, 'account_id', None)
+        branch_id = self.request.query_params.get("branch")
+        today = timezone.now().date()
+
+        queryset = JobCard.objects.filter(branch_id=branch_id) if branch_id else JobCard.objects.filter(branch_id__in=Branch.objects.filter(account_id=account_id).values_list('id', flat=True)) if account_id else JobCard.objects.none()
+
+        return queryset.exclude(status__in=[JobCard.CLOSED, JobCard.CREDIT]).filter(delivery_due_date__lt=today)
 
 
 class CreateBranch(generics.CreateAPIView):
@@ -1553,6 +1662,8 @@ class UpdatePurchaseStatus(APIView):
             return Response({"error": "Purchase not found"}, status=status.HTTP_404_NOT_FOUND)
         
         purchase.purchase_type = status
+        if status == Purchase.COMPLETED and cash_type:
+            purchase.payment_type = cash_type
         purchase.save()
 
         if purchase.purchase_type == Purchase.COMPLETED:
@@ -1561,7 +1672,7 @@ class UpdatePurchaseStatus(APIView):
 
             expense = Expense.objects.create(
                 payment_type=cash_type,
-                type=Expense.PURCHASE,
+                type=Expense.JOB,
                 name=f"Purchase {purchase.po_nmbr}",
                 description = f"Purchase done for {total}",
                 total_cost = total,
@@ -2171,6 +2282,7 @@ class CompletePurchase(APIView):
             purchase.discount = discount
             purchase.tax = tax
             purchase.total_amount = total_amount
+            purchase.payment_type = payment_type
             purchase.save()
 
     
@@ -2179,7 +2291,7 @@ class CompletePurchase(APIView):
                 description=description,
                 total_cost=total_amount,
                 date=txn_date,
-                type=Expense.PURCHASE,
+                type=Expense.JOB,
                 branch=purchase.branch,
                 payment_type=payment_type
             )
@@ -2476,11 +2588,12 @@ class DeletePurchase(APIView):
 class ListProductsWithStock(generics.ListAPIView):
     """
     API to list products with stock details and batch sell pack information.
-    GET /api/list-products-with-stock/?account_id=<uuid>&branch_id=<uuid>
+    GET /api/list-products-with-stock/?account_id=<uuid>&branch_id=<uuid>&product_id=<uuid>
     
     Query params:
-    - account_id (required): Filter products by account
+    - account_id (required if no product_id): Filter products by account
     - branch_id (optional): Filter stocks by branch, also returns batch sell pack details
+    - product_id (optional): Filter to a specific product (returns single product data)
     
     Response includes:
     - Product details
@@ -2493,6 +2606,10 @@ class ListProductsWithStock(generics.ListAPIView):
     def get_queryset(self):
         account_id = self.request.query_params.get("account_id")
         branch_id = self.request.query_params.get("branch_id")
+        product_id = self.request.query_params.get("product_id")
+        
+        if product_id:
+            return Product.objects.filter(id=product_id)
         
         if account_id:
             # Get products for this account
@@ -2515,6 +2632,26 @@ class ListProductsWithStock(generics.ListAPIView):
         return context
 
 
+class ListAllProductsWithStock(generics.ListAPIView):
+    """
+    API to list ALL products for an account with stock details (including zero stock).
+    GET /api/list-all-products-with-stock/?branch=<uuid>
+    """
+    permission_classes = [IsAuthenticated]
+    serializer_class = ProductWithStockSerializer
+
+    def get_queryset(self):
+        account_id = getattr(self.request.user, 'account_id', None)
+        if account_id:
+            return Product.objects.filter(account_id=account_id).order_by('-created_at')
+        return Product.objects.none()
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context['branch_id'] = self.request.query_params.get("branch")
+        return context
+
+
 class StockSummary(APIView):
     """
     API to get the total value of current stock, filtered by branch.
@@ -2525,13 +2662,13 @@ class StockSummary(APIView):
         branch_id = request.query_params.get("branch")
         account_id = getattr(request.user, 'account_id', None)
 
-        queryset = Stock.objects.all()
-
         if branch_id:
-            queryset = queryset.filter(branch_id=branch_id)
+            queryset = Stock.objects.filter(branch_id=branch_id)
         elif account_id:
             branch_ids = Branch.objects.filter(account_id=account_id).values_list('id', flat=True)
-            queryset = queryset.filter(branch_id__in=branch_ids)
+            queryset = Stock.objects.filter(branch_id__in=branch_ids)
+        else:
+            return Response({"total_stock_value": 0}, status=status.HTTP_200_OK)
 
         total_value = queryset.aggregate(
             total=Sum(F('quantity') * F('product__selling_price'), output_field=FloatField())

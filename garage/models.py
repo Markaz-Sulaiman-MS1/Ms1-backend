@@ -404,6 +404,7 @@ class Purchase(TimestampedUUIDModel):
     discount = models.FloatField(null=True,blank=True)
     tax = models.FloatField(null=True,blank=True)
     total_amount = models.FloatField(null=True,blank=True)
+    payment_type = models.CharField(max_length=200, choices=JobCard.payment_choice, null=True, blank=True)
 
     def save(self, *args, **kwargs):
         if not self.po_nmbr:
