@@ -313,6 +313,21 @@ class BatchSellPackAdmin(admin.ModelAdmin):
     )
 
 
+class InventoryStockItemAdmin(admin.ModelAdmin):
+    list_display = (
+        'id',
+        'job_card',
+        'product',
+        'item_type',
+        'adjust_quantity',
+        'rate',
+        'amount',
+        'created_at',
+    )
+    list_filter = ('item_type',)
+    search_fields = ('job_card__id', 'product__product_name')
+
+
 admin.site.register(User, MyUserAdmin)
 admin.site.register(Employee, EmployeeAdmin)
 admin.site.register(Remarks, RemarksAdmin)
@@ -349,6 +364,7 @@ admin.site.register(Stock, StockAdmin)
 admin.site.register(StockAdjustment, StockAdjustmentAdmin)
 admin.site.register(StockAdjustmentItem, StockAdjustmentItemAdmin)
 admin.site.register(BatchSellPack, BatchSellPackAdmin)
+admin.site.register(InventoryStockItem, InventoryStockItemAdmin)
 
 
 
