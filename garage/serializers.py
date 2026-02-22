@@ -1576,22 +1576,29 @@ class CreateInventoryStockSerializer(serializers.Serializer):
             if resolved_product and not item_data.get('product'):
                 item_data['product'] = resolved_product
 
-            # Auto-detect item_type based on which key was provided
+            # Auto-detect item_type + item_type_id (UUID of the used pack)
+            batch_sell_pack_obj = item_data.get('batch_sell_pack')  # already a model instance or None
             if whole_sell_pack_id:
                 detected_item_type = InventoryStockItem.WHOLE_SELL_PACK
+                detected_item_type_id = str(whole_sell_pack_id)
             elif unbatched_whole_pack_id:
                 detected_item_type = InventoryStockItem.UNBATCHED_WHOLE_PACK
+                detected_item_type_id = str(unbatched_whole_pack_id)
             elif unbatched_sell_pack_id:
                 detected_item_type = InventoryStockItem.UNBATCHED_SELL_PACK
-            elif item_data.get('batch_sell_pack'):
+                detected_item_type_id = str(unbatched_sell_pack_id)
+            elif batch_sell_pack_obj:
                 detected_item_type = InventoryStockItem.BATCH_SELL_PACK
+                detected_item_type_id = str(batch_sell_pack_obj.id)
             else:
                 detected_item_type = None
+                detected_item_type_id = None
 
             # Create InventoryStockItem
             inventory_item = InventoryStockItem.objects.create(
                 job_card=job_card,
                 item_type=detected_item_type,
+                item_type_id=detected_item_type_id,
                 **item_data
             )
             created_items.append(inventory_item)

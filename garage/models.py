@@ -551,6 +551,7 @@ class InventoryStockItem(TimestampedUUIDModel):
     rate = models.FloatField(null=True, blank=True)
     rate_adjustment = models.FloatField(null=True, blank=True)
     amount = models.FloatField(null=True, blank=True)
+    item_type_id = models.CharField(max_length=50, null=True, blank=True)
     
     def __str__(self):
         return f"{self.job_card} - {self.product.product_name if self.product else 'No Product'}"
